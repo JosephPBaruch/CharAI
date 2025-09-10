@@ -1,4 +1,4 @@
-# AIAgriculture
+# CharAI
 Capstone Project 2026
 
 
