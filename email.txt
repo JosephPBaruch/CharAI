@@ -1,0 +1,16 @@
+To: Dev and Robel
+Subject: AI for Agriculture: Request for Clarification on System Inputs/Outputs and Biochar Equation
+
+Hello Dev and Robel,
+
+Following up on our discussion from last week, our team would like to gather some additional details. Specifically, we are seeking clarification on the inputs and outputs of the system, as well as the model or equation being used.
+
+We would also appreciate more information regarding the static equation for biochar application. Having this information will help us properly plan and design the input and output formats.
+
+Would you be available to meet sometime this week to discuss? Friday could work well for us, but if that doesn’t fit your schedule, a detailed written explanation would also be very helpful.
+
+Thank you for your time and guidance.
+
+Best regards,
+Joseph Baruch
+Computer Science
