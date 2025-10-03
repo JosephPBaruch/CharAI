@@ -11,5 +11,3 @@ Feature: CharAI
     Scenario: Export prescription maps
 
     Scenario: A user signs in and sees previous coordinate input and prescription maps
-
-    Scenario:

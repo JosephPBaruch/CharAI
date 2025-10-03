@@ -5,16 +5,11 @@
 - [Project Requirements — Biochar Placement Optimization Tool](#project-requirements--biochar-placement-optimization-tool)
   - [Table of Contents](#table-of-contents)
   - [Functional Requirements](#functional-requirements)
-    - [Inputs and Output of system](#inputs-and-output-of-system)
-      - [Input](#input)
-      - [Output](#output)
-    - [Inputs and outputs of model/equation](#inputs-and-outputs-of-modelequation)
-      - [Inputs](#inputs)
-      - [Outputs](#outputs)
-    - [Biochar Prescription Maps](#biochar-prescription-maps)
-    - [Land Coordinates](#land-coordinates)
-  - [Non-Functional Requirements](#non-functional-requirements)
+    - [User Facing Input/Output](#user-facing-inputoutput)
+    - [Yield Prediction System Inputs/Outputs](#yield-prediction-system-inputsoutputs)
   - [System Requirements](#system-requirements)
+    - [Yield Prediction System](#yield-prediction-system)
+    - [Accessibility](#accessibility)
   - [Budget Requirements](#budget-requirements)
   - [Schedule Requirements](#schedule-requirements)
 
@@ -24,48 +19,43 @@
 
 ## Functional Requirements
 
-### Inputs and Output of system
+See functional requirements represented in Gherkin in [CharAI.feature](CharAI.feature).
 
-#### Input
+### User Facing Input/Output
 
-Land Coordinates
+The user shall input the coordinate information of their land and obtain a biochar prescription map. 
 
-#### Output 
-Biochar Prescription maps
+The land coordinate infomation shall be inputed manually within the system using an interactive map or by uploading a file containing the relavent information. 
 
-### Inputs and outputs of model/equation
+Biochar Prescription Maps shall represent return on investment (ROI) data for biochar placement on a field. These maps shall not represent the amount of biochar should be placed on the section of the field.
 
-#### Inputs
+### Yield Prediction System Inputs/Outputs
+
+The yield prediction system shall have the following inputs: 
   - Land Coordinates
   - Soil properties
   - Slope directions
   - Elevation
   - Moisture
   - Climate
-  - Biochar (changes soil properties, moisture, etc)
+  - Biochar
 
-#### Outputs
-  - Predicted yield
+The yield prediction system shall output a prediction of crop yield.
 
-### Biochar Prescription Maps
-
-Biochar Prescription Maps show return on investment (ROI) data for biochar placement on a field. These maps do not represent amount of biochar placed 
-
-### Land Coordinates
-
-The land coordinates are either inputted from the user through an interactive map or they are obtained from a user provided document (file type here). 
-
-See functional requirements represented in Gherkin in [CharAI.feature](CharAI.feature).
-
-## Non-Functional Requirements
-
-Operating environment considerations
-
-The application needs to be hosted publically. 
+**Note:** The input *Biochar* shall alter soil properties and moisture. This calculation shall happen before the inputs are inputted into the yield prediction model/equation. 
 
 ## System Requirements
 
-The prescription map calculator needs to be designed in a way that it can be traded in for model or equation. 
+### Yield Prediction System
+
+The yield prediction system shall be designed to easily use a yield prediction equation or a yield prediction model. The yield prediction model is to be determined. Options include:
+- machine learning model
+- convulutional neural network
+- other
+
+### Accessibility
+
+The system shall but publically hosted and accessed using proper authentication. 
 
 ## Budget Requirements
 
@@ -73,7 +63,7 @@ The total budget of the product shall not exceed $1000.
 
 ## Schedule Requirements
 
-The following are the major project milestones:
+The following schedule outline shall be followed:
 
 - Approval of Requirements — Sept. 30, 2025
 - Concept Design Review — Nov. 30, 2025
