@@ -1,13 +1,32 @@
 Feature: CharAI
 
-    These scenarios represent the user value of the system. These scenario's
-    are written from the users perspect and should be treated as such (black
-    box).
+    These scenarios represent user interactions with the system. The purpose of this
+    format is to convey the value of the system from the user perspective. Note the
+    system is a "black box" from the user perspective.
 
-    Scenario: Manually enter in coordinates
+    Scenario: User creates account
+        When a user creates an account
+        Then the system saves the user information
 
-    Scenario: Farmer enters in land area using inputted file
+    Scenario: User signs in
+        When a user signs into the system
+        Then the system indicates the user is signed in
+        And the user can access previous biochar prescription maps
+
+    Scenario: Manually enter coordinates
+        When the user manually inputs land coordinates
+        Then the system shall display the entered coordinates on an interactive map
+
+    Scenario: User enters land area using an uploaded file
+        When the user uploads a file containing land area information
+        Then the system shall extract and display the land area on an interactive map
+
+    Scenario: User requests prescription maps
+        Given a user has entered their land coordinates
+        When a user requests biochar prescription maps
+        Then the system generates biochar prescription maps
 
     Scenario: Export prescription maps
-
-    Scenario: A user signs in and sees previous coordinate input and prescription maps
+        Given a user has generated a biochar prescription map
+        When the user requests to download the biochar prescription maps
+        Then the biochar prescription map is downloaded to the users browser
