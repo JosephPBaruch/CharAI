@@ -1,12 +1,12 @@
 Feature: CharAI
 
     These scenarios represent user interactions with the system. The purpose of this
-    format is to convey the value of the system from the user perspective. Note the
-    system is a "black box" from the user perspective.
+    format is to convey the value of the system from the user's perspective. Note that
+    the system is a "black box" from the user's perspective.
 
-    Scenario: User creates account
+    Scenario: User creates an account
         When a user creates an account
-        Then the system saves the user information
+        Then the system saves the user's information
 
     Scenario: User signs in
         When a user signs into the system
@@ -29,4 +29,4 @@ Feature: CharAI
     Scenario: Export prescription maps
         Given a user has generated a biochar prescription map
         When the user requests to download the biochar prescription maps
-        Then the biochar prescription map is downloaded to the users browser
+        Then the biochar prescription map is downloaded to the user's browser
