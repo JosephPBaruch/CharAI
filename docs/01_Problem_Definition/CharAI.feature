@@ -9,3 +9,7 @@ Feature: CharAI
     Scenario: Farmer enters in land area using inputted file
 
     Scenario: Export prescription maps
+
+    Scenario: A user signs in and sees previous coordinate input and prescription maps
+
+    Scenario:

@@ -5,9 +5,17 @@
 - [Project Requirements — Biochar Placement Optimization Tool](#project-requirements--biochar-placement-optimization-tool)
   - [Table of Contents](#table-of-contents)
   - [Functional Requirements](#functional-requirements)
+    - [Inputs and Output of system](#inputs-and-output-of-system)
+      - [Input](#input)
+      - [Output](#output)
+    - [Inputs and outputs of model/equation](#inputs-and-outputs-of-modelequation)
+      - [Inputs](#inputs)
+      - [Outputs](#outputs)
+    - [Biochar Prescription Maps](#biochar-prescription-maps)
+    - [Land Coordinates](#land-coordinates)
   - [Non-Functional Requirements](#non-functional-requirements)
-  - [Cost Requirements](#cost-requirements)
-    - [Prototype Cost](#prototype-cost)
+  - [System Requirements](#system-requirements)
+  - [Budget Requirements](#budget-requirements)
   - [Schedule Requirements](#schedule-requirements)
 
 **Note:** Update the [Table of Contents](#table-of-contents) with the *Markdown All in One* extension.
@@ -16,20 +24,52 @@
 
 ## Functional Requirements
 
+### Inputs and Output of system
+
+#### Input
+
+Land Coordinates
+
+#### Output 
+Biochar Prescription maps
+
+### Inputs and outputs of model/equation
+
+#### Inputs
+  - Land Coordinates
+  - Soil properties
+  - Slope directions
+  - Elevation
+  - Moisture
+  - Climate
+  - Biochar (changes soil properties, moisture, etc)
+
+#### Outputs
+  - Predicted yield
+
+### Biochar Prescription Maps
+
+Biochar Prescription Maps show return on investment (ROI) data for biochar placement on a field. These maps do not represent amount of biochar placed 
+
+### Land Coordinates
+
+The land coordinates are either inputted from the user through an interactive map or they are obtained from a user provided document (file type here). 
 
 See functional requirements represented in Gherkin in [CharAI.feature](CharAI.feature).
 
-
-
 ## Non-Functional Requirements
+
+Operating environment considerations
 
 The application needs to be hosted publically. 
 
-## Cost Requirements
+## System Requirements
 
-### Prototype Cost
+The prescription map calculator needs to be designed in a way that it can be traded in for model or equation. 
 
-The prototype will be developed using Azure cloud services. The cost of hosting, storage, and compute resources on Azure shall not exceed $50/month during the capstone project.
+## Budget Requirements
+
+The total budget of the product shall not exceed $1000.
 
 ## Schedule Requirements
 
