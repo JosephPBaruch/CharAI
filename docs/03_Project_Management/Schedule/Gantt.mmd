@@ -1,0 +1,48 @@
+gantt
+    title CharAI Project High-Level Schedule
+    dateFormat  YYYY-MM-DD
+    section Major Milestones
+    Snapshot Day #1          :milestone, sd1, 2025-10-21, 0d
+    Concept Design Review    :milestone, cdr, 2025-11-14, 0d
+    Snapshot Day #2          :milestone, sd2, 2025-12-9, 0d
+    Detailed Design Review   :milestone, ddr, 2026-2-9, 0d
+    Engineering Release      :milestone, eng, 2026-2-27, 0d
+    Snapshot Day #3          :milestone, sd3, 2026-3-31, 0d
+    EXPO Poster              :milestone, poster, 2026-4-22, 0d
+    EXPO                     :milestone, expo, 2026-4-30, 0d
+    section Planning
+    Defining Requirements     :reqs, 2025-9-7, 30d
+    section Architecture & Plan
+    UML Diagrams              :uml, after reqs, 1w
+    Architecture Models       :arch, after reqs, 1w
+    Milestones/Responsibilities :sresp, after uml arch, 3d
+    section Rapid Prototype
+    Build Mock UIs            :mock, after sresp, 2w
+    Core Functionality        :core, after sresp, 2w
+    Test Prototype            :tprot, after core, 5d
+    section Data
+    Build Data Layer          :data, after sresp, 4w
+    Data Collection           :prep, after data, 10d
+    Clean Dataset             :dat1, after prep, 5d
+    Split Into Train/Val/Test :dat2, after dat1, 1w
+    Preprocess Data           :dat3, after dat2, 1w
+    Data Documentation        :dat4, after dat3, 1w
+    section Model Development
+    Define Evaluation Metrics :modl1, after dat4, 1w
+    Design CNN Architecture   :modl2, after modl1, 1w
+    Train Baseline Model      :modl3, after modl2, 3w
+    Iterate - Evaluate & Tune :modl4, after modl3, 2w
+    Select Best Model         :modl5, after modl4, 3d
+    section MVP
+    Deploy CNN Model          :mvp, after modl5, 1w
+    Get Feedback              :fdbck, after mvp, 1w
+    section Implementation
+    Front-end                 :frnt, after tprot, 4w
+    Back-end                  :back, after tprot, 6w
+    Setup Database            :db, after tprot, 3w
+    System Integration        :sysint, after modl5 frnt back db, 2w
+    section Testing & Validation
+    Unit Testing              :utest, after tprot, 6w
+    Integration Testing       :itest, after tprot, 6w
+    System Testing            :stest, after tprot, 6w
+    Model Testing             :mtest, after modl1, 4w
