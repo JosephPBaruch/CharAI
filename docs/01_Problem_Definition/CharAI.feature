@@ -8,7 +8,7 @@ Feature: CharAI
         When a user creates an account
         Then the system saves the user's information
 
-    Scenario: User signs in
+    Scenario: User signs in and out
         When a user signs into the system
         Then the system indicates the user is signed in
         And the user can access previous biochar prescription maps
@@ -30,3 +30,10 @@ Feature: CharAI
         Given a user has generated a biochar prescription map
         When the user requests to download the biochar prescription maps
         Then the biochar prescription map is downloaded to the user's browser
+
+    Scenario: System supports multiple users
+
+    @security
+    Scenario: System anonymizes user data
+
+
