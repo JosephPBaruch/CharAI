@@ -1,3 +1,4 @@
+@skip
 Feature: CharAI
 
     These scenarios represent user interactions with the system. The purpose of this
@@ -8,7 +9,7 @@ Feature: CharAI
         When a user creates an account
         Then the system saves the user's information
 
-    Scenario: User signs in and out
+    Scenario: User signs in
         When a user signs into the system
         Then the system indicates the user is signed in
         And the user can access previous biochar prescription maps
@@ -32,8 +33,14 @@ Feature: CharAI
         Then the biochar prescription map is downloaded to the user's browser
 
     Scenario: System supports multiple users
+        Given a user is signed in and using the system
+        When a different user signs in
+        Then both users are able to use the system
 
     @security
     Scenario: System anonymizes user data
+        When a user enters their coordinate data
+        Then the data is anonymized on the system
+        And the model is not trained on the system
 
 
