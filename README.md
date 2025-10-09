@@ -4,6 +4,15 @@ A full-stack web application built to support **precision agriculture** in the P
 
 ---
 
+## Table of Contents
+
+- [🌱 AI for Agriculture](#-ai-for-agriculture)
+  - [Table of Contents](#table-of-contents)
+  - [Project Overview](#project-overview)
+  - [✨ Features](#-features)
+  - [🛠️ Tech Stack (**proposed**)](#️-tech-stack-proposed)
+  - [Getting Started](#getting-started)
+
 ## Project Overview
 Traditional unirrigated hill farming in the Pacific Northwest faces challenges such as:
 - Highly variable terrain
