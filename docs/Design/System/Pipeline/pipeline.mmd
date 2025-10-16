@@ -1,0 +1,45 @@
+flowchart TD
+    %% ──────────── TRIGGERS ────────────
+    A[Code Push / PR Trigger] --> B[Checkout Repository]
+    B --> C[Detect Changed Services frontend/backend]
+
+    C --> F
+    C --> BE
+
+    %% ──────────── FRONTEND PIPELINE ────────────
+    subgraph F[Frontend Pipeline]
+        F1[Install Dependencies]
+        F2[Run Lint and Unit Tests]
+        F3[Build Production Bundle]
+        F4[Build Docker Image]
+        F1 --> F2 --> F3 --> F4
+    end
+
+    %% ──────────── BACKEND PIPELINE ────────────
+    subgraph BE[Backend Pipeline]
+        BE1[Install Dependencies]
+        BE2[Run Lint and Unit Tests]
+        BE3[Build Binary / Package]
+        BE4[Build Docker Image]
+        BE1 --> BE2 --> BE3 --> BE4
+    end
+
+    %% ──────────── SECURITY AND REGISTRY ────────────
+    F4 --> SEC[Security Scan and Image Signing]
+    BE4 --> SEC
+    SEC --> R[Push Images to Registry]
+
+    %% ──────────── STAGING DEPLOY ────────────
+    R --> STG[Deploy to Staging Environment]
+    STG --> TEST[Functional and Integration Tests]
+    TEST --> GATE{All Tests Passed?}
+
+    GATE -- "No" --> FAIL[Fail Pipeline and Notify Team]
+    GATE -- "Yes" --> APPROVE[Manual Approval for Production]
+
+    %% ──────────── PRODUCTION DEPLOY ────────────
+    APPROVE --> DEPLOY[Deploy to Production Cluster]
+    DEPLOY --> VERIFY{Verify successful}
+    VERIFY --> | Fail | ROLLBACK[Rollback to previous deployment]
+    VERIFY --> | Success |SUCCESS[Release Marked Successful]
+

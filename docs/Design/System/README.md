@@ -10,7 +10,8 @@
     - [Diagram](#diagram-1)
   - [Data Flow](#data-flow)
     - [Diagram](#diagram-2)
-  - [Pipeline Design](#pipeline-design)
+  - [CI/CD Pipeline](#cicd-pipeline)
+    - [Diagram](#diagram-3)
 
 ## System Architecture (Model)
 
@@ -18,7 +19,7 @@
 
 ### Diagram
 
-[System Architecture Diagram](/docs/Design/Architecture/SystemArchitectureModel.drawio.svg)
+![System Architecture Diagram](/docs/Design//System/Architecture/SystemArchitectureModel.drawio.svg)
 
 ## System Architecture (Equation)
 
@@ -26,7 +27,7 @@
 
 ### Diagram
 
-[System Architecture Diagram](/docs/Design/Architecture/SystemArchitectureEquation.drawio.svg)
+![System Architecture Diagram](/docs/Design//System/Architecture/SystemArchitectureEquation.drawio.svg)
 
 ## Data Flow
 
@@ -34,8 +35,12 @@
 
 ### Diagram
 
-[Data Flow Diagram](/docs/Design/Architecture/DataFlow.drawio.svg)
+![Data Flow Diagram](/docs/Design/System/Data/DataFlow.drawio.svg)
 
-## Pipeline Design 
+## CI/CD Pipeline
 
 <!-- TODO: Description goes here -->
+
+### Diagram
+
+![Pipeline Flow Diagram](/docs/Design/System/Pipeline/pipeline.drawio.svg)
