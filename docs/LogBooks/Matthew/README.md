@@ -9,3 +9,6 @@
 
 ## 10/17/25
 - Created a sequence diagram for the website's backend.
+
+## 10/18/25
+- Documented relevant APIs for the backend
