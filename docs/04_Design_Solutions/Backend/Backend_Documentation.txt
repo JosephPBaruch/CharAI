@@ -66,14 +66,13 @@ APIs/Azure Services: Azure Blob Storage for temporary file storage, Azure Functi
 Generate Prescription Map
 ---
 Endpoint: POST /generate-map  
-Description: Generates a color-coded prescription map based on field data, soil, slope, moisture, and optional biochar adjustments. Stores map metadata and returns download link.  
+Description: Generates a color-coded prescription map based on field data, soil, slope. Stores map metadata and returns download link.  
 Request Body:
 {
   "field_coordinates": {...},
   "soil_data": {...},
   "slope_data": {...},
   "moisture_data": {...},
-  "biochar_adjustment": "optional"
 }  
 Response:
 {
@@ -83,7 +82,7 @@ Response:
     "date_created": "YYYY-MM-DD"
   }
 }  
-APIs/Azure Services: Azure Machine Learning for yield prediction engine, Azure Maps for rendering, Azure Blob Storage for storing map files, Azure SQL Database for metadata
+APIs/Azure Services: EOS Data Analytics or Farmonaut for yield prediction, Azure Maps for rendering, Azure Blob Storage for storing map files, Azure SQL Database for metadata
 
 Download Map
 ---
@@ -99,4 +98,4 @@ Notes
 - Authentication: JWT tokens should be sent in the Authorization header for all protected endpoints: Authorization: Bearer <JWT_TOKEN>  
 - File Storage: All uploaded files and generated maps are stored in Azure Blob Storage with public or signed access URLs.  
 - Geo Processing: Azure Functions or Logic Apps can handle GeoJSON validation and conversion.  
-- Yield Prediction: Azure Machine Learning or a custom containerized model deployed on Azure Kubernetes Service can be used to run the predictive model.  
+- Yield Prediction: EOS Data Analytics or Farmonaut has different models of API that can predict yield with given factors.
