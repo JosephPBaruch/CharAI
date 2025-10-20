@@ -1,5 +1,13 @@
-# System Design
+# Product Design
 
-## Drawio
+## System Design 
 
-Download drawio extension
+## Frontend
+
+## Backend 
+
+## Notes
+
+### drawio and mermaid
+
+> Download drawio and mermaid extensions to view the diagrams
