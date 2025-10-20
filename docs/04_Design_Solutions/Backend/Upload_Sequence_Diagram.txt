@@ -1,0 +1,19 @@
+%% Land File Upload Sequence
+sequenceDiagram
+    title Land File Upload - CharAI Backend
+
+    actor Farmer
+    participant Frontend
+    participant "Backend API" as API
+    participant "GeoData Processor" as Geo
+    storage "File Storage" as Storage
+
+    note over Farmer,Geo: User uploads .kml/.geojson file
+    Farmer->>Frontend: Upload land file
+    Frontend->>API: POST /upload-land (FormData)
+    API->>Storage: Store uploaded file
+    Storage-->>API: File saved successfully
+    API->>Geo: Extract field boundaries
+    Geo-->>API: Return GeoJSON data
+    API-->>Frontend: Display uploaded area
+    Frontend-->>Farmer: View field on map

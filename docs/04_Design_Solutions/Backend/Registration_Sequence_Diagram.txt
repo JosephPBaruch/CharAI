@@ -1,0 +1,19 @@
+%% User Registration Sequence
+sequenceDiagram
+    title User Registration - CharAI Backend
+
+    actor Farmer
+    participant Frontend
+    participant "Backend API" as API
+    participant "Auth Service" as Auth
+    database Database
+
+    note over Farmer,API: User creates an account
+    Farmer->>Frontend: Enter registration info
+    Frontend->>API: POST /register (user info)
+    API->>Auth: Validate and create user
+    Auth->>Database: Save user data
+    Database-->>Auth: Success
+    Auth-->>API: Return JWT token
+    API-->>Frontend: Signup success
+    Frontend-->>Farmer: User logged in
