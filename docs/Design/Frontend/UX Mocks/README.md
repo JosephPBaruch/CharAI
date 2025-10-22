@@ -15,9 +15,9 @@ This folder contains the UX mockups for the **CharAI** project. The mocks are or
 
 - **Public Pages**  
   Contains UX mockups for pages accessible without authentication:
+  - Sign In
 <!-- #  - Landing -->
 <!-- #  - FAQ / About -->
-  - Sign In
 <!-- #  - Sign Up / Forgot Password -->
 
 ## Viewing the mockups
