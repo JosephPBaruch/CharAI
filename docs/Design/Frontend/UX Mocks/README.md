@@ -2,22 +2,24 @@
 
 This folder contains the UX mockups for the **CharAI** project. The mocks are organized into two main categories:
 
-## Folder Structure
+## App Mockup Structure
 
 - **Core App Pages**  
-  Contains wireframes for pages the user interacts with after signing in:
+  Contains UX mockups for pages the user interacts with after signing in:
   - Dashboard
-  - Coordinate Entry
+  - Manual Coordinate Entry
+  - Coordinate File Upload
   - Maps / Results
   - Settings / Account
-  - Export Map Modal
+#  - Export Map Modal
 
 - **Public Pages**  
-  Contains wireframes for pages accessible without authentication:
-  - Home Page
-  - About / FAQ
-  - Sign Up / Sign In / Forgot Password
+  Contains UX mockups for pages accessible without authentication:
+#  - Landing 
+#  - FAQ / About 
+  - Sign In
+#  - Sign Up / Forgot Password
 
-## Viewing the Wireframes
+## Viewing the mockups
 
-Each wireframe is provided in **Draw.io XML format** and can be opened using [diagrams.net](https://app.diagrams.net/).  
+Each mockup is provided as a .png, created in Figma.
