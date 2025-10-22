@@ -11,14 +11,14 @@ This folder contains the UX mockups for the **CharAI** project. The mocks are or
   - Coordinate File Upload
   - Maps / Results
   - Settings / Account
-#  - Export Map Modal
+<!-- - Export Map Modal -->
 
 - **Public Pages**  
   Contains UX mockups for pages accessible without authentication:
-#  - Landing 
-#  - FAQ / About 
+<!-- #  - Landing -->
+<!-- #  - FAQ / About -->
   - Sign In
-#  - Sign Up / Forgot Password
+<!-- #  - Sign Up / Forgot Password -->
 
 ## Viewing the mockups
 
