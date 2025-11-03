@@ -1,0 +1,16 @@
+%% Manual Land Coordinate Entry Sequence
+sequenceDiagram
+    title Manual Land Coordinate Entry - CharAI Backend
+
+    actor Farmer
+    participant Frontend
+    participant "Backend API" as API
+    participant "GeoData Processor" as Geo
+
+    note over Farmer,Geo: User manually enters coordinates
+    Farmer->>Frontend: Input coordinates
+    Frontend->>API: POST /land-coordinates
+    API->>Geo: Validate & format coordinates
+    Geo-->>API: Return GeoJSON data
+    API-->>Frontend: Display interactive map
+    Frontend-->>Farmer: Show field boundaries

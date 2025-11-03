@@ -1,0 +1,26 @@
+%% Generate Prescription Map Sequence
+sequenceDiagram
+    title Generate Prescription Map - CharAI Backend
+
+    actor Farmer
+    participant Frontend
+    participant "Backend API" as API
+    participant "Yield Prediction Engine" as Yield
+    participant "Map Generator" as MapGen
+    storage "File Storage" as Storage
+    database Database
+
+    note over Farmer,Yield: Generate yield-based prescription map
+    Farmer->>Frontend: Click "Generate Map"
+    Frontend->>API: POST /generate-map (field data)
+    API->>Yield: Send coordinates, soil, slope, moisture
+    Yield->>Yield: Run yield prediction model
+    Yield-->>API: Return yield & ROI data
+    API->>MapGen: Generate color-coded prescription map
+    MapGen->>Storage: Save map file
+    Storage-->>MapGen: Return map URL
+    MapGen-->>API: Map generated successfully
+    API->>Database: Store map metadata (URL, date)
+    Database-->>API: Stored successfully
+    API-->>Frontend: Send map URL + metadata
+    Frontend-->>Farmer: Show result map and download link

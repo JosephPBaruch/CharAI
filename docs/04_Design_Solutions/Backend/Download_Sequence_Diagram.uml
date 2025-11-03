@@ -1,0 +1,16 @@
+%% Download Map Sequence
+sequenceDiagram
+    title Download Map - CharAI Backend
+
+    actor Farmer
+    participant Frontend
+    participant "Backend API" as API
+    storage "File Storage" as Storage
+
+    note over Farmer,Storage: User downloads generated map
+    Farmer->>Frontend: Click "Download Map"
+    Frontend->>API: GET /download-map/{id}
+    API->>Storage: Retrieve map file
+    Storage-->>API: Return file stream
+    API-->>Frontend: Send file
+    Frontend-->>Farmer: Map downloaded

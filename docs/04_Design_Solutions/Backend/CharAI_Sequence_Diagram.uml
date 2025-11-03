@@ -1,0 +1,67 @@
+title CharAI Backend Sequence Diagram
+
+actor Farmer
+participant Frontend
+participant "Backend API" as API
+participant "Auth Service" as Auth
+database Database
+participant "GeoData Processor" as Geo
+participant "Yield Prediction Engine" as Yield
+participant "Map Generator" as MapGen
+storage "File Storage" as Storage
+
+note over Farmer,API: User creates an account
+Farmer->Frontend: Enter registration info
+Frontend->API: POST /register (user info)
+API->Auth: Validate and create user
+Auth->Database: Save user data
+Database-->Auth: Success
+Auth-->API: Return JWT token
+API-->Frontend: Signup success
+Frontend-->Farmer: User logged in
+
+note over Farmer,API: User logs in
+Farmer->Frontend: Enter credentials
+Frontend->API: POST /login
+API->Auth: Authenticate user
+Auth->Database: Verify credentials
+Database-->Auth: Valid
+Auth-->API: Return JWT token
+API-->Frontend: Login success
+
+note over Farmer,Geo: Manual coordinate entry
+Farmer->Frontend: Input coordinates
+Frontend->API: POST /land-coordinates
+API->Geo: Validate & format coordinates
+Geo-->API: Return GeoJSON data
+API-->Frontend: Display interactive map
+
+note over Farmer,Geo: Upload land file
+Farmer->Frontend: Upload .kml/.geojson file
+Frontend->API: POST /upload-land
+API->Geo: Extract field boundaries
+Geo-->API: Return GeoJSON data
+API-->Frontend: Display uploaded area
+
+note over Farmer,Yield: Generate prescription map
+Farmer->Frontend: Click "Generate Map"
+Frontend->API: POST /generate-map (coordinates)
+API->Yield: Send field, soil, slope, moisture, etc.
+Yield->Yield: Run model with biochar adjustment
+Yield-->API: Return ROI prediction data
+API->MapGen: Generate color-coded prescription map
+MapGen->Storage: Save map file
+Storage-->MapGen: File URL
+MapGen-->API: Map generated successfully
+API->Database: Save map metadata (URL, date)
+Database-->API: Stored
+API-->Frontend: Send map + download link
+Frontend-->Farmer: Show result map
+
+note over Farmer,Storage: Download map
+Farmer->Frontend: Click "Download Map"
+Frontend->API: GET /download-map/{id}
+API->Storage: Fetch map file
+Storage-->API: Return file stream
+API-->Frontend: Send file
+Frontend-->Farmer: Download map

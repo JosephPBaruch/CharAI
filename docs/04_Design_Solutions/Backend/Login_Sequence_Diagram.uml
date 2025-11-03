@@ -1,0 +1,19 @@
+%% User Login Sequence
+sequenceDiagram
+    title User Login - CharAI Backend
+
+    actor Farmer
+    participant Frontend
+    participant "Backend API" as API
+    participant "Auth Service" as Auth
+    database Database
+
+    note over Farmer,API: User logs in
+    Farmer->>Frontend: Enter credentials
+    Frontend->>API: POST /login
+    API->>Auth: Authenticate user
+    Auth->>Database: Verify credentials
+    Database-->>Auth: Valid
+    Auth-->>API: Return JWT token
+    API-->>Frontend: Login success
+    Frontend-->>Farmer: Logged in successfully
