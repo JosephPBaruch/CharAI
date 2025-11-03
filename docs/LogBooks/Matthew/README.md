@@ -12,3 +12,9 @@
 
 ## 10/18/25
 - Documented relevant APIs for the backend
+
+## 10/20/25
+- Changed backend documents to `.uml`
+
+# 11/3/2025
+- Held meeting to begin coding the web app
