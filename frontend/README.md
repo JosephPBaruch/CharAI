@@ -40,7 +40,7 @@ VITE_API_URL=http://localhost:8000/api
 VITE_OTHER_KEY=change-me
 ```
 
-> 📝 Add `.env` to your `.gitignore` to keep secrets out of version control.
+> Add `.env` to your `.gitignore` to keep secrets out of version control.
 
 ---
 
@@ -56,15 +56,6 @@ npm run format
 
 ---
 
-## Testing
-
-```bash
-# Run unit and component tests
-npm test
-```
-
----
-
 ## Summary
 
 - Package manager: `npm` (or `yarn`)
@@ -73,7 +64,6 @@ npm test
   - `npm run build` — build for production
   - `npm run preview` — preview production build
   - `npm run lint` — lint code
-  - `npm test` — run tests
 - Environment variables: `.env` in project root
 
 ---
