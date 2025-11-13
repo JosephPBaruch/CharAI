@@ -14,18 +14,24 @@ This guide outlines how to initialize and manage a Django backend environment us
 
 ---
 
-## RUN THIS PLZ
-
+## Setup for Backend (Run once to get the requirements in your python)
+Windows
 ```bash
 python -m venv .venv
 .venv\Scripts\Activate.ps1
-pip install --upgrade pip
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
-
+Linux / macOS
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
 ---
 
-## Initialization
+## Initialization 
 
 ```bash
 # Create and activate virtual environment

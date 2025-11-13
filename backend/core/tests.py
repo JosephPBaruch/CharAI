@@ -1,2 +1,2 @@
 from django.test import TestCase
-#for tests
+"""Tests for the `core` app."""
