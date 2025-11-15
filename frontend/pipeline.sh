@@ -2,7 +2,7 @@
 
 IMAGE="char-ai-frontend"
 
-INTERNAL_PORT=5173
+INTERNAL_PORT=80
 
 # Default environment file and mode
 ENV_FILE="dev.env"
