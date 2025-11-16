@@ -33,14 +33,11 @@ cd charai-frontend
 npm install   # Windows/Linux/macOS: same command
 
 ## Add required packages
-
-```bash
 npm install @mui/material @emotion/react @emotion/styled @mui/icons-material
 npm install react-router-dom @types/react-router-dom
 ```
 
 Note: `axios` is not currently used; HTTP requests use the native `fetch` API.
-```
 
 ---
 
