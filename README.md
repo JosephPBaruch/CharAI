@@ -34,7 +34,7 @@ This USDA-funded project explores how **biochar** can improve long-term soil pro
 ## 🛠️ Tech Stack (**proposed**)
 - **Frontend:** React (TypeScript), MUI  
 - **Backend:** Django or FastAPI (Python)
-- **Database:** TBD
+- **Database:** SQLite
 - **Cloud Platform:** Microsoft Azure
 
 ---

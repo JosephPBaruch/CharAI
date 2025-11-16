@@ -2,20 +2,36 @@
 
 This guide outlines how to initialize and manage a Django backend environment using `venv` and `requirements.txt`.
 
+## Authentication System
+
+- Token + Session-based authentication
+- SQLite database (`db.sqlite3`)
+- User registration, login, logout, user info endpoints
+- Password hashing with Django's PBKDF2
+- CORS enabled for React frontend
+
+**See `implementation for frontend.md` for full API documentation**
+
 ---
 
-## Recreate Environment from `requirements.txt`
-
+## Setup for Backend (Run once to get the requirements in your python)
+Windows
 ```bash
 python -m venv .venv
-source .venv/bin/activate
-pip install --upgrade pip
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
-
+Linux / macOS
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
 ---
 
-## Initialization
+## Initialization 
 
 ```bash
 # Create and activate virtual environment
@@ -58,7 +74,7 @@ ALLOWED_HOSTS=127.0.0.1,localhost
 DATABASE_URL=sqlite:///db.sqlite3
 ```
 
-> 📝 Add `.env` to your `.gitignore` to keep secrets out of version control.
+>  Add `.env` to your `.gitignore` to keep secrets out of version control.
 
 ---
 
@@ -93,5 +109,3 @@ pip freeze > requirements.txt
   - `pip freeze > requirements.txt`
 
 ---
-
-**Enjoy coding your Django backend! 🎉**
