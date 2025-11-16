@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { register } from '../services/authService';
-import type { RegisterRequest } from '../types/auth';
+import { useNavigate } from 'react-router';
 import { Link as RouterLink } from 'react-router';
-import { Box, TextField, Button, Typography, Alert, CircularProgress } from '@mui/material';
+import { Box, TextField, Button, Typography, CircularProgress } from '@mui/material';
+import { useAuth } from '../contexts/AuthContext';
+import type { RegisterRequest } from '../types/auth';
 
-interface Props {
-  onSuccess?: () => void;
-}
-
-const SignupPage: React.FC<Props> = ({ onSuccess }) => {
+const SignupPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { register, isLoading } = useAuth();
   const [formData, setFormData] = useState<RegisterRequest>({
     username: '',
     email: '',
@@ -17,8 +16,7 @@ const SignupPage: React.FC<Props> = ({ onSuccess }) => {
     first_name: '',
     last_name: '',
   });
-  const [errors, setErrors] = useState<any>({});
-  const [loading, setLoading] = useState(false);
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -26,16 +24,13 @@ const SignupPage: React.FC<Props> = ({ onSuccess }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
-    setLoading(true);
     try {
       await register(formData);
-      setLoading(false);
-      if (onSuccess) onSuccess();
-      else window.location.href = '/';
+      navigate('/');
     } catch (err: any) {
-      setLoading(false);
-      setErrors(err || { detail: 'Registration failed' });
+      // No UI error handling per user request. Log for debugging only.
+      // eslint-disable-next-line no-console
+      console.warn('Registration error (not shown in UI):', err);
     }
   };
 
@@ -72,8 +67,8 @@ const SignupPage: React.FC<Props> = ({ onSuccess }) => {
             onChange={handleChange}
             variant="outlined"
             fullWidth
-            error={!!errors?.username}
-            helperText={errors?.username ? String(errors.username) : ''}
+            disabled={isLoading}
+            
             sx={{
               '& .MuiOutlinedInput-root': {
                 color: 'rgba(255, 255, 255, 0.87)',
@@ -95,8 +90,8 @@ const SignupPage: React.FC<Props> = ({ onSuccess }) => {
             onChange={handleChange}
             variant="outlined"
             fullWidth
-            error={!!errors?.email}
-            helperText={errors?.email ? String(errors.email) : ''}
+            disabled={isLoading}
+            
             sx={{
               '& .MuiOutlinedInput-root': {
                 color: 'rgba(255, 255, 255, 0.87)',
@@ -118,6 +113,7 @@ const SignupPage: React.FC<Props> = ({ onSuccess }) => {
             onChange={handleChange}
             variant="outlined"
             fullWidth
+            disabled={isLoading}
             sx={{
               '& .MuiOutlinedInput-root': {
                 color: 'rgba(255, 255, 255, 0.87)',
@@ -139,6 +135,7 @@ const SignupPage: React.FC<Props> = ({ onSuccess }) => {
             onChange={handleChange}
             variant="outlined"
             fullWidth
+            disabled={isLoading}
             sx={{
               '& .MuiOutlinedInput-root': {
                 color: 'rgba(255, 255, 255, 0.87)',
@@ -161,8 +158,8 @@ const SignupPage: React.FC<Props> = ({ onSuccess }) => {
             onChange={handleChange}
             variant="outlined"
             fullWidth
-            error={!!errors?.password}
-            helperText={errors?.password ? String(errors.password) : ''}
+            disabled={isLoading}
+            
             sx={{
               '& .MuiOutlinedInput-root': {
                 color: 'rgba(255, 255, 255, 0.87)',
@@ -185,8 +182,8 @@ const SignupPage: React.FC<Props> = ({ onSuccess }) => {
             onChange={handleChange}
             variant="outlined"
             fullWidth
-            error={!!errors?.password2}
-            helperText={errors?.password2 ? String(errors.password2) : ''}
+            disabled={isLoading}
+            
             sx={{
               '& .MuiOutlinedInput-root': {
                 color: 'rgba(255, 255, 255, 0.87)',
@@ -201,18 +198,16 @@ const SignupPage: React.FC<Props> = ({ onSuccess }) => {
             }}
           />
 
-          {errors?.detail && (
-            <Alert severity="error">{String(errors.detail)}</Alert>
-          )}
+          {/* No UI error alerts per user request */}
 
           <Button
             type="submit"
             variant="contained"
             fullWidth
-            disabled={loading}
+            disabled={isLoading}
             sx={{ marginTop: 1 }}
           >
-            {loading ? <CircularProgress size={24} /> : 'Sign up'}
+            {isLoading ? <CircularProgress size={24} /> : 'Sign up'}
           </Button>
         </Box>
         <Box sx={{ mt: 2, textAlign: 'center' }}>

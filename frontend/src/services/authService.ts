@@ -1,4 +1,4 @@
-import { type RegisterRequest, type AuthResponse } from '../types/auth';
+import { type RegisterRequest, type LoginRequest, type AuthResponse, type UserResponse, type LogoutResponse } from '../types/auth';
 
 const DEFAULT_API = 'http://127.0.0.1:8000/api/auth';
 const API_URL = (import.meta.env.VITE_API_URL || DEFAULT_API).replace(/\/$/, '');
@@ -9,7 +9,6 @@ function storeToken(token: string) {
 	try {
 		localStorage.setItem(TOKEN_KEY, token);
 	} catch (e) {
-		// localStorage may be unavailable in some environments
 		console.warn('Unable to store auth token', e);
 	}
 }
@@ -30,10 +29,8 @@ function clearToken() {
 	}
 }
 
-
 async function handleResponse(response: Response) {
 	const text = await response.text();
-	// Try to parse JSON, otherwise return text
 	let data: any = null;
 	if (text) {
 		try {
@@ -44,7 +41,6 @@ async function handleResponse(response: Response) {
 	}
 
 	if (!response.ok) {
-		// Normalize error object
 		throw data || { detail: response.statusText };
 	}
 
@@ -52,10 +48,15 @@ async function handleResponse(response: Response) {
 }
 
 export const register = async (data: RegisterRequest): Promise<AuthResponse> => {
+	// Prevent already-authenticated users from registering
+	if (getToken()) {
+		throw { detail: 'You are already logged in' };
+	}
+
 	const response = await fetch(`${API_URL}/register/`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		credentials: 'include', // ensure session cookie is set by the backend
+		credentials: 'include',
 		body: JSON.stringify(data),
 	});
 
@@ -68,12 +69,17 @@ export const register = async (data: RegisterRequest): Promise<AuthResponse> => 
 	return result as AuthResponse;
 };
 
-export const login = async (username: string, password: string): Promise<AuthResponse> => {
+export const login = async (credentials: LoginRequest): Promise<AuthResponse> => {
+	// Prevent already-authenticated users from logging in
+	if (getToken()) {
+		throw { detail: 'You are already logged in' };
+	}
+
 	const response = await fetch(`${API_URL}/login/`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		credentials: 'include', // backend also creates a session cookie
-		body: JSON.stringify({ username, password }),
+		credentials: 'include',
+		body: JSON.stringify(credentials),
 	});
 
 	const result = await handleResponse(response);
@@ -85,48 +91,49 @@ export const login = async (username: string, password: string): Promise<AuthRes
 	return result as AuthResponse;
 };
 
-export const getUser = async () => {
+export const getUser = async (): Promise<UserResponse> => {
 	const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 	const token = getToken();
-	if (token) headers['Authorization'] = `Token ${token}`;
+	if (token) {
+		headers['Authorization'] = `Token ${token}`;
+	}
 
 	const response = await fetch(`${API_URL}/user/`, {
 		method: 'GET',
 		headers,
-		credentials: 'include', // allow session auth via cookies
+		credentials: 'include',
 	});
 
 	const result = await handleResponse(response);
-	return result;
+	return result as UserResponse;
 };
 
-export const logout = async () => {
+export const logout = async (): Promise<LogoutResponse> => {
 	const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 	const token = getToken();
-	if (token) headers['Authorization'] = `Token ${token}`;
+	if (token) {
+		headers['Authorization'] = `Token ${token}`;
+	}
 
 	const response = await fetch(`${API_URL}/logout/`, {
 		method: 'POST',
 		headers,
-		credentials: 'include', // include session cookie so server can logout
+		credentials: 'include',
 	});
 
 	const result = await handleResponse(response);
-	// Remove token locally regardless of server response
 	clearToken();
-	return result;
+	return result as LogoutResponse;
 };
 
 export const getAuthToken = getToken;
 export const removeAuthToken = clearToken;
 
 // Notes:
-// - This file uses Token-based auth returned by your Django endpoints.
-// - For requests to protected API endpoints, include the header: `Authorization: Token <token>`
-// - If you prefer cookie / session auth instead, the backend must set session cookies
-//   and you should use fetch(..., { credentials: 'include' }) and configure CSRF handling on Django.
-// - Make sure CORS is configured on the backend to allow requests from the frontend origin
-//   (and allow Authorization header). For example, using django-cors-headers:
-//     CORS_ALLOWED_ORIGINS = [ 'http://localhost:5173' ]
-//     CORS_ALLOW_HEADERS = list(default_headers) + ['Authorization']
-// - Consider storing tokens in httpOnly cookies for better XSS protection if your backend supports it.
+// - Token-based authentication: Each user gets a unique token on register/login
+// - Token stored in localStorage and included in Authorization header for API requests
+// - Session cookies set by backend for session-based authentication (credentials: 'include')
+// - Passwords hashed by Django using PBKDF2
+// - Field-specific validation errors from Django are included in error responses
+// - Ensure CORS is configured on backend to allow requests from frontend origin
+// - CORS_ALLOW_CREDENTIALS = True allows credentials/cookies to be sent

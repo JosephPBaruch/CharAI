@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
-import { login } from '../services/authService';
+import { useNavigate } from 'react-router';
 import { Link as RouterLink } from 'react-router';
-import { Box, TextField, Button, Typography, Alert, CircularProgress } from '@mui/material';
+import { Box, TextField, Button, Typography, CircularProgress } from '@mui/material';
+import { useAuth } from '../contexts/AuthContext';
+import type { LoginRequest } from '../types/auth';
 
-interface Props {
-  onSuccess?: () => void;
-}
-
-const LoginPage: React.FC<Props> = ({ onSuccess }) => {
-  const [formData, setFormData] = useState({ username: '', password: '' });
-  const [errors, setErrors] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+const LoginPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { login, isLoading } = useAuth();
+  const [formData, setFormData] = useState<LoginRequest>({ username: '', password: '' });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -18,16 +16,14 @@ const LoginPage: React.FC<Props> = ({ onSuccess }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors(null);
-    setLoading(true);
     try {
-      await login(formData.username, formData.password);
-      setLoading(false);
-      if (onSuccess) onSuccess();
-      else window.location.href = '/';
+      await login(formData);
+      navigate('/');
     } catch (err: any) {
-      setLoading(false);
-      setErrors(err);
+      // Intentionally no UI error handling per user request. Log for debugging only.
+      // Errors are not displayed in the UI.
+      // eslint-disable-next-line no-console
+      console.warn('Login error (not shown in UI):', err);
     }
   };
 
@@ -64,8 +60,7 @@ const LoginPage: React.FC<Props> = ({ onSuccess }) => {
             onChange={handleChange}
             variant="outlined"
             fullWidth
-            error={!!errors?.username}
-            helperText={errors?.username ? String(errors.username) : ''}
+            disabled={isLoading}
             sx={{
               '& .MuiOutlinedInput-root': {
                 color: 'rgba(255, 255, 255, 0.87)',
@@ -88,8 +83,7 @@ const LoginPage: React.FC<Props> = ({ onSuccess }) => {
             onChange={handleChange}
             variant="outlined"
             fullWidth
-            error={!!errors?.password}
-            helperText={errors?.password ? String(errors.password) : ''}
+            disabled={isLoading}
             sx={{
               '& .MuiOutlinedInput-root': {
                 color: 'rgba(255, 255, 255, 0.87)',
@@ -104,30 +98,26 @@ const LoginPage: React.FC<Props> = ({ onSuccess }) => {
             }}
           />
 
-          {(errors?.detail || errors?.error) && (
-            <Alert severity="error">
-              {String(errors.detail || errors.error)}
-            </Alert>
-          )}
+          {/* No UI error alerts per user request */}
 
           <Button
             type="submit"
             variant="contained"
             fullWidth
-            disabled={loading}
+            disabled={isLoading}
             sx={{ marginTop: 1 }}
           >
-            {loading ? <CircularProgress size={24} /> : 'Log in'}
+            {isLoading ? <CircularProgress size={24} /> : 'Log in'}
           </Button>
         </Box>
-      </Box>
-      <Box sx={{ mt: 2, textAlign: 'center' }}>
-        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-          Don't have an account?{' '}
-          <RouterLink to="/signup" style={{ color: '#646cff', textDecoration: 'none' }}>
-            Sign up here
-          </RouterLink>
-        </Typography>
+        <Box sx={{ mt: 2, textAlign: 'center' }}>
+          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+            Don't have an account?{' '}
+            <RouterLink to="/signup" style={{ color: '#646cff', textDecoration: 'none' }}>
+              Sign up here
+            </RouterLink>
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );
