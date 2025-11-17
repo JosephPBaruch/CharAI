@@ -1,7 +1,7 @@
 import { type RegisterRequest, type LoginRequest, type AuthResponse, type UserResponse, type LogoutResponse } from '../types/auth';
 
-const DEFAULT_API = 'http://127.0.0.1:8000/api/auth';
-const API_URL = (import.meta.env.VITE_API_URL || DEFAULT_API).replace(/\/$/, '');
+const DEFAULT_API = 'http://localhost:8000/api';
+const API_URL = ((import.meta.env.VITE_API_URL || DEFAULT_API) + '/auth').replace(/\/$/, '');
 
 const TOKEN_KEY = 'authToken';
 
