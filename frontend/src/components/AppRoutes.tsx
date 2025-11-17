@@ -23,9 +23,9 @@ import { PublicRoute } from './PublicRoute';
  *   "/" → Dynamic based on auth status
  *      - Authenticated: HomePage (protected)
  *      - Unauthenticated: App.tsx (landing page, public)
- *   "/login" → PublicRoute → LoginPage (unauthenticated users only)
- *   "/signup" → PublicRoute → SignupPage (unauthenticated users only)
- *   "*" (catch-all) → Dynamic based on auth status
+ *   "/login" -> PublicRoute -> LoginPage (unauthenticated users only)
+ *   "/signup" -> PublicRoute -> SignupPage (unauthenticated users only)
+ *   "*" (catch-all) -> Dynamic based on auth status
  *      - Authenticated: HomePage (protected)
  *      - Unauthenticated: App.tsx (landing page, public)
  */

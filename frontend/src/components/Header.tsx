@@ -1,9 +1,8 @@
-import React from 'react';
 import { Link as RouterLink } from 'react-router';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 
-const Header: React.FC = () => {
+const Header = () => {
   const { isAuthenticated, logout } = useAuth();
 
   const handleLogout = async () => {
@@ -19,10 +18,9 @@ const Header: React.FC = () => {
       <Toolbar sx={{ 
         display: 'flex', 
         justifyContent: 'space-between',
-        paddingLeft: 3,
-        paddingRight: 3,
-        minHeight: '64px',
-        minWidth: '500px'
+        paddingX: 3,
+        minHeight: 64,
+        width: '100%',
       }}>
         <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', flexShrink: 0 }}>
           <RouterLink 

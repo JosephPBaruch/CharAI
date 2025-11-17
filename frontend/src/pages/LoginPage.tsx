@@ -5,7 +5,7 @@ import { Box, TextField, Button, Typography, CircularProgress } from '@mui/mater
 import { useAuth } from '../contexts/AuthContext';
 import type { LoginRequest } from '../types/auth';
 
-const LoginPage: React.FC = () => {
+const LoginPage = () => {
   const navigate = useNavigate();
   const { login, isLoading } = useAuth();
   const [formData, setFormData] = useState<LoginRequest>({ username: '', password: '' });

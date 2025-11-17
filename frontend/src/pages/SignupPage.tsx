@@ -5,7 +5,7 @@ import { Box, TextField, Button, Typography, CircularProgress } from '@mui/mater
 import { useAuth } from '../contexts/AuthContext';
 import type { RegisterRequest } from '../types/auth';
 
-const SignupPage: React.FC = () => {
+const SignupPage = () => {
   const navigate = useNavigate();
   const { register, isLoading } = useAuth();
   const [formData, setFormData] = useState<RegisterRequest>({

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
 
-export default function LandingPage() {
+const LandingPage = () => {
   const [count, setCount] = useState(0);
 
   return (
@@ -35,3 +35,5 @@ export default function LandingPage() {
     </Box>
   );
 }
+
+export default LandingPage;

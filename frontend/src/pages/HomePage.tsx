@@ -2,7 +2,7 @@ import { Box, Button, Typography, Container } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function HomePage() {
+const HomePage = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
@@ -48,3 +48,5 @@ export default function HomePage() {
     </Container>
   );
 }
+
+export default HomePage;
