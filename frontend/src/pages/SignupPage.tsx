@@ -73,14 +73,14 @@ const SignupPage = () => {
             sx={{
               '& .MuiOutlinedInput-root': {
                 color: COLORS.whiteHigh,
-                '& fieldset': { borderColor: 'COLORS.whiteLow' },
-                '&:hover fieldset': { borderColor: 'COLORS.whiteMedium' },
+                '& fieldset': { borderColor: COLORS.whiteLow },
+                '&:hover fieldset': { borderColor: COLORS.whiteMedium },
               },
               '& .MuiInputBase-input::placeholder': {
                 color: COLORS.whiteMedium,
                 opacity: 1,
               },
-              '& .MuiInputLabel-root': { color: 'COLORS.whiteHigh' },
+              '& .MuiInputLabel-root': { color: COLORS.whiteHigh },
             }}
           />
 
@@ -96,14 +96,14 @@ const SignupPage = () => {
             sx={{
               '& .MuiOutlinedInput-root': {
                 color: COLORS.whiteHigh,
-                '& fieldset': { borderColor: 'COLORS.whiteLow' },
-                '&:hover fieldset': { borderColor: 'COLORS.whiteMedium' },
+                '& fieldset': { borderColor: COLORS.whiteLow },
+                '&:hover fieldset': { borderColor: COLORS.whiteMedium },
               },
               '& .MuiInputBase-input::placeholder': {
                 color: COLORS.whiteMedium,
                 opacity: 1,
               },
-              '& .MuiInputLabel-root': { color: 'COLORS.whiteHigh' },
+              '& .MuiInputLabel-root': { color: COLORS.whiteHigh },
             }}
           />
 
@@ -118,14 +118,14 @@ const SignupPage = () => {
             sx={{
               '& .MuiOutlinedInput-root': {
                 color: COLORS.whiteHigh,
-                '& fieldset': { borderColor: 'COLORS.whiteLow' },
-                '&:hover fieldset': { borderColor: 'COLORS.whiteMedium' },
+                '& fieldset': { borderColor: COLORS.whiteLow },
+                '&:hover fieldset': { borderColor: COLORS.whiteMedium },
               },
               '& .MuiInputBase-input::placeholder': {
                 color: COLORS.whiteMedium,
                 opacity: 1,
               },
-              '& .MuiInputLabel-root': { color: 'COLORS.whiteHigh' },
+              '& .MuiInputLabel-root': { color: COLORS.whiteHigh },
             }}
           />
 
@@ -140,14 +140,14 @@ const SignupPage = () => {
             sx={{
               '& .MuiOutlinedInput-root': {
                 color: COLORS.whiteHigh,
-                '& fieldset': { borderColor: 'COLORS.whiteLow' },
-                '&:hover fieldset': { borderColor: 'COLORS.whiteMedium' },
+                '& fieldset': { borderColor: COLORS.whiteLow },
+                '&:hover fieldset': { borderColor: COLORS.whiteMedium },
               },
               '& .MuiInputBase-input::placeholder': {
                 color: COLORS.whiteMedium,
                 opacity: 1,
               },
-              '& .MuiInputLabel-root': { color: 'COLORS.whiteHigh' },
+              '& .MuiInputLabel-root': { color: COLORS.whiteHigh },
             }}
           />
 
@@ -164,14 +164,14 @@ const SignupPage = () => {
             sx={{
               '& .MuiOutlinedInput-root': {
                 color: COLORS.whiteHigh,
-                '& fieldset': { borderColor: 'COLORS.whiteLow' },
-                '&:hover fieldset': { borderColor: 'COLORS.whiteMedium' },
+                '& fieldset': { borderColor: COLORS.whiteLow },
+                '&:hover fieldset': { borderColor: COLORS.whiteMedium },
               },
               '& .MuiInputBase-input::placeholder': {
                 color: COLORS.whiteMedium,
                 opacity: 1,
               },
-              '& .MuiInputLabel-root': { color: 'COLORS.whiteHigh' },
+              '& .MuiInputLabel-root': { color: COLORS.whiteHigh },
             }}
           />
 
@@ -188,14 +188,14 @@ const SignupPage = () => {
             sx={{
               '& .MuiOutlinedInput-root': {
                 color: COLORS.whiteHigh,
-                '& fieldset': { borderColor: 'COLORS.whiteLow' },
-                '&:hover fieldset': { borderColor: 'COLORS.whiteMedium' },
+                '& fieldset': { borderColor: COLORS.whiteLow },
+                '&:hover fieldset': { borderColor: COLORS.whiteMedium },
               },
               '& .MuiInputBase-input::placeholder': {
                 color: COLORS.whiteMedium,
                 opacity: 1,
               },
-              '& .MuiInputLabel-root': { color: 'COLORS.whiteHigh' },
+              '& .MuiInputLabel-root': { color: COLORS.whiteHigh },
             }}
           />
 
