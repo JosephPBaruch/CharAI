@@ -32,7 +32,7 @@ const HomePage = () => {
           Welcome, {user?.first_name || user?.username}!
         </Typography>
 
-        <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+        <Typography variant="body1" sx={{ color: 'COLORS.whiteHigh' }}>
           You are successfully logged in to CharAI.
         </Typography>
 

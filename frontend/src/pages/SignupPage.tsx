@@ -4,6 +4,7 @@ import { Link as RouterLink } from 'react-router';
 import { Box, TextField, Button, Typography, CircularProgress } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 import type { RegisterRequest } from '../types/auth';
+import { COLORS } from '../styles/colors';
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ const SignupPage = () => {
           backgroundColor: '#1a1a1a',
           padding: 3,
           borderRadius: 2,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+          boxShadow: `0 4px 12px ${COLORS.blackMedium}`,
         }}
       >
         <Typography variant="h5" component="h2" sx={{ marginBottom: 2, textAlign: 'center' }}>
@@ -71,15 +72,15 @@ const SignupPage = () => {
             
             sx={{
               '& .MuiOutlinedInput-root': {
-                color: 'rgba(255, 255, 255, 0.87)',
-                '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
-                '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.4)' },
+                color: COLORS.whiteHigh,
+                '& fieldset': { borderColor: 'COLORS.whiteLow' },
+                '&:hover fieldset': { borderColor: 'COLORS.whiteMedium' },
               },
               '& .MuiInputBase-input::placeholder': {
-                color: 'rgba(255, 255, 255, 0.5)',
+                color: COLORS.whiteMedium,
                 opacity: 1,
               },
-              '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
+              '& .MuiInputLabel-root': { color: 'COLORS.whiteHigh' },
             }}
           />
 
@@ -94,15 +95,15 @@ const SignupPage = () => {
             
             sx={{
               '& .MuiOutlinedInput-root': {
-                color: 'rgba(255, 255, 255, 0.87)',
-                '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
-                '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.4)' },
+                color: COLORS.whiteHigh,
+                '& fieldset': { borderColor: 'COLORS.whiteLow' },
+                '&:hover fieldset': { borderColor: 'COLORS.whiteMedium' },
               },
               '& .MuiInputBase-input::placeholder': {
-                color: 'rgba(255, 255, 255, 0.5)',
+                color: COLORS.whiteMedium,
                 opacity: 1,
               },
-              '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
+              '& .MuiInputLabel-root': { color: 'COLORS.whiteHigh' },
             }}
           />
 
@@ -116,15 +117,15 @@ const SignupPage = () => {
             disabled={isLoading}
             sx={{
               '& .MuiOutlinedInput-root': {
-                color: 'rgba(255, 255, 255, 0.87)',
-                '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
-                '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.4)' },
+                color: COLORS.whiteHigh,
+                '& fieldset': { borderColor: 'COLORS.whiteLow' },
+                '&:hover fieldset': { borderColor: 'COLORS.whiteMedium' },
               },
               '& .MuiInputBase-input::placeholder': {
-                color: 'rgba(255, 255, 255, 0.5)',
+                color: COLORS.whiteMedium,
                 opacity: 1,
               },
-              '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
+              '& .MuiInputLabel-root': { color: 'COLORS.whiteHigh' },
             }}
           />
 
@@ -138,15 +139,15 @@ const SignupPage = () => {
             disabled={isLoading}
             sx={{
               '& .MuiOutlinedInput-root': {
-                color: 'rgba(255, 255, 255, 0.87)',
-                '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
-                '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.4)' },
+                color: COLORS.whiteHigh,
+                '& fieldset': { borderColor: 'COLORS.whiteLow' },
+                '&:hover fieldset': { borderColor: 'COLORS.whiteMedium' },
               },
               '& .MuiInputBase-input::placeholder': {
-                color: 'rgba(255, 255, 255, 0.5)',
+                color: COLORS.whiteMedium,
                 opacity: 1,
               },
-              '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
+              '& .MuiInputLabel-root': { color: 'COLORS.whiteHigh' },
             }}
           />
 
@@ -162,15 +163,15 @@ const SignupPage = () => {
             
             sx={{
               '& .MuiOutlinedInput-root': {
-                color: 'rgba(255, 255, 255, 0.87)',
-                '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
-                '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.4)' },
+                color: COLORS.whiteHigh,
+                '& fieldset': { borderColor: 'COLORS.whiteLow' },
+                '&:hover fieldset': { borderColor: 'COLORS.whiteMedium' },
               },
               '& .MuiInputBase-input::placeholder': {
-                color: 'rgba(255, 255, 255, 0.5)',
+                color: COLORS.whiteMedium,
                 opacity: 1,
               },
-              '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
+              '& .MuiInputLabel-root': { color: 'COLORS.whiteHigh' },
             }}
           />
 
@@ -186,15 +187,15 @@ const SignupPage = () => {
             
             sx={{
               '& .MuiOutlinedInput-root': {
-                color: 'rgba(255, 255, 255, 0.87)',
-                '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
-                '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.4)' },
+                color: COLORS.whiteHigh,
+                '& fieldset': { borderColor: 'COLORS.whiteLow' },
+                '&:hover fieldset': { borderColor: 'COLORS.whiteMedium' },
               },
               '& .MuiInputBase-input::placeholder': {
-                color: 'rgba(255, 255, 255, 0.5)',
+                color: COLORS.whiteMedium,
                 opacity: 1,
               },
-              '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
+              '& .MuiInputLabel-root': { color: 'COLORS.whiteHigh' },
             }}
           />
 
@@ -211,9 +212,9 @@ const SignupPage = () => {
           </Button>
         </Box>
         <Box sx={{ mt: 2, textAlign: 'center' }}>
-          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+          <Typography variant="body2" sx={{ color: COLORS.whiteHigh }}>
             Already have an account?{' '}
-            <RouterLink to="/login" style={{ color: '#646cff', textDecoration: 'none' }}>
+            <RouterLink to="/login" style={{ color: COLORS.indigo, textDecoration: 'none' }}>
               Log in here
             </RouterLink>
           </Typography>
