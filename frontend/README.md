@@ -16,8 +16,6 @@ yarn install
 npm run dev
 ```
 
-Visit the local server at: [http://localhost:5173](http://localhost:5173)
-
 ---
 
 ## Initialization (New Project)
@@ -31,13 +29,7 @@ cd charai-frontend
 
 # Install core dependencies
 npm install   # Windows/Linux/macOS: same command
-
-## Add required packages
-npm install @mui/material @emotion/react @emotion/styled @mui/icons-material
-npm install react-router-dom @types/react-router-dom
 ```
-
-Note: `axios` is not currently used; HTTP requests use the native `fetch` API.
 
 ---
 
@@ -53,9 +45,6 @@ npm run build
 # Preview production build
 npm run preview
 ```
-
-Visit development server at: [http://localhost:5173](http://localhost:5173)
-Visit preview server at: [http://localhost:4173](http://localhost:4173)
 
 ---
 
@@ -85,15 +74,18 @@ frontend/
 
 ## Environment Variables
 
-Create a `.env` file in the project root:
+All local URLs (such as the backend API URL or the frontend development server) should be configured in a `.env` file in the project root rather than hard-coded.
+
+Example `.env`:
 
 ```bash
 # .env
-VITE_API_URL=http://127.0.0.1:8000/api  # Django backend API URL (default)
+VITE_API_URL="http://127.0.0.1:8000/api"  # Django backend API URL (default)
+VITE_APP_URL="http://localhost:5173"  # Frontend development server (default)
 ```
 
-> 📝 Add `.env` to your `.gitignore` to keep secrets out of version control.
-> Note: Only variables prefixed with VITE_ are exposed to your application
+> Note: These values may differ per developer environment. Use the ports the local servers run on. 
+> Note: Only variables prefixed with `VITE_ are exposed to the Vite client.
 
 ---
 
@@ -171,13 +163,13 @@ Commit both `package.json` and the lock file to version control.
 
 ## Summary
 
-- **Package manager**: `npm` (or `yarn`)
-- **Development server**: [http://localhost:5173](http://localhost:5173)
-- **Backend API**: [http://127.0.0.1:8000/api](http://127.0.0.1:8000/api) (Django)
+- **Package manager**: `npm`
+- **Development server**: Configured in a `.env` file, maybe via VITE_APP_URL
+- **Backend API**: Configured in a a `.env` file, maybe via VITE_API_URL
 - **Framework**: React 18+ with TypeScript
 - **UI Library**: Material UI (MUI)
 - **Routing**: React Router v6
-- **Auth**: TokenAuthentication + SessionAuthentication (Django DRF)
+- **Package manager**: `npm`
 - **Project root**: `src/`
 - **Main commands**:
   - `npm run dev` — start development server
@@ -215,9 +207,7 @@ Commit both `package.json` and the lock file to version control.
    ```
 
 5. **Open the app**:
-   - Navigate to [http://localhost:5173](http://localhost:5173)
+   - Navigate to configured frontend server URL
    - Sign up or log in to see the protected home page
 
 ---
-
-**Happy hacking on the CharAI frontend! 🚀**
