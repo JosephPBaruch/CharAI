@@ -42,8 +42,10 @@ The Biochar altered land data and the non-altered land data will be fed through 
 After the predictions are created, the yield predictions will be compared against each other. This will produce the net increase in yeild. ROI can be calculated the following way:
 
 ```md
-ROI = (Biochar_Rate _ Biochar_Amount) / ((Yield _ Crop_Rate) - Production_Costs )
+ROI = (Biochar*Rate * Biochar*Amount) / ((Yield * Crop_Rate) - Production_Costs )
 ```
+
+TODO: Revisit this later and define what ROI is!
 
 **Note**: ROI will be evaluated for every cell on the farmers land.
 
