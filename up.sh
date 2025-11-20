@@ -40,6 +40,46 @@ Make sure both scripts are executable:
 EOF
 }
 
+# Keep the script alive so Ctrl-C hits our trap (mainly for dev/prod)
+wait_for_ctrl_c() {
+  echo ">>> Stack started in '$MODE' mode. Press Ctrl-C to stop and clean up."
+  # Sleep in long intervals, but be interruptible by signals.
+  while true; do
+    sleep 86400 &
+    wait $!
+  done
+}
+
+###############################################################################
+# Cleanup on cancellation (Ctrl-C / SIGINT / SIGTERM)
+###############################################################################
+
+cleanup() {
+  echo ""
+  echo ">>> Caught signal – performing cleanup..."
+  if [[ "$MODE" == "local" ]]; then
+    if [[ -n "${FRONTEND_PID:-}" ]]; then
+      echo ">>> Stopping local frontend (PID ${FRONTEND_PID})"
+      kill "${FRONTEND_PID}" 2>/dev/null || true
+    fi
+    # Backend runs in foreground; Ctrl-C already stops it.
+  else
+    # Container modes: stop and remove both frontend & backend containers if running
+    for cname in "char-ai-frontend" "django-backend"; do
+      if docker ps -q -f name="${cname}" > /dev/null; then
+        echo ">>> Stopping container ${cname}"
+        docker stop "${cname}" >/dev/null 2>&1 || true
+        echo ">>> Removing container ${cname}"
+        docker rm "${cname}" >/dev/null 2>&1 || true
+      fi
+    done
+  fi
+  echo ">>> Cleanup complete. Exiting."
+  exit 130  # 128 + SIGINT
+}
+
+trap cleanup INT TERM
+
 MODE="$1"
 
 if [[ -z "$MODE" || "$MODE" == "-h" || "$MODE" == "--help" ]]; then
@@ -84,22 +124,27 @@ run_backend_local() {
 
 run_frontend_dev() {
   echo ">>> [FRONTEND] Starting container (dev.env)..."
-  (cd "$FRONTEND_DIR" && "./$FRONTEND_SCRIPT" -c -d)
+  # Run in background; usually this will build/run containers then exit.
+  (cd "$FRONTEND_DIR" && "./$FRONTEND_SCRIPT" -c -d) &
+  FRONTEND_DEV_PID=$!
 }
 
 run_frontend_prod() {
   echo ">>> [FRONTEND] Starting container (prod.env)..."
-  (cd "$FRONTEND_DIR" && "./$FRONTEND_SCRIPT" -c -p)
+  (cd "$FRONTEND_DIR" && "./$FRONTEND_SCRIPT" -c -p) &
+  FRONTEND_PROD_PID=$!
 }
 
 run_backend_dev() {
   echo ">>> [BACKEND] Starting container (dev.env)..."
-  (cd "$BACKEND_DIR" && "./$BACKEND_SCRIPT" -c)
+  (cd "$BACKEND_DIR" && "./$BACKEND_SCRIPT" -c) &
+  BACKEND_DEV_PID=$!
 }
 
 run_backend_prod() {
   echo ">>> [BACKEND] Starting container (prod.env)..."
-  (cd "$BACKEND_DIR" && "./$BACKEND_SCRIPT" -c -p)
+  (cd "$BACKEND_DIR" && "./$BACKEND_SCRIPT" -c -p) &
+  BACKEND_PROD_PID=$!
 }
 
 ###############################################################################
@@ -112,12 +157,16 @@ if [[ "$MODE" == "local" ]]; then
   run_backend_local
   echo ">>> Backend exited, stopping frontend (PID $FRONTEND_PID)..."
   kill "$FRONTEND_PID" 2>/dev/null || true
+
 elif [[ "$MODE" == "dev" ]]; then
   echo "=== Running FULL STACK in DEV (container) mode ==="
-  run_frontend_dev      # builds/runs frontend container (usually detached)
-  run_backend_dev       # backend container stays in foreground
+  run_frontend_dev      # builds/runs frontend container (likely detached)
+  run_backend_dev       # builds/runs backend container (likely detached)
+  wait_for_ctrl_c       # keep script alive so Ctrl-C triggers cleanup
+
 elif [[ "$MODE" == "prod" ]]; then
   echo "=== Running FULL STACK in PROD (container) mode ==="
   run_frontend_prod
   run_backend_prod
+  wait_for_ctrl_c
 fi
