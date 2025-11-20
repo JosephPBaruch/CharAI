@@ -16,8 +16,6 @@ yarn install
 npm run dev
 ```
 
-Visit the local server at: [http://localhost:5173](http://localhost:5173)
-
 ---
 
 ## Initialization (New Project)
@@ -31,11 +29,6 @@ cd charai-frontend
 
 # Install core dependencies
 npm install   # Windows/Linux/macOS: same command
-
-# Add required packages
-npm install @mui/material @emotion/react @emotion/styled @mui/icons-material
-npm install react-router-dom @types/react-router-dom
-npm install axios @types/axios
 ```
 
 ---
@@ -53,46 +46,78 @@ npm run build
 npm run preview
 ```
 
-Visit development server at: [http://localhost:5173](http://localhost:5173)
-Visit preview server at: [http://localhost:4173](http://localhost:4173)
-
 ---
 
 ## Project Structure
 
-After initialization, your project structure should look like:
-
 ```
-charai-frontend/
+frontend/
 ├── src/
-│   ├── components/     # Reusable UI components
-│   ├── pages/         # Route-level components
-│   ├── api/           # API client setup
-│   ├── types/         # TypeScript type definitions
-│   ├── App.tsx        # Root component
-│   └── main.tsx       # Entry point
-├── public/            # Static assets
-├── index.html         # HTML template
-├── package.json       # Dependencies and scripts
-├── tsconfig.json      # TypeScript configuration
-└── vite.config.ts     # Vite configuration
+│   ├── components/        # Reusable UI components (Header, ProtectedRoute, PublicRoute, AppRoutes)
+│   ├── pages/            # Route-level components (LoginPage, SignupPage, HomePage, App)
+│   ├── services/         # API client and auth service (authService.ts)
+│   ├── contexts/         # React context for state management (AuthContext)
+│   ├── types/            # TypeScript type definitions (auth.ts)
+│   ├── utils/            # Utility functions
+│   ├── App.tsx           # Root component
+│   ├── main.tsx          # Entry point
+│   └── index.css         # Global styles
+├── public/               # Static assets
+├── index.html            # HTML template
+├── package.json          # Dependencies and scripts
+├── tsconfig.json         # TypeScript configuration
+├── vite.config.ts        # Vite configuration
+└── README.md             # This file
 ```
 
 ---
 
 ## Environment Variables
 
-Create a `.env` file in the project root:
+All local URLs (such as the backend API URL or the frontend development server) should be configured in a `.env` file in the project root rather than hard-coded.
+
+Example `.env`:
 
 ```bash
 # .env
-VITE_API_URL=http://localhost:8000/api  # Django backend URL
-VITE_AUTH_ENABLED=true                  # Enable/disable auth features
-VITE_MAP_TILE_KEY=your-key-here        # If using map services
+VITE_API_URL="http://127.0.0.1:8000/api"  # Django backend API URL (default)
+VITE_APP_URL="http://localhost:5173"  # Frontend development server (default)
 ```
 
-> 📝 Add `.env` to your `.gitignore` to keep secrets out of version control.
-> Note: Only variables prefixed with VITE_ are exposed to your application
+> Note: These values may differ per developer environment. Use the ports the local servers run on. 
+> Note: Only variables prefixed with `VITE_ are exposed to the Vite client.
+
+---
+
+## Authentication
+
+The frontend integrates with Django REST Framework using **TokenAuthentication** and **SessionAuthentication**:
+
+- **Token Storage**: Auth tokens are stored in `localStorage` under the key `authToken`
+- **Session Support**: Requests include `credentials: 'include'` to support session-based auth
+- **Protected Routes**: Routes are guarded by `ProtectedRoute` and `PublicRoute` components
+- **Auth Context**: Centralized auth state via `AuthContext` (provides `login`, `register`, `logout`, `checkAuth`, `isAuthenticated`, `user`, `isLoading`)
+- **Error Handling**: Errors from auth attempts are logged to console only; no UI error messages are displayed
+
+### Authentication Flow
+
+1. User submits login/signup form
+2. Frontend calls `authService.login()` or `authService.register()`
+3. Backend validates and returns token (+ user data)
+4. Frontend stores token locally
+5. Subsequent requests include `Authorization: Token <token>` header
+6. On logout, token is cleared and user is redirected to login
+
+### Key Files
+
+- `src/services/authService.ts` — API calls and token management
+- `src/contexts/AuthContext.tsx` — Auth state and methods
+- `src/types/auth.ts` — TypeScript types for auth
+- `src/components/ProtectedRoute.tsx` — Guards authenticated pages
+- `src/components/PublicRoute.tsx` — Prevents logged-in users from seeing login/signup
+- `src/pages/LoginPage.tsx` — Login form
+- `src/pages/SignupPage.tsx` — Registration form
+- `src/pages/HomePage.tsx` — Protected home page (shown only to authenticated users)
 
 ---
 
@@ -138,19 +163,51 @@ Commit both `package.json` and the lock file to version control.
 
 ## Summary
 
-- Package manager: `npm` (or `yarn`)
-- Development server: [http://localhost:5173](http://localhost:5173)
-- Project root: `src/`
-- Main commands:
+- **Package manager**: `npm`
+- **Development server**: Configured in a `.env` file, maybe via VITE_APP_URL
+- **Backend API**: Configured in a a `.env` file, maybe via VITE_API_URL
+- **Framework**: React 18+ with TypeScript
+- **UI Library**: Material UI (MUI)
+- **Routing**: React Router v6
+- **Package manager**: `npm`
+- **Project root**: `src/`
+- **Main commands**:
   - `npm run dev` — start development server
   - `npm run build` — build for production and type check
   - `npm run preview` — preview production build
   - `npm run lint` — lint codebase
-- Configuration:
+- **Configuration**:
   - TypeScript: `tsconfig.json`
   - Vite: `vite.config.ts`
   - Environment: `.env`
 
 ---
 
-**Happy hacking on the CharAI frontend! 🚀**
+## Getting Started
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Set up environment**:
+   ```bash
+   cp .env.example .env  # (or create .env manually with VITE_API_URL)
+   ```
+
+3. **Ensure backend is running**:
+   ```bash
+   # In the backend directory
+   python manage.py runserver
+   ```
+
+4. **Start the dev server**:
+   ```bash
+   npm run dev
+   ```
+
+5. **Open the app**:
+   - Navigate to configured frontend server URL
+   - Sign up or log in to see the protected home page
+
+---
