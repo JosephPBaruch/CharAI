@@ -1,3 +1,7 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:a94a6802be9126ffe603dd26fc103d2645d8b0b227c998cca572237f7f997618
-size 86
+# .gitignore
+*/.venv/
+*/__pycache__/
+*.pyc
+./backend/.env
+*/db.sqlite3
+*/.dockerignore
