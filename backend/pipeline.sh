@@ -97,7 +97,7 @@ run_container_with_envfile() {
   echo "      Container port: ${INTERNAL_PORT}"
   echo
 
-  docker run --rm -it \
+  docker run -d \
     -p "${EXTERNAL_PORT}:${INTERNAL_PORT}" \
     --name "${CONTAINER_NAME}" \
     "${IMAGE_NAME}"
