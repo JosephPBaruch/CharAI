@@ -4,3 +4,6 @@
 *.pyc
 */.env
 */db.sqlite3
+
+
+*.csv
