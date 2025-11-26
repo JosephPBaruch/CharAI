@@ -4,7 +4,7 @@
 
 [Crop Data Information](https://meta.cafltar.org/catalog/datasets/Production/CafPlantGridPointSurvey/CookEastHandHarvest_P3A3_V1)
 
-### Metadata
+### Raw Dataset Metadata
 
 | Name                     | Description                                                                                                                                                                                                                                                                  | Units     |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
@@ -35,11 +35,11 @@
 | GrainSulfur              | Percent of sulfur in grain.                                                                                                                                                                                                                                                  | %         |
 | ResidueSulfur            | Percent of sulfur in the residue                                                                                                                                                                                                                                             | %         |
 
-## Geophysical Data
+## Terrain Data
 
 [Geophysical Data Information](https://meta.cafltar.org/catalog/datasets/Production/CookGeospatialTerrainAttributes/CookTerrainAttributes10m2_P3A1_v1)
 
-### Metadata
+### Raw Dataset Metadata
 
 | Name                    | Description                                                                                                                                                                     | Units             |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
