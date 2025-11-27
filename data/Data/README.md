@@ -1,10 +1,12 @@
-# Cook Farm Data
+# Data
 
-## Crop Data
+## Cook Farm Data
+
+### Crop Data
 
 [Crop Data Information](https://meta.cafltar.org/catalog/datasets/Production/CafPlantGridPointSurvey/CookEastHandHarvest_P3A3_V1)
 
-### Raw Dataset Metadata
+#### Raw Dataset Metadata
 
 | Name                     | Description                                                                                                                                                                                                                                                                  | Units     |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
@@ -35,11 +37,11 @@
 | GrainSulfur              | Percent of sulfur in grain.                                                                                                                                                                                                                                                  | %         |
 | ResidueSulfur            | Percent of sulfur in the residue                                                                                                                                                                                                                                             | %         |
 
-## Terrain Data
+### Terrain Data
 
 [Geophysical Data Information](https://meta.cafltar.org/catalog/datasets/Production/CookGeospatialTerrainAttributes/CookTerrainAttributes10m2_P3A1_v1)
 
-### Raw Dataset Metadata
+#### Raw Dataset Metadata
 
 | Name                    | Description                                                                                                                                                                     | Units             |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
@@ -64,7 +66,9 @@
 | PlanCurvature           | Measures the rate of change of aspect along a contour line and is important for characterizing the propensity for water to converge or diverge                                  | radians per meter |
 | TangentialCurvature     | It is the curvature in an inclined plane perpendicular to both the direction of flow and the surface. Provides info for studying convergence and divergence                     | radians per meter |
 
-## Combined Data
+### Combined Data
+
+#### Dataset Metadata
 
 | Name                       | Description                                                                                                                                                                                                                                                                  | Units             |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
@@ -89,3 +93,13 @@
 | PlanCurvature              | Measures the rate of change of aspect along a contour line and is important for characterizing the propensity for water to converge or diverge                                                                                                                               | radians per meter |
 | TangentialCurvature        | It is the curvature in an inclined plane perpendicular to both the direction of flow and the surface. Provides info for studying convergence and divergence                                                                                                                  | radians per meter |
 | AnnualGlobalSolarRadiation | Annual total global solar radiation at the surface (from terrain/solar radiation product; if you want, you can refine this description to match your source metadata precisely).                                                                                             | (same as source)  |
+
+## CropSyst Data
+
+[CropSyst Data Link](https://www.quantitative-plant.org/model/CropSyst)
+
+[CropSyst Research Paper](https://www.sciencedirect.com/science/article/abs/pii/S1161030102001090?via%3Dihub)
+
+TODO: Research the differences and similarities between the Cook Crop/Terrain Dataset and CropSyst Input set.
+
+Note: The CropSyst set is a biomass cumulation model, which is not what CharAI will be doing, but it could contain inputs that might lead to improving the model.
