@@ -70,6 +70,8 @@
 
 #### Dataset Metadata
 
+Target Column: "GrainYieldAirDry"
+
 | Name                       | Description                                                                                                                                                                                                                                                                  | Units             |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
 | Crop                       | Crop abbreviation of the sample where: Spring wheat = SW, Winter wheat = WW, Spring canola = SC, Winter canola = WC, Spring barley = SB, Spring pea = SP, Winter barley = WB, Winter pea = WP, Winter triticale = WT, Winter lentil = WL, Garbonzo Beans = GB, Alfalfa = AL. | unitless          |
@@ -93,6 +95,10 @@
 | PlanCurvature              | Measures the rate of change of aspect along a contour line and is important for characterizing the propensity for water to converge or diverge                                                                                                                               | radians per meter |
 | TangentialCurvature        | It is the curvature in an inclined plane perpendicular to both the direction of flow and the surface. Provides info for studying convergence and divergence                                                                                                                  | radians per meter |
 | AnnualGlobalSolarRadiation | Annual total global solar radiation at the surface (from terrain/solar radiation product; if you want, you can refine this description to match your source metadata precisely).                                                                                             | (same as source)  |
+
+## List of all Attributes to Fetch
+
+['Crop', 'QCFlags', 'CropExists', 'GrainYieldAirDry', 'Elevation', 'AnalyticalHillshade', 'ConvergenceIndex', 'TotalCatchmentArea', 'TopographicWetnessIndex', 'LengthSlopeFactor', 'ChannelNetworkBaseLevel', 'ChannelNetworkDistance', 'ValleyDepth', 'RelativeSlopePosition', 'Slope', 'Aspect', 'TRASP', 'ProfileCurvature', 'PlanCurvature', 'TangentialCurvature', 'AnnualGlobalSolarRadiation']
 
 ## CropSyst Data
 
