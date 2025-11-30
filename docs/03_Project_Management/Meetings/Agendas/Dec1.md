@@ -1,24 +1,40 @@
 # December 1 Agenda
 
-Go over stage 2 goals:
+## 1. Stage II Status Review
 
-- Import and export the frontend and backend (lets get some status updates)
-  - What's the other thing that Matt has been working on?
-- Containerize, Pipeline (these things aren't really needed right now)
-- Exploring the data (planning for stage III)
-  - This is basically complete
+- **Frontend / Backend import & export**
+  - Quick status updates from everyone
+  - Clarify: What is the other thing Matt has been working on?
+- **Containerization & pipelines**
+  - Review current progress
+  - Decide what is actually needed for this stage (vs later)
+- **Data exploration**
+  - Confirm Cook Farm data exploration is basically complete
+  - Identify any remaining gaps before Stage III
 
-Go over what I've down this the model and explored the cook data so far
+## 2. Model & Cook Data Review
 
-- Planning for stage III
-- Goal is to have e2e completely working by the end of this stage. Go through how long this might take with the different people (lets set some due dates)
-- importing and displaying stuff in the frontend nicely
-- Fetching all the necessary data in the backend ( we need to integrate how biochar will impact this) -> maybe for now, it only impacts the soil water index variable that is being used.
-- correcting its format going into the model.
-- Turning the yeild into ROI values and then sending that to the frontend
+- Walk through what has been done with the model so far
+- Show what has been explored in the Cook data
+- Capture open questions / assumptions for Stage III
 
-Go over the upcoming due dates:
+## 3. Stage III Planning
 
-- snapshot #2
-- Plan for over christmas break
-- Portfolio Part 2 is due. Everything needs to be in there
+- **Overall goal:** end-to-end flow working by the end of this stage
+- Estimate how long each piece will take and assign owners / due dates:
+  - Importing and displaying outputs nicely in the frontend
+  - Fetching all necessary data in the backend
+    - Include how biochar will impact the model
+    - For now, assume it primarily affects the soil water index variable
+  - Correcting data formats going into the model
+  - Converting yield outputs into ROI values and sending them to the frontend
+
+## 4. Upcoming Deliverables & Deadlines
+
+- **Snapshot #2**
+  - Scope and expected content
+- **Winter break plan**
+  - Who is doing what over the break
+- **Portfolio Part 2**
+  - Confirm everything that needs to be included
+  - Set internal deadline ahead of official due date
