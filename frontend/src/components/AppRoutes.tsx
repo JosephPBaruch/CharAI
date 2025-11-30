@@ -5,6 +5,7 @@ import SignupPage from '../pages/SignupPage';
 import HomePage from '../pages/HomePage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { PublicRoute } from './PublicRoute';
+import FileUploadPage from '../pages/FileUploadPage';
 
 /**
  * AppRoutes component orchestrates all routing logic:
@@ -35,6 +36,10 @@ export default function AppRoutes() {
       {/* Root "/" route - shows HomePage for authenticated, App.tsx for unauthenticated */}
       <Route path="/" element={<ProtectedRoute element={<HomePage />} fallback={<App />} />} />
       
+      {/* File upload route - allows users to upload coordinates */}
+      {/* Currently a public route, change to protected route. this is simply for easy testing. */}
+      <Route path="/upload" element={<PublicRoute element={<FileUploadPage />} />} />
+
       {/* Auth pages - public, redirects authenticated users to home */}
       <Route path="/login" element={<PublicRoute element={<LoginPage />} />} />
       <Route path="/signup" element={<PublicRoute element={<SignupPage />} />} />
