@@ -2,7 +2,7 @@ import { Box, Button, IconButton, Stack, Typography, CircularProgress } from "@m
 import { styled } from "@mui/material/styles";
 import React from "react";
 import CloseIcon from "@mui/icons-material/Close";
-import { uploadCoordinateFile } from "../services/fileUploadService";
+import { uploadYieldFile } from "../services/fileUploadService";
 import { COLORS } from "../styles/colors";
 
 const VisuallyHiddenInput = styled('input')({
@@ -17,7 +17,7 @@ const VisuallyHiddenInput = styled('input')({
   width: 1,
 });
 
-export default function CoordinateFileUpload(props: { onSelect?: (file: File | null) => void; onUploadComplete?: () => void }) {
+export default function YieldFileUpload(props: { onSelect?: (file: File | null) => void; onUploadComplete?: () => void }) {
   const { onSelect, onUploadComplete } = props || {};
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -39,7 +39,7 @@ export default function CoordinateFileUpload(props: { onSelect?: (file: File | n
     formData.append('file', selectedFile);
 
     try {
-      const response = await uploadCoordinateFile(formData);
+      const response = await uploadYieldFile(formData);
       if (response) {
         console.log("Success! File uploaded");
         setSelectedFile(null);
@@ -73,10 +73,10 @@ export default function CoordinateFileUpload(props: { onSelect?: (file: File | n
         >
           Choose file
           <VisuallyHiddenInput
-            type="file"
-            accept=".shp,.shx,.dbf,.geojson,.csv,.kml,.kmz"
-            onChange={handleFileChange}
-          />
+              type="file"
+              accept=".csv,.xml,.shp,.shx,.dbf,.txt"
+              onChange={handleFileChange}
+            />
         </Button>
       ) : (
         <Stack
