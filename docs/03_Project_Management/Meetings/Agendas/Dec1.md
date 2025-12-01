@@ -46,3 +46,4 @@
   - Pushing up code to main (hard to find work sometimes which holds me back)
   - Approving calendar invites
   - Documenting what work you are working on in Issues with detailed explainations (I need to be better at this myself).
+  - Communicating that the work that you're working on complies with were we are in the project lifecycle. If we diverge we may possible need to change the "stages" to something that works better for the team.
