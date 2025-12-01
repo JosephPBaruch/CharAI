@@ -38,3 +38,11 @@
 - **Portfolio Part 2**
   - Confirm everything that needs to be included
   - Set internal deadline ahead of official due date
+
+## 5. Team Organization and Work
+
+- Processes that anyone wants to bring up that needs to be changed.
+- Some that I thought about:
+  - Pushing up code to main (hard to find work sometimes which holds me back)
+  - Approving calendar invites
+  - Documenting what work you are working on in Issues with detailed explainations (I need to be better at this myself).
