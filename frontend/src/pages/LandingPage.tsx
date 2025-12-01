@@ -1,38 +1,33 @@
-import { useState } from "react";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Typography, Container } from "@mui/material";
+import FarmBiocharForm from "../components/FarmBiocharForm";
+import { COLORS } from "../styles/colors";
 
 const LandingPage = () => {
-  const [count, setCount] = useState(0);
-
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100%", // fills #root
-        textAlign: "center",
-        gap: 3, // spacing between elements
-        px: 2, // optional horizontal padding for small screens
-      }}
-    >
-      <Typography variant="h3" component="h1">
-        CharAI
-      </Typography>
-
-      <Typography variant="body1">
-        Frontend initialized with React, TypeScript, Vite, and Material UI
-      </Typography>
-
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => setCount((c) => c + 1)}
+    <Container maxWidth="lg">
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "80vh",
+          textAlign: "center",
+          gap: 4,
+        }}
       >
-        Count: {count}
-      </Button>
-    </Box>
+        <Box>
+          <Typography variant="h3" component="h1" sx={{ color: COLORS.whiteHigh, fontWeight: 700, mb: 1 }}>
+            CharAI
+          </Typography>
+          <Typography variant="body1" sx={{ color: COLORS.whiteMedium }}>
+            Optimize your farm's biochar application with AI-powered recommendations
+          </Typography>
+        </Box>
+
+        <FarmBiocharForm />
+      </Box>
+    </Container>
   );
 }
 
