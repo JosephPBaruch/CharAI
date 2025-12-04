@@ -1,6 +1,7 @@
 import { Box, Typography, Container } from "@mui/material";
 import FarmBiocharForm from "../components/FarmBiocharForm";
 import { COLORS } from "../styles/colors";
+import BiocharMap from "../components/BiocharMap";
 
 const LandingPage = () => {
   return (
@@ -26,6 +27,10 @@ const LandingPage = () => {
         </Box>
 
         <FarmBiocharForm />
+        {/* Test prescription map component */}
+        <Box>
+          <BiocharMap/>
+        </Box>
       </Box>
     </Container>
   );
