@@ -2,6 +2,7 @@ import { Box, Stack, Typography } from '@mui/material';
 import { COLORS } from '../styles/colors';
 import CoordinateFileUpload from './CoordinateFileUpload';
 import YieldFileUpload from './YieldFileUpload';
+import ManualCoordinateUpload from './ManualCoordinateUpload';
 
 interface FileUploadSectionProps {
   onCoordSelect: (file: File | null) => void;
@@ -38,9 +39,10 @@ export default function FileUploadSection({
             Upload a file containing your farm boundary coordinates. This is essential for accurate spatial analysis and field mapping.
           </Typography>
           <CoordinateFileUpload onSelect={onCoordSelect} onUploadComplete={onCoordUploaded} />
-          <Typography variant="caption" sx={{ color: COLORS.whiteMedium, mt: 1.5, display: 'block' }}>
+          <Typography variant="caption" sx={{ color: COLORS.whiteMedium, my: 1.5, display: 'block' }}>
             Accepted formats: Shapefile (.shp, .shx, .dbf), GeoJSON (.geojson), CSV (.csv), KML/KMZ (.kml, .kmz)
           </Typography>
+          <ManualCoordinateUpload/>
         </Box>
 
         {/* Yield File Box */}

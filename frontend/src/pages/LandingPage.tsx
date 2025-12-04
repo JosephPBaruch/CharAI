@@ -27,10 +27,6 @@ const LandingPage = () => {
         </Box>
 
         <FarmBiocharForm />
-        {/* Test prescription map component */}
-        <Box>
-          <BiocharMap/>
-        </Box>
       </Box>
     </Container>
   );
