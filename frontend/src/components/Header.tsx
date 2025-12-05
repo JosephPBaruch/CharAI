@@ -64,6 +64,13 @@ const Header = () => {
               >
                 Sign up
               </Button>
+              <Button
+                component={RouterLink}
+                to="/output"
+                sx={{ color: COLORS.whiteHigh, textTransform: 'none', fontSize: '1rem' }}
+              >
+                Output
+              </Button>
             </>
           )}
         </Box>

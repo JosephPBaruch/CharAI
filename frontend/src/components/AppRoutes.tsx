@@ -5,17 +5,21 @@ import SignupPage from '../pages/SignupPage';
 import HomePage from '../pages/HomePage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { PublicRoute } from './PublicRoute';
+import PrescriptionsPage from '../pages/PrescriptionsPage';
 
 export default function AppRoutes() {
   return (
     <Routes>
       {/* Root "/" route - shows HomePage for authenticated, App.tsx for unauthenticated */}
       <Route path="/" element={<ProtectedRoute element={<HomePage />} fallback={<App />} />} />
-      
+
       {/* Auth pages - public, redirects authenticated users to home */}
       <Route path="/login" element={<PublicRoute element={<LoginPage />} />} />
       <Route path="/signup" element={<PublicRoute element={<SignupPage />} />} />
       
+      {/* Temporary public pages for testing */}
+      <Route path="/output" element={<PublicRoute element={<PrescriptionsPage />} />} />
+
       {/* Catch-all for unmatched routes */}
       <Route path="*" element={<ProtectedRoute element={<HomePage />} fallback={<App />} />} />
     </Routes>

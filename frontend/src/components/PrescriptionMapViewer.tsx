@@ -6,6 +6,7 @@ import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
 import { COLORS } from '../styles/colors';
 import React from "react";
+import { samplePrescriptionData } from "../samplePrescriptionData";
 
 interface PrescriptionMapViewerProps {
   /** A GeoJSON FeatureCollection from the backend. Expect the outer polygon (farm boundary)
@@ -18,11 +19,11 @@ interface PrescriptionMapViewerProps {
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  'highest-to-high': '#7b1fa2', // deep purple
-  'high-to-med-high': '#e91e63',
-  'med-high-to-med': '#ff9800',
-  'med-to-low': '#ffc107',
-  'low': '#c8e6c9',
+  "high": "#d7191c",
+  "medium-high": "#f58634",
+  "medium": "#f9d423",
+  "medium-low": "#a6d96a",
+  "low": "#1a9641",
 };
 
 function featureStyle(feature: any) {
@@ -41,7 +42,7 @@ function featureStyle(feature: any) {
   } as L.PathOptions;
 }
 
-export default function PrescriptionMapViewer({ data, height = '400px', width = '100%' }: PrescriptionMapViewerProps) {
+export default function PrescriptionMapViewer({ data = samplePrescriptionData, height = '400px', width = '100%' }: PrescriptionMapViewerProps) {
   // default center if no data
   const defaultCenter: LatLngExpression = [44.5, -110];
 
