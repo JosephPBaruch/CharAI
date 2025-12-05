@@ -1,7 +1,6 @@
 import { Box, Typography, Container } from "@mui/material";
 import FarmBiocharForm from "../components/FarmBiocharForm";
 import { COLORS } from "../styles/colors";
-import BiocharMap from "../components/BiocharMap";
 
 const LandingPage = () => {
   return (

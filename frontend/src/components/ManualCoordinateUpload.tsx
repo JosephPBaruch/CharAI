@@ -10,11 +10,19 @@ export default function ManualCoordinateUpload() {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
+  const handleSubmit = () => {
+  }
+
   const FormContent = () => {
     return (
       <Box>
         Hello World.
         <InteractiveFarmMap/>
+        <Button 
+          onClick={handleSubmit}
+        >
+          Submit coordinates
+        </Button>
       </Box>
     )
   }
