@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { MapContainer, TileLayer, Marker, useMapEvent, Polygon } from "react-leaflet";
 import { type LatLngLiteral } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { Box, Button } from "@mui/material";
+import { Box } from "@mui/material";
 
 // temporary workaround for marker icon clash between Vite and React Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -28,32 +28,28 @@ const ClickHandler: React.FC<ClickHandlerProps> = ({ markers, setMarkers }) => {
   return null;
 };
 
-export default function FarmMap() {
-  const [markers, setMarkers] = useState<LatLngLiteral[]>([]);
+interface InteractiveFarmMapProps {
+  markers: LatLngLiteral[];
+  setMarkers: React.Dispatch<React.SetStateAction<LatLngLiteral[]>>;
+}
 
-  const handleClearMarkers = () => {
-    setMarkers([]);
-  }
-
+export default function InteractiveFarmMap({ markers, setMarkers }: InteractiveFarmMapProps) {
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <Button variant="contained" onClick={handleClearMarkers}>Clear markers</Button>
-      <Box sx={{ height: "500px", width: "66%" }}>
-        <MapContainer
-          center={[40, -100]}
-          zoom={4}
-          style={{ height: "100%", width: "100%" }}
-        >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+    <Box sx={{ height: "100%", width: "100%" }}>
+      <MapContainer
+        center={[46.44020,-117.13005]}
+        zoom={6}
+        style={{ height: "100%", width: "100%" }}
+      >
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-          <ClickHandler markers={markers} setMarkers={setMarkers} />
+        <ClickHandler markers={markers} setMarkers={setMarkers} />
 
-          {markers.map((position, idx) => (
-            <Marker key={idx} position={position} />
-          ))}
-          {markers.length >= 3 && <Polygon positions={markers}></Polygon>}
-        </MapContainer>
-      </Box>
+        {markers.map((position, idx) => (
+          <Marker key={idx} position={position} />
+        ))}
+        {markers.length >= 3 && <Polygon positions={markers}></Polygon>}
+      </MapContainer>
     </Box>
   );
 };
