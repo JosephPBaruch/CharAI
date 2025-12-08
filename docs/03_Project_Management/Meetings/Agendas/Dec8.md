@@ -28,3 +28,7 @@ Since we don't have any other school, lets try to stay active with the presentat
 - Josh:
 - Matt:
 - Braydyn
+
+## Portfolio
+
+Due Friday so lets have everything merged by Thursday and I will update the OneDrive.
