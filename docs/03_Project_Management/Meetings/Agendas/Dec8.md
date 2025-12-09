@@ -19,6 +19,8 @@ Go over any necessary information on snapshot 2.
 
 Lets plan to meet 1-2 times. Dates:
 
+dec 27 and jan 4
+
 - After Christmas
 - After New Years
 
