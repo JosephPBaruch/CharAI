@@ -32,12 +32,27 @@ Include inputs/outputs to API.
 
 Store all of the required information. On a volume/or DB:
 
-## Stage 3: Fetch Necessary Data
+### Data
+
+Using the Cook Dataset, create a model to predict yield on a given coordinate. This does not need to be very accurate and should not contain many attributes.
+
+## Stage 3: End-to-End #1
 
 Backend needs to use the inputs created in Stage 2, to fetch the required data.
 
 Temporarily store this data in a organized matter for future preparation.
 
-## Stage 4:
+The goal by the end of this stage is to have a fully functioning product. It doesn't need to be accuracte but needs to function.
 
-TODO: Format data and send through the model?
+Model pipeline?
+
+## Stage 4: Input and Output refinements
+
+Instead of providing input via a coordinate file and output, just yeild data:
+
+- Allow the user to draw their coordinates for their land (needs to be converted to the correct format)
+- The output needs to be ROI data (which gets rendered in the frontend)
+
+## Stage 3: End-to-End #2
+
+Improve the model and the inputs to the model. For instance, take in weather data, etc.
