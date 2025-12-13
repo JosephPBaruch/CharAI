@@ -1,0 +1,23 @@
+11/17 meeting
+
+the model examines the situation differently than what we're expected to.
+  - mostly used for research, not for farmers necessarily
+  - is that we need for our application? or just some comparable model.
+  - use it more so for a reference
+
+the goal is to limit the amount of work the farmer has to do.
+  - like pull the weather data, soil data, so they don't have to find that.
+
+Robel says just handle the prescription map rendering and let the grad students do the optimization?
+  - not correct? or just misleading?
+
+
+so we're using crop syst to pick relevant inputs, but we can't use crop syst. but, could we create a model that uses the same day-stepping format?
+  - maybe, but crop syst focuses mainly on biomass accumulation, not yield, which is a one-time measurement.
+
+thoughts on using the farmers' yield data from previous years so we're not comparing off two predicted values? not entirely feasible because most farmers won't have it (they'll have an average yield or total yield), and if some have it, that's useful, but they might be different resolutions.
+
+next stage: handling inputs and outputs
+next next stage: handling the black box
+
+PUT MEETING MINUTES UNDER MEETING MINUTES FOLDER
