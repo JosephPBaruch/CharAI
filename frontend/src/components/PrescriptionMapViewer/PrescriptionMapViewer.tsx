@@ -1,5 +1,5 @@
 import { Box, Typography, Button, Container } from "@mui/material";
-import type { Feature, FeatureCollection, Point, Polygon } from 'geojson';
+import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { COLORS } from '../../styles/colors';
@@ -23,13 +23,23 @@ interface PrescriptionMapViewerProps {
 
 export default function PrescriptionMapViewer({ data = samplePrescriptionData, height = '400px', width = '100%' }: PrescriptionMapViewerProps) {
   const navigate = useNavigate();
-  const { hasCoordinates, isLoading, clearCoordinateData, formSubmitted, setFormSubmitted } = useCoordinates();
+  const { data: committedCoords, hasCoordinates, isLoading, clearCoordinateData, formSubmitted, setFormSubmitted } = useCoordinates();
   const mapContainerRef = React.useRef<HTMLDivElement | null>(null);
   const mapRef = React.useRef<maplibregl.Map | null>(null);
   const popupRef = React.useRef<maplibregl.Popup | null>(null);
-  const pointsSourceId = 'grid-points';
-  const pointsLayerId = 'grid-points-circle';
-  const [gridPoints, setGridPoints] = React.useState<FeatureCollection<Point>>({ type: 'FeatureCollection', features: [] });
+  const gridCellsSourceId = 'grid-cells';
+  const gridCellsFillLayerId = 'grid-cells-fill';
+  const gridCellsOutlineLayerId = 'grid-cells-outline';
+  const [gridCells, setGridCells] = React.useState<FeatureCollection<Polygon | MultiPolygon>>({ type: 'FeatureCollection', features: [] });
+
+  // Use explicit data prop for testing; otherwise use committed coordinates from context after user submits
+  // This ensures the grid only shows the user's final selected polygon after submission
+  const polygonData = React.useMemo<FeatureCollection | null>(() => {
+    if (data && data !== samplePrescriptionData) return data as FeatureCollection;
+    if (committedCoords) return committedCoords;
+    if (data) return data as FeatureCollection; // fallback to prop/sample
+    return null;
+  }, [data, committedCoords]);
 
   React.useEffect(() => {
     if (mapContainerRef.current && !mapRef.current) {
@@ -49,7 +59,7 @@ export default function PrescriptionMapViewer({ data = samplePrescriptionData, h
       map.on('load', () => {
         map.addSource(sourceId, {
           type: 'geojson',
-          data: (data ?? samplePrescriptionData) as any,
+          data: (polygonData ?? samplePrescriptionData) as any,
         });
 
         map.addLayer({
@@ -73,37 +83,37 @@ export default function PrescriptionMapViewer({ data = samplePrescriptionData, h
           },
         });
 
-        // Points source/layer for grid visualization
-        map.addSource(pointsSourceId, {
+        // Grid cells source/layers for square visualization
+        map.addSource(gridCellsSourceId, {
           type: 'geojson',
-          data: gridPoints as any,
+          data: gridCells as any,
         });
 
         map.addLayer({
-          id: pointsLayerId,
-          type: 'circle',
-          source: pointsSourceId,
+          id: gridCellsFillLayerId,
+          type: 'fill',
+          source: gridCellsSourceId,
           paint: {
-            'circle-color': [
-              'case',
-              ['has', 'paybackPeriod'],
-              ['step', ['get', 'paybackPeriod'],
-                '#1a9641',
-                2, '#a6d96a',
-                4, '#f9d423',
-                6, '#f58634',
-                8, '#d7191c'
-              ],
-              '#999999'
+            'fill-color': [
+              'step', ['get', 'paybackPeriod'],
+              '#1a9641',
+              2, '#a6d96a',
+              4, '#f9d423',
+              6, '#f58634',
+              8, '#d7191c'
             ],
-            'circle-radius': [
-              'interpolate', ['linear'], ['zoom'],
-              4, ['+', 3, ['coalesce', ['get', 'applicationRate'], 5]],
-              10, ['+', 1, ['coalesce', ['get', 'applicationRate'], 5]]
-            ],
-            'circle-opacity': 0.85,
-            'circle-stroke-color': '#111',
-            'circle-stroke-width': 0.5,
+            'fill-opacity': 0.6,
+          },
+        });
+
+        map.addLayer({
+          id: gridCellsOutlineLayerId,
+          type: 'line',
+          source: gridCellsSourceId,
+          paint: {
+            'line-color': '#111',
+            'line-width': 1,
+            'line-opacity': 0.8,
           },
         });
 
@@ -129,8 +139,8 @@ export default function PrescriptionMapViewer({ data = samplePrescriptionData, h
           popupRef.current && popupRef.current.remove();
         });
 
-        if (data) {
-          const b = computeBoundsFromGeoJSON(data);
+        if (polygonData) {
+          const b = computeBoundsFromGeoJSON(polygonData);
           if (b) {
             map.fitBounds(b, { padding: 20 });
           }
@@ -151,89 +161,102 @@ export default function PrescriptionMapViewer({ data = samplePrescriptionData, h
   }, []);
 
   React.useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    const source = map.getSource('prescription-data') as maplibregl.GeoJSONSource | undefined;
-    if (source && data) {
-      source.setData(data as any);
-      const b = computeBoundsFromGeoJSON(data);
+    const mapInstance = mapRef.current;
+    if (!mapInstance) return;
+    const source = mapInstance.getSource('prescription-data') as maplibregl.GeoJSONSource | undefined;
+    if (source && polygonData) {
+      source.setData(polygonData as any);
+      const b = computeBoundsFromGeoJSON(polygonData);
       if (b) {
-        map.fitBounds(b, { padding: 20 });
+        mapInstance.fitBounds(b, { padding: 20 });
       }
     }
-  }, [data]);
+  }, [polygonData]);
 
-  // Utility: compute N x N resolution based on bbox
-  function computeResolution(polygon: Feature<Polygon>, targetN = 20) {
+  // Utility: compute N x N resolution based on bbox (kilometers per side)
+  function computeResolutionKm(polygon: Feature<Polygon | MultiPolygon>, targetN = 20) {
     const bbox = turf.bbox(polygon);
     const [minX, minY, maxX, maxY] = bbox;
-    const widthDeg = Math.abs(maxX - minX);
-    const heightDeg = Math.abs(maxY - minY);
-    // Choose spacing so that roughly targetN points per side
-    const spacingX = widthDeg / targetN;
-    const spacingY = heightDeg / targetN;
-    // Use min spacing to avoid huge counts if aspect ratio extreme
-    const spacing = Math.min(spacingX, spacingY);
-    return Math.max(spacing, 0.0001); // guard minimal spacing
+    const horizontalKm = turf.distance([minX, minY], [maxX, minY], { units: 'kilometers' });
+    const verticalKm = turf.distance([minX, minY], [minX, maxY], { units: 'kilometers' });
+    const cellSideKm = Math.min(horizontalKm / targetN, verticalKm / targetN);
+    return Math.max(cellSideKm, 0.05); // guard minimal spacing (~50m)
   }
 
-  // Generate points inside polygon
-  function regenerateGrid(polygonFC: FeatureCollection) {
-    const polyFeature = polygonFC.features.find(f => f.geometry.type === 'Polygon') as Feature<Polygon> | undefined;
-    if (!polyFeature) {
-      setGridPoints({ type: 'FeatureCollection', features: [] });
+  // Generate square grid cells inside polygon
+  function regenerateGrid(polygonFC: FeatureCollection | null) {
+    if (!polygonFC || !polygonFC.features || polygonFC.features.length === 0) {
+      setGridCells({ type: 'FeatureCollection', features: [] });
       return;
     }
-    const spacing = computeResolution(polyFeature, 20);
+
+    const polyFeature = polygonFC.features.find(
+      f => f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+    ) as Feature<Polygon | MultiPolygon> | undefined;
+    if (!polyFeature) {
+      setGridCells({ type: 'FeatureCollection', features: [] });
+      return;
+    }
+
+    const cellSideKm = computeResolutionKm(polyFeature, 20);
     const bbox = turf.bbox(polyFeature);
-    const pointGrid = turf.pointGrid(bbox, spacing, { mask: polyFeature });
-    // Assign properties: applicationRate constant, paybackPeriod random 1-10
-    const features = pointGrid.features.map((pt) => {
-      const applicationRate = 5;
-      const paybackPeriod = Math.floor(Math.random() * 10) + 1;
-      return {
-        ...pt,
-        properties: {
-          ...(pt.properties || {}),
-          applicationRate,
-          paybackPeriod,
-        }
-      } as Feature<Point>;
+    const rawGrid = turf.squareGrid(bbox, cellSideKm, { units: 'kilometers' });
+
+    const features: Feature<Polygon | MultiPolygon>[] = [];
+    rawGrid.features.forEach((cell) => {
+      if (!cell || !cell.geometry) return;
+      if (cell.geometry.type !== 'Polygon' && cell.geometry.type !== 'MultiPolygon') return;
+      try {
+        const clipped = turf.intersect(cell as any, polyFeature as any) as Feature<Polygon | MultiPolygon> | null;
+        if (!clipped) return;
+        if (clipped.geometry.type !== 'Polygon' && clipped.geometry.type !== 'MultiPolygon') return;
+        const applicationRate = 5;
+        const paybackPeriod = Math.floor(Math.random() * 10) + 1;
+        features.push({
+          ...clipped,
+          properties: {
+            ...(clipped.properties || {}),
+            applicationRate,
+            paybackPeriod,
+          }
+        });
+      } catch (err) {
+        console.warn('Skipping grid cell due to clip error', err);
+      }
     });
-    const fc: FeatureCollection<Point> = { type: 'FeatureCollection', features };
-    setGridPoints(fc);
+
+    const fc: FeatureCollection<Polygon | MultiPolygon> = { type: 'FeatureCollection', features };
+    setGridCells(fc);
+
     const map = mapRef.current;
     if (map) {
-      const src = map.getSource(pointsSourceId) as maplibregl.GeoJSONSource | undefined;
+      const src = map.getSource(gridCellsSourceId) as maplibregl.GeoJSONSource | undefined;
       if (src) src.setData(fc as any);
     }
   }
 
-  // Recompute when the polygon changes (committed coords only)
+  // Regenerate grid only when user has submitted final coordinates
+  // This triggers after the farm info modal is submitted and committed to context
   React.useEffect(() => {
-    if (!hasCoordinates || !formSubmitted) return;
-    // If incoming data contains polygon, use that; otherwise read from context committed state
-    if (data) {
-      regenerateGrid(data);
+    if (!formSubmitted) {
+      // Clear grid if user hasn't submitted yet
+      setGridCells({ type: 'FeatureCollection', features: [] });
+      return;
     }
-  }, [data, hasCoordinates, formSubmitted]);
+    if (polygonData) {
+      regenerateGrid(polygonData);
+    }
+  }, [formSubmitted, polygonData]);
 
-  // Recompute on map move/zoom to adapt circle sizing if necessary (optional)
+  // Sync grid cells to map source when they change
   React.useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const handler = () => {
-      if (hasCoordinates && formSubmitted && data) {
-        regenerateGrid(data);
-      }
-    };
-    map.on('moveend', handler);
-    map.on('zoomend', handler);
-    return () => {
-      map.off('moveend', handler);
-      map.off('zoomend', handler);
-    };
-  }, [hasCoordinates, formSubmitted, data]);
+    const src = map.getSource(gridCellsSourceId) as maplibregl.GeoJSONSource | undefined;
+    if (src) {
+      src.setData(gridCells as any);
+    }
+  }, [gridCells]);
 
   return (
     <Box>
