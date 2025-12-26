@@ -15,6 +15,7 @@ import FieldsList from './FieldsList';
 import type { FieldEntry } from './FieldsList';
 import FileUploadSection from './FileUploadSection';
 import SubmitSection from './SubmitSection';
+import { useCoordinates } from '../contexts/CoordinateContext';
 
 const DEFAULT_FIELD = (): FieldEntry => ({
   id: String(Date.now()) + Math.random().toString(36).slice(2, 9),
@@ -25,6 +26,7 @@ const DEFAULT_FIELD = (): FieldEntry => ({
 });
 
 export default function FarmBiocharForm() {
+  const { hasCoordinates } = useCoordinates();
   const [fields, setFields] = React.useState<FieldEntry[]>([DEFAULT_FIELD()]);
   const [globalMax, setGlobalMax] = React.useState<number | ''>('');
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -114,7 +116,7 @@ export default function FarmBiocharForm() {
         onClick={openModal}
         sx={{ backgroundColor: COLORS.indigo, '&:hover': { backgroundColor: '#7a81ff' } }}
       >
-        Configure Farm
+        {hasCoordinates ? 'Edit Farm Configuration' : 'Configure Farm'}
       </Button>
 
       {/* Modal Dialog */}

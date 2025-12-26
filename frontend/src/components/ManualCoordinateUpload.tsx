@@ -2,19 +2,40 @@ import { Box, Button, Dialog, DialogContent, DialogTitle, IconButton, Typography
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import EditIcon from '@mui/icons-material/Edit';
 import { COLORS } from "../styles/colors";
 import React from "react";
 import InteractiveFarmMap from "./InteractiveFarmMap";
 import { type LatLngLiteral } from "leaflet";
+import { useCoordinates } from "../contexts/CoordinateContext";
+import type { FeatureCollection, Feature, Polygon } from 'geojson';
 
 export default function ManualCoordinateUpload() {
+  const { data, setCoordinateData } = useCoordinates();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [markers, setMarkers] = React.useState<LatLngLiteral[]>([]);
+
+  // On mount or when modal opens with existing data, load markers from context
+  React.useEffect(() => {
+    if (isModalOpen && data) {
+      // Extract markers from the boundary polygon (first feature with type Polygon)
+      const boundaryFeature = data.features.find(f => f.geometry.type === 'Polygon') as Feature<Polygon> | undefined;
+      if (boundaryFeature?.geometry.type === 'Polygon') {
+        const coords = boundaryFeature.geometry.coordinates[0];
+        // Remove last coord (which closes the polygon)
+        const polygonMarkers: LatLngLiteral[] = coords.slice(0, -1).map(([lng, lat]) => ({
+          lat,
+          lng,
+        }));
+        setMarkers(polygonMarkers);
+      }
+    }
+  }, [isModalOpen, data]);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {
     setIsModalOpen(false);
-    setMarkers([]);
+    // Don't clear markers on close—they persist until re-submitted
   };
 
   const handleClearMarkers = () => {
@@ -22,15 +43,42 @@ export default function ManualCoordinateUpload() {
   };
 
   const handleSubmit = () => {
-    console.log("Submitted coordinates:", markers);
-    // TODO: Implement submission logic
+    if (markers.length < 3) return;
+
+    // Convert markers to GeoJSON boundary polygon
+    const coords: [number, number][] = markers.map(m => [m.lng, m.lat]);
+    // Close the polygon by adding the first point at the end
+    coords.push(coords[0]);
+
+    const boundary: Feature<Polygon> = {
+      type: 'Feature',
+      properties: { type: 'boundary' },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [coords],
+      },
+    };
+
+    const geojson: FeatureCollection = {
+      type: 'FeatureCollection',
+      features: [boundary],
+    };
+
+    // Save to context (which persists to localStorage)
+    setCoordinateData(geojson);
+
+    console.log('Submitted coordinates:', markers);
     closeModal();
   };
-  
+
+  // Check if coordinates have already been submitted
+  const hasSubmittedCoordinates = data && data.features.length > 0;
+
   return (
     <>
       <Button
         variant="contained"
+        startIcon={hasSubmittedCoordinates ? <EditIcon /> : undefined}
         onClick={openModal}
         sx={{ 
           backgroundColor: COLORS.indigo, 
@@ -39,7 +87,7 @@ export default function ManualCoordinateUpload() {
           fontSize: '0.95rem',
         }}
       >
-        Manually upload coordinates
+        {hasSubmittedCoordinates ? 'Edit Manual Coordinates' : 'Manually Upload Coordinates'}
       </Button>
 
       <Dialog
