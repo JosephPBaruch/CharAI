@@ -1,191 +1,82 @@
-import type { FeatureCollection } from 'geojson';
+import type { FeatureCollection, Feature, Polygon } from 'geojson';
+
+// Point-in-polygon (ray casting) for simple polygon rings
+function pointInPolygon(point: [number, number], ring: [number, number][]): boolean {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi > point[1]) !== (yj > point[1])) &&
+      (point[0] < (xj - xi) * (point[1] - yi) / (yj - yi + 0.0000001) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+// Helper to build a square polygon given bottom-left corner and size in degrees
+function square(lng: number, lat: number, sizeDeg = 0.0007): Feature<Polygon, Record<string, any>> {
+  return {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      type: 'Polygon',
+      coordinates: [[
+        [lng, lat],
+        [lng + sizeDeg, lat],
+        [lng + sizeDeg, lat + sizeDeg],
+        [lng, lat + sizeDeg],
+        [lng, lat]
+      ]]
+    }
+  };
+}
+
+// Convex farm boundary (pentagon) near Boise, ID
+const boundary: Feature<Polygon, { type: string }> = {
+  type: 'Feature',
+  properties: { type: 'boundary' },
+  geometry: {
+    type: 'Polygon',
+    coordinates: [[
+      [-116.2425, 43.6025],
+      [-116.2395, 43.6032],
+      [-116.2379, 43.6006],
+      [-116.2393, 43.5984],
+      [-116.2419, 43.5981],
+      [-116.2425, 43.6025]
+    ]]
+  }
+};
+
+// Generate a small pixelated grid inside boundary bbox
+const gridOrigin = { lng: -116.2418, lat: 43.5986 };
+const cellSize = 0.0007; // ~78m
+const rows = 4;
+const cols = 4;
+
+const grid: Feature<Polygon, Record<string, any>>[] = [];
+for (let r = 0; r < rows; r++) {
+  for (let c = 0; c < cols; c++) {
+    const lng = gridOrigin.lng + c * cellSize;
+    const lat = gridOrigin.lat + r * cellSize;
+    const f = square(lng, lat, cellSize);
+    // Uniform application rate for all squares; vary paybackPeriod numerically
+    const paybackOptions = [4, 8, 12, 18, 28]; // months
+    const idx = (r + c) % paybackOptions.length;
+    const center: [number, number] = [lng + cellSize / 2, lat + cellSize / 2];
+    f.properties = {
+      applicationRate: 120, // same rate across field
+      paybackPeriod: paybackOptions[idx]
+    };
+    // Include only squares whose center falls within the boundary (approximate clipping)
+    const ring = boundary.geometry.coordinates[0] as [number, number][];
+    if (pointInPolygon(center, ring)) {
+      grid.push(f);
+    }
+  }
+}
 
 export const samplePrescriptionData: FeatureCollection = {
-  type: "FeatureCollection",
-  features: [
-    // -----------------------------------------------------
-    // 1. Outer Farm Boundary (small, irregular polygon)
-    // -----------------------------------------------------
-    {
-      type: "Feature",
-      properties: { type: "boundary" },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [-116.24210, 43.60220],
-          [-116.23890, 43.60225],
-          [-116.23840, 43.60010],
-          [-116.23910, 43.59830],
-          [-116.24180, 43.59820],
-          [-116.24240, 43.59960],
-          [-116.24210, 43.60220]
-        ]]
-      }
-    },
-
-    // -----------------------------------------------------
-    // Inner polygons perfectly fill the boundary
-    // These are arranged like a puzzle so no gaps/overlaps
-    // -----------------------------------------------------
-
-    // 2. Zone A
-    {
-      type: "Feature",
-      properties: { priority: "high", applicationRate: 160 },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [-116.24210, 43.60220],
-          [-116.24070, 43.60222],
-          [-116.24060, 43.60130],
-          [-116.24205, 43.60128],
-          [-116.24210, 43.60220]
-        ]]
-      }
-    },
-
-    // 3. Zone B
-    {
-      type: "Feature",
-      properties: { priority: "medium", applicationRate: 120 },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [-116.24070, 43.60222],
-          [-116.23890, 43.60225],
-          [-116.23888, 43.60120],
-          [-116.24060, 43.60130],
-          [-116.24070, 43.60222]
-        ]]
-      }
-    },
-
-    // 4. Zone C
-    {
-      type: "Feature",
-      properties: { priority: "low", applicationRate: 70 },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [-116.24205, 43.60128],
-          [-116.24060, 43.60130],
-          [-116.24055, 43.60060],
-          [-116.24200, 43.60055],
-          [-116.24205, 43.60128]
-        ]]
-      }
-    },
-
-    // 5. Zone D
-    {
-      type: "Feature",
-      properties: { priority: "medium", applicationRate: 95 },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [-116.24060, 43.60130],
-          [-116.23888, 43.60120],
-          [-116.23880, 43.60070],
-          [-116.24055, 43.60060],
-          [-116.24060, 43.60130]
-        ]]
-      }
-    },
-
-    // 6. Zone E
-    {
-      type: "Feature",
-      properties: { priority: "high", applicationRate: 180 },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [-116.24200, 43.60055],
-          [-116.24055, 43.60060],
-          [-116.24052, 43.59990],
-          [-116.24195, 43.59988],
-          [-116.24200, 43.60055]
-        ]]
-      }
-    },
-
-    // 7. Zone F
-    {
-      type: "Feature",
-      properties: { priority: "medium-low", applicationRate: 85 },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [-116.24055, 43.60060],
-          [-116.23880, 43.60070],
-          [-116.23875, 43.59995],
-          [-116.24052, 43.59990],
-          [-116.24055, 43.60060]
-        ]]
-      }
-    },
-
-    // 8. Zone G
-    {
-      type: "Feature",
-      properties: { priority: "low", applicationRate: 50 },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [-116.24195, 43.59988],
-          [-116.24052, 43.59990],
-          [-116.24050, 43.59930],
-          [-116.24185, 43.59925],
-          [-116.24195, 43.59988]
-        ]]
-      }
-    },
-
-    // 9. Zone H
-    {
-      type: "Feature",
-      properties: { priority: "medium", applicationRate: 100 },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [-116.24052, 43.59990],
-          [-116.23875, 43.59995],
-          [-116.23870, 43.59930],
-          [-116.24050, 43.59930],
-          [-116.24052, 43.59990]
-        ]]
-      }
-    },
-
-    // 10. Zone I
-    {
-      type: "Feature",
-      properties: { priority: "high", applicationRate: 170 },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [-116.24185, 43.59925],
-          [-116.24050, 43.59930],
-          [-116.24048, 43.59870],
-          [-116.24180, 43.59865],
-          [-116.24185, 43.59925]
-        ]]
-      }
-    },
-
-    // 11. Zone J
-    {
-      type: "Feature",
-      properties: { priority: "low", applicationRate: 55 },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [-116.24050, 43.59930],
-          [-116.23870, 43.59930],
-          [-116.23910, 43.59830],
-          [-116.24048, 43.59870],
-          [-116.24050, 43.59930]
-        ]]
-      }
-    }
-  ]
+  type: 'FeatureCollection',
+  features: [boundary, ...grid]
 };
