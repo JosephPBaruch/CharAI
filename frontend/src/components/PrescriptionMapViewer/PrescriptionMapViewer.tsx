@@ -22,7 +22,7 @@ interface PrescriptionMapViewerProps {
 
 export default function PrescriptionMapViewer({ data = samplePrescriptionData, height = '400px', width = '100%' }: PrescriptionMapViewerProps) {
   const navigate = useNavigate();
-  const { hasCoordinates, isLoading } = useCoordinates();
+  const { hasCoordinates, isLoading, clearCoordinateData, formSubmitted, setFormSubmitted } = useCoordinates();
   const mapContainerRef = React.useRef<HTMLDivElement | null>(null);
   const mapRef = React.useRef<maplibregl.Map | null>(null);
   const popupRef = React.useRef<maplibregl.Popup | null>(null);
@@ -127,8 +127,8 @@ export default function PrescriptionMapViewer({ data = samplePrescriptionData, h
 
   return (
     <Box>
-      {/* Guard: if no coordinates and not loading, prompt user to input */}
-      {!isLoading && !hasCoordinates && (
+      {/* Guard: require committed coords AND submitted form */}
+      {!isLoading && (!hasCoordinates || !formSubmitted) && (
         <Container maxWidth="sm">
           <Box
             sx={{
@@ -145,7 +145,7 @@ export default function PrescriptionMapViewer({ data = samplePrescriptionData, h
               No Farm Coordinates Found
             </Typography>
             <Typography variant="body2" sx={{ color: COLORS.whiteMedium, maxWidth: 400 }}>
-              To view prescription maps, you need to first submit farm boundary coordinates. Please upload a coordinate file or manually define your farm area.
+              To view prescription maps, please submit your farm configuration with boundary coordinates.
             </Typography>
             <Button
               variant="contained"
@@ -158,9 +158,24 @@ export default function PrescriptionMapViewer({ data = samplePrescriptionData, h
         </Container>
       )}
 
-      {/* Show map only when coordinates are available */}
-      {!isLoading && hasCoordinates && (
+      {/* Show map only when coordinates are committed AND form was submitted */}
+      {!isLoading && hasCoordinates && formSubmitted && (
         <>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => {
+                clearCoordinateData();
+                setFormSubmitted(false);
+                navigate('/');
+              }}
+              sx={{ textTransform: 'none' }}
+            >
+              Reset and re-enter farm info
+            </Button>
+          </Box>
+
           {!data && (
             <Typography variant="body2" sx={{ color: COLORS.whiteMedium }}>
               No prescription data available. Upload a GeoJSON from the backend to preview application zones.

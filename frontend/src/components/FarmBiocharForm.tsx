@@ -26,7 +26,7 @@ const DEFAULT_FIELD = (): FieldEntry => ({
 });
 
 export default function FarmBiocharForm() {
-  const { hasCoordinates } = useCoordinates();
+  const { hasCoordinates, hasPendingCoordinates, formSubmitted, setFormSubmitted, commitPendingCoordinates } = useCoordinates();
   const [fields, setFields] = React.useState<FieldEntry[]>([DEFAULT_FIELD()]);
   const [globalMax, setGlobalMax] = React.useState<number | ''>('');
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -44,10 +44,10 @@ export default function FarmBiocharForm() {
 
   // If coordinates already exist in context (from upload or manual draw), mark as ready
   React.useEffect(() => {
-    if (hasCoordinates) {
+    if (hasCoordinates || hasPendingCoordinates) {
       setCoordUploaded(true);
     }
-  }, [hasCoordinates]);
+  }, [hasCoordinates, hasPendingCoordinates]);
 
   const handleCoordSelect = (file: File | null) => {
     // If a file is selected, mark coordinates as uploaded/available so the form can be submitted.
@@ -72,7 +72,7 @@ export default function FarmBiocharForm() {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  const coordsReady = coordUploaded || hasCoordinates;
+  const coordsReady = coordUploaded || hasPendingCoordinates || hasCoordinates;
 
   const FormContent = () => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -112,6 +112,9 @@ export default function FarmBiocharForm() {
           const payload = { globalMax, fields };
           console.log('Submit payload', payload);
           alert('Form submitted! Check console for payload details.');
+          commitPendingCoordinates();
+          setFormSubmitted(true);
+          closeModal();
         }}
       />
     </Box>

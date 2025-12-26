@@ -36,13 +36,13 @@ export default function FileUploadSection({
             </Box>
           </Stack>
           <Typography variant="body2" sx={{ color: COLORS.whiteMedium, mb: 2 }}>
-            Upload a file containing your farm boundary coordinates, or draw them manually. Either method will enable submission.
+            Upload a file containing your farm boundary coordinates, or draw them manually.
           </Typography>
           <CoordinateFileUpload onSelect={onCoordSelect} onUploadComplete={onCoordUploaded} />
           <Typography variant="caption" sx={{ color: COLORS.whiteMedium, my: 1.5, display: 'block' }}>
             Accepted formats: Shapefile (.shp, .shx, .dbf), GeoJSON (.geojson), CSV (.csv), KML/KMZ (.kml, .kmz)
           </Typography>
-          <ManualCoordinateUpload onSubmitted={onCoordUploaded} />
+          <ManualCoordinateUpload />
         </Box>
 
         {/* Yield File Box */}
