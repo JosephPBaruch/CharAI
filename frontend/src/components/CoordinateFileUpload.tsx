@@ -3,6 +3,8 @@ import { styled } from "@mui/material/styles";
 import React from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import { uploadCoordinateFile } from "../services/fileUploadService";
+import { parseFileToGeoJSON } from "../services/coordinateService";
+import { useCoordinates } from "../contexts/CoordinateContext";
 import { COLORS } from "../styles/colors";
 
 const VisuallyHiddenInput = styled('input')({
@@ -19,6 +21,7 @@ const VisuallyHiddenInput = styled('input')({
 
 export default function CoordinateFileUpload(props: { onSelect?: (file: File | null) => void; onUploadComplete?: () => void }) {
   const { onSelect, onUploadComplete } = props || {};
+  const { setCoordinateData } = useCoordinates();
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -35,19 +38,17 @@ export default function CoordinateFileUpload(props: { onSelect?: (file: File | n
     if (!selectedFile) return;
 
     setIsLoading(true);
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-
     try {
-      const response = await uploadCoordinateFile(formData);
-      if (response) {
-        console.log("Success! File uploaded");
-        setSelectedFile(null);
-        onSelect?.(null);
-        onUploadComplete?.();
-      }
+      // Parse file locally and save to context (temporary localStorage-based storage)
+      const geojson = await parseFileToGeoJSON(selectedFile);
+      setCoordinateData(geojson);
+      console.log("Success! Coordinates saved locally");
+      setSelectedFile(null);
+      onSelect?.(null);
+      onUploadComplete?.();
     } catch (err: any) {
-      console.error(err);
+      console.error('Failed to process coordinates:', err);
+      // TODO: Show error message in UI
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +75,7 @@ export default function CoordinateFileUpload(props: { onSelect?: (file: File | n
           Choose file
           <VisuallyHiddenInput
             type="file"
-            accept=".shp,.shx,.dbf,.geojson,.csv,.kml,.kmz"
+            accept=".shp,.shx,.dbf,.geojson,.csv,.kml,.kmz,.json"
             onChange={handleFileChange}
           />
         </Button>

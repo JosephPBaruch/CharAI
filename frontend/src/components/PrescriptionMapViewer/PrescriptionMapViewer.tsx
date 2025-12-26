@@ -1,12 +1,14 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Button, Container } from "@mui/material";
 import type { FeatureCollection } from 'geojson';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { COLORS } from '../../styles/colors';
 import React from "react";
+import { useNavigate } from 'react-router';
 import { samplePrescriptionData } from "../../samplePrescriptionData";
 import { computeBoundsFromGeoJSON } from '../../types/maplibre/bounds';
 import { priorityFillColorExpression } from '../../types/maplibre/priorityStyle';
+import { useCoordinates } from '../../contexts/CoordinateContext';
 
 interface PrescriptionMapViewerProps {
   /** A GeoJSON FeatureCollection from the backend. Expect the outer polygon (farm boundary)
@@ -19,6 +21,8 @@ interface PrescriptionMapViewerProps {
 }
 
 export default function PrescriptionMapViewer({ data = samplePrescriptionData, height = '400px', width = '100%' }: PrescriptionMapViewerProps) {
+  const navigate = useNavigate();
+  const { hasCoordinates, isLoading } = useCoordinates();
   const mapContainerRef = React.useRef<HTMLDivElement | null>(null);
   const mapRef = React.useRef<maplibregl.Map | null>(null);
   const popupRef = React.useRef<maplibregl.Popup | null>(null);
@@ -123,15 +127,51 @@ export default function PrescriptionMapViewer({ data = samplePrescriptionData, h
 
   return (
     <Box>
-      {!data && (
-        <Typography variant="body2" sx={{ color: COLORS.whiteMedium }}>
-          No prescription data available. Upload a GeoJSON from the backend to preview application zones.
-        </Typography>
+      {/* Guard: if no coordinates and not loading, prompt user to input */}
+      {!isLoading && !hasCoordinates && (
+        <Container maxWidth="sm">
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '400px',
+              textAlign: 'center',
+              gap: 2,
+            }}
+          >
+            <Typography variant="h5" sx={{ color: COLORS.whiteHigh, fontWeight: 700 }}>
+              No Farm Coordinates Found
+            </Typography>
+            <Typography variant="body2" sx={{ color: COLORS.whiteMedium, maxWidth: 400 }}>
+              To view prescription maps, you need to first submit farm boundary coordinates. Please upload a coordinate file or manually define your farm area.
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => navigate('/')}
+              sx={{ backgroundColor: COLORS.indigo, '&:hover': { backgroundColor: '#7a81ff' } }}
+            >
+              Go to Input Page
+            </Button>
+          </Box>
+        </Container>
       )}
 
-      <Box sx={{ height, width }}>
-        <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
-      </Box>
+      {/* Show map only when coordinates are available */}
+      {!isLoading && hasCoordinates && (
+        <>
+          {!data && (
+            <Typography variant="body2" sx={{ color: COLORS.whiteMedium }}>
+              No prescription data available. Upload a GeoJSON from the backend to preview application zones.
+            </Typography>
+          )}
+
+          <Box sx={{ height, width }}>
+            <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
+          </Box>
+        </>
+      )}
     </Box>
   );
 }
