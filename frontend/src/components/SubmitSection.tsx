@@ -2,11 +2,11 @@ import { Box, Button, Stack, Typography } from '@mui/material';
 import { COLORS } from '../styles/colors';
 
 interface SubmitSectionProps {
-  coordUploaded: boolean;
+  coordsReady: boolean;
   onSubmit: () => void;
 }
 
-export default function SubmitSection({ coordUploaded, onSubmit }: SubmitSectionProps) {
+export default function SubmitSection({ coordsReady, onSubmit }: SubmitSectionProps) {
   return (
     <Box sx={{ p: 2, backgroundColor: `${COLORS.blackMedium}`, borderRadius: 1.5, border: `1px solid ${COLORS.whiteLow}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2 }}>
       <Typography variant="body2" sx={{ color: COLORS.whiteMedium }}>
@@ -16,7 +16,7 @@ export default function SubmitSection({ coordUploaded, onSubmit }: SubmitSection
         <Button
           variant="contained"
           size="large"
-          disabled={!coordUploaded}
+          disabled={!coordsReady}
           onClick={onSubmit}
           sx={{ 
             px: 4, 
@@ -31,14 +31,14 @@ export default function SubmitSection({ coordUploaded, onSubmit }: SubmitSection
         >
           Submit request
         </Button>
-        {!coordUploaded && (
+        {!coordsReady && (
           <Typography variant="body2" sx={{ color: 'warning.main', fontWeight: 500 }}>
-            Upload coordinate file to enable submission
+            Upload or draw your boundary to enable submission
           </Typography>
         )}
-        {coordUploaded && (
+        {coordsReady && (
           <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 500 }}>
-            Ready to submit
+            Boundary received — ready to submit
           </Typography>
         )}
       </Stack>

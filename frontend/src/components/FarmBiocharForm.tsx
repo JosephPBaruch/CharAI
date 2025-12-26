@@ -39,8 +39,15 @@ export default function FarmBiocharForm() {
     setFields(prev => prev.map(f => (f.id === id ? { ...f, ...patch } : f)));
   };
 
-  // file upload state
+  // file/manual coordinate state (ready when uploaded OR drawn OR already present)
   const [coordUploaded, setCoordUploaded] = React.useState<boolean>(false);
+
+  // If coordinates already exist in context (from upload or manual draw), mark as ready
+  React.useEffect(() => {
+    if (hasCoordinates) {
+      setCoordUploaded(true);
+    }
+  }, [hasCoordinates]);
 
   const handleCoordSelect = (file: File | null) => {
     // If a file is selected, mark coordinates as uploaded/available so the form can be submitted.
@@ -64,6 +71,8 @@ export default function FarmBiocharForm() {
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+
+  const coordsReady = coordUploaded || hasCoordinates;
 
   const FormContent = () => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -98,7 +107,7 @@ export default function FarmBiocharForm() {
 
       {/* Submit Section */}
       <SubmitSection
-        coordUploaded={coordUploaded}
+        coordsReady={coordsReady}
         onSubmit={() => {
           const payload = { globalMax, fields };
           console.log('Submit payload', payload);

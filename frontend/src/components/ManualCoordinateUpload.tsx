@@ -10,7 +10,11 @@ import { type LatLngLiteral } from "leaflet";
 import { useCoordinates } from "../contexts/CoordinateContext";
 import type { FeatureCollection, Feature, Polygon } from 'geojson';
 
-export default function ManualCoordinateUpload() {
+type ManualCoordinateUploadProps = {
+  onSubmitted?: () => void;
+};
+
+export default function ManualCoordinateUpload({ onSubmitted }: ManualCoordinateUploadProps) {
   const { data, setCoordinateData } = useCoordinates();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [markers, setMarkers] = React.useState<LatLngLiteral[]>([]);
@@ -66,6 +70,7 @@ export default function ManualCoordinateUpload() {
 
     // Save to context (which persists to localStorage)
     setCoordinateData(geojson);
+    onSubmitted?.();
 
     console.log('Submitted coordinates:', markers);
     closeModal();
