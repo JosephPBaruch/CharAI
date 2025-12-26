@@ -1,5 +1,5 @@
 import { Box, Typography, Button, Container } from "@mui/material";
-import type { FeatureCollection } from 'geojson';
+import type { Feature, FeatureCollection, Point, Polygon } from 'geojson';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { COLORS } from '../../styles/colors';
@@ -9,6 +9,7 @@ import { samplePrescriptionData } from "../../samplePrescriptionData";
 import { computeBoundsFromGeoJSON } from '../../types/maplibre/bounds';
 import { priorityFillColorExpression } from '../../types/maplibre/priorityStyle';
 import { useCoordinates } from '../../contexts/CoordinateContext';
+import * as turf from '@turf/turf';
 
 interface PrescriptionMapViewerProps {
   /** A GeoJSON FeatureCollection from the backend. Expect the outer polygon (farm boundary)
@@ -26,6 +27,9 @@ export default function PrescriptionMapViewer({ data = samplePrescriptionData, h
   const mapContainerRef = React.useRef<HTMLDivElement | null>(null);
   const mapRef = React.useRef<maplibregl.Map | null>(null);
   const popupRef = React.useRef<maplibregl.Popup | null>(null);
+  const pointsSourceId = 'grid-points';
+  const pointsLayerId = 'grid-points-circle';
+  const [gridPoints, setGridPoints] = React.useState<FeatureCollection<Point>>({ type: 'FeatureCollection', features: [] });
 
   React.useEffect(() => {
     if (mapContainerRef.current && !mapRef.current) {
@@ -66,6 +70,40 @@ export default function PrescriptionMapViewer({ data = samplePrescriptionData, h
             'line-color': '#222',
             'line-width': 1.5,
             'line-opacity': 0.9,
+          },
+        });
+
+        // Points source/layer for grid visualization
+        map.addSource(pointsSourceId, {
+          type: 'geojson',
+          data: gridPoints as any,
+        });
+
+        map.addLayer({
+          id: pointsLayerId,
+          type: 'circle',
+          source: pointsSourceId,
+          paint: {
+            'circle-color': [
+              'case',
+              ['has', 'paybackPeriod'],
+              ['step', ['get', 'paybackPeriod'],
+                '#1a9641',
+                2, '#a6d96a',
+                4, '#f9d423',
+                6, '#f58634',
+                8, '#d7191c'
+              ],
+              '#999999'
+            ],
+            'circle-radius': [
+              'interpolate', ['linear'], ['zoom'],
+              4, ['+', 3, ['coalesce', ['get', 'applicationRate'], 5]],
+              10, ['+', 1, ['coalesce', ['get', 'applicationRate'], 5]]
+            ],
+            'circle-opacity': 0.85,
+            'circle-stroke-color': '#111',
+            'circle-stroke-width': 0.5,
           },
         });
 
@@ -124,6 +162,78 @@ export default function PrescriptionMapViewer({ data = samplePrescriptionData, h
       }
     }
   }, [data]);
+
+  // Utility: compute N x N resolution based on bbox
+  function computeResolution(polygon: Feature<Polygon>, targetN = 20) {
+    const bbox = turf.bbox(polygon);
+    const [minX, minY, maxX, maxY] = bbox;
+    const widthDeg = Math.abs(maxX - minX);
+    const heightDeg = Math.abs(maxY - minY);
+    // Choose spacing so that roughly targetN points per side
+    const spacingX = widthDeg / targetN;
+    const spacingY = heightDeg / targetN;
+    // Use min spacing to avoid huge counts if aspect ratio extreme
+    const spacing = Math.min(spacingX, spacingY);
+    return Math.max(spacing, 0.0001); // guard minimal spacing
+  }
+
+  // Generate points inside polygon
+  function regenerateGrid(polygonFC: FeatureCollection) {
+    const polyFeature = polygonFC.features.find(f => f.geometry.type === 'Polygon') as Feature<Polygon> | undefined;
+    if (!polyFeature) {
+      setGridPoints({ type: 'FeatureCollection', features: [] });
+      return;
+    }
+    const spacing = computeResolution(polyFeature, 20);
+    const bbox = turf.bbox(polyFeature);
+    const pointGrid = turf.pointGrid(bbox, spacing, { mask: polyFeature });
+    // Assign properties: applicationRate constant, paybackPeriod random 1-10
+    const features = pointGrid.features.map((pt) => {
+      const applicationRate = 5;
+      const paybackPeriod = Math.floor(Math.random() * 10) + 1;
+      return {
+        ...pt,
+        properties: {
+          ...(pt.properties || {}),
+          applicationRate,
+          paybackPeriod,
+        }
+      } as Feature<Point>;
+    });
+    const fc: FeatureCollection<Point> = { type: 'FeatureCollection', features };
+    setGridPoints(fc);
+    const map = mapRef.current;
+    if (map) {
+      const src = map.getSource(pointsSourceId) as maplibregl.GeoJSONSource | undefined;
+      if (src) src.setData(fc as any);
+    }
+  }
+
+  // Recompute when the polygon changes (committed coords only)
+  React.useEffect(() => {
+    if (!hasCoordinates || !formSubmitted) return;
+    // If incoming data contains polygon, use that; otherwise read from context committed state
+    if (data) {
+      regenerateGrid(data);
+    }
+  }, [data, hasCoordinates, formSubmitted]);
+
+  // Recompute on map move/zoom to adapt circle sizing if necessary (optional)
+  React.useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const handler = () => {
+      if (hasCoordinates && formSubmitted && data) {
+        regenerateGrid(data);
+      }
+    };
+    map.on('moveend', handler);
+    map.on('zoomend', handler);
+    return () => {
+      map.off('moveend', handler);
+      map.off('zoomend', handler);
+    };
+  }, [hasCoordinates, formSubmitted, data]);
 
   return (
     <Box>
