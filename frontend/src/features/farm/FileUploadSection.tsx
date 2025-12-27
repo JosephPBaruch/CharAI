@@ -1,5 +1,5 @@
 import { Box, Stack, Typography } from '@mui/material';
-import { COLORS } from '../styles/colors';
+import { COLORS } from '../../styles/colors';
 import CoordinateFileUpload from './CoordinateFileUpload';
 import YieldFileUpload from './YieldFileUpload';
 import ManualCoordinateUpload from './ManualCoordinateUpload';
@@ -18,7 +18,7 @@ export default function FileUploadSection({
   onYieldUploaded,
 }: FileUploadSectionProps) {
   return (
-    <Box sx={{ p: 2.5, border: `1px dashed ${COLORS.indigo}`, borderRadius: 2, backgroundColor: `rgba(100, 108, 255, 0.05)` }}>
+    <Box sx={{ p: 2.5, border: `1px dashed ${COLORS.indigo}`, borderRadius: 2, backgroundColor: COLORS.indigoVeryLight }}>
       <Typography variant="h6" sx={{ color: COLORS.indigo, fontWeight: 600, mb: 1.5 }}>
         Upload Farm Data
       </Typography>
@@ -28,11 +28,11 @@ export default function FileUploadSection({
 
       <Stack direction="column" spacing={2.5}>
         {/* Coordinate File Box */}
-        <Box sx={{ p: 2, backgroundColor: 'rgba(100, 108, 255, 0.15)', border: `2px solid ${COLORS.indigo}`, borderRadius: 1.5 }}>
+        <Box sx={{ p: 2, backgroundColor: COLORS.indigoMedium, border: `2px solid ${COLORS.indigo}`, borderRadius: 1.5 }}>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
             <Typography variant="subtitle1" sx={{ color: COLORS.indigo, fontWeight: 700 }}>Coordinate file</Typography>
             <Box sx={{ px: 1, py: 0.5, backgroundColor: COLORS.indigo, borderRadius: 0.5 }}>
-              <Typography variant="caption" sx={{ color: '#000000', fontWeight: 600 }}>Required</Typography>
+              <Typography variant="caption" sx={{ color: COLORS.blackFull, fontWeight: 600 }}>Required</Typography>
             </Box>
           </Stack>
           <Typography variant="body2" sx={{ color: COLORS.whiteMedium, mb: 2 }}>

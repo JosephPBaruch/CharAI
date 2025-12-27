@@ -1,4 +1,4 @@
-import PrescriptionMapViewer from "../components/PrescriptionMapViewer";
+import { PrescriptionMapViewer } from "../features/prescriptions";
 
 export default function PrescriptionsPage() {
   return (

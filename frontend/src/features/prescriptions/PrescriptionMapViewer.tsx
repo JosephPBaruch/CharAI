@@ -1,10 +1,14 @@
-import { Box, Typography, Button, Container } from "@mui/material";
+import { Box, Typography, Button, Container, Paper, Stack } from "@mui/material";
 import { COLORS } from '../../styles/colors';
 import React from "react";
 import { useNavigate } from 'react-router';
 import { useCoordinates } from '../../contexts/CoordinateContext';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import MapIcon from '@mui/icons-material/Map';
+import GridOnIcon from '@mui/icons-material/GridOn';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 type LatLng = { lat: number; lng: number };
 
@@ -12,12 +16,6 @@ interface GridCell {
   bounds: L.LatLngBounds;
   paybackPeriod: number;
   applicationRate: number;
-}
-
-interface PrescriptionMapViewerProps {
-  data?: LatLng[] | null;
-  height?: number | string;
-  width?: number | string;
 }
 
 // Color scale for payback period (1-10)
@@ -117,8 +115,6 @@ class GridCanvasLayer extends L.Layer {
 
   onAdd(map: L.Map): this {
     this._mapInstance = map;
-
-    // Main canvas
     this._canvas = L.DomUtil.create('canvas', 'leaflet-grid-canvas') as HTMLCanvasElement;
     this._canvas.style.position = 'absolute';
     this._canvas.style.pointerEvents = 'auto';
@@ -126,7 +122,6 @@ class GridCanvasLayer extends L.Layer {
     const pane = map.getPane('overlayPane');
     if (pane) pane.appendChild(this._canvas);
 
-    // Events - include 'move' for smooth panning
     map.on('move moveend zoomend resize', this._reset, this);
     this._canvas.addEventListener('mousemove', this._onMouseMove.bind(this));
     this._canvas.addEventListener('mouseout', this._onMouseOut.bind(this));
@@ -170,15 +165,11 @@ class GridCanvasLayer extends L.Layer {
     if (!ctx) return;
 
     ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-
     if (this._cells.length === 0) return;
 
-    // Get visible bounds for culling
     const viewBounds = this._mapInstance.getBounds();
 
-    // Draw all cells (already filtered to polygon in generateGridCells)
     for (const cell of this._cells) {
-      // Skip cells outside the current view
       if (!viewBounds.intersects(cell.bounds)) continue;
 
       const sw = this._mapInstance.latLngToContainerPoint(cell.bounds.getSouthWest());
@@ -189,12 +180,10 @@ class GridCanvasLayer extends L.Layer {
       const w = ne.x - sw.x;
       const h = sw.y - ne.y;
 
-      // Fill cell
       ctx.globalAlpha = 0.7;
       ctx.fillStyle = getColorForPayback(cell.paybackPeriod);
       ctx.fillRect(x, y, w, h);
 
-      // Stroke cell (only if large enough to see)
       if (w > 3 && h > 3) {
         ctx.globalAlpha = 0.5;
         ctx.strokeStyle = COLORS.strokeDark;
@@ -203,11 +192,9 @@ class GridCanvasLayer extends L.Layer {
       }
     }
 
-    // Draw hover highlight
     if (this._hoveredCell) {
       const sw = this._mapInstance.latLngToContainerPoint(this._hoveredCell.bounds.getSouthWest());
       const ne = this._mapInstance.latLngToContainerPoint(this._hoveredCell.bounds.getNorthEast());
-
       ctx.globalAlpha = 1;
       ctx.strokeStyle = COLORS.whiteFull;
       ctx.lineWidth = 2;
@@ -252,7 +239,105 @@ class GridCanvasLayer extends L.Layer {
   }
 }
 
-export default function PrescriptionMapViewer({ data, height = '400px', width = '100%' }: PrescriptionMapViewerProps) {
+// Legend component
+const PaybackLegend: React.FC = () => {
+  const legendItems = [
+    { range: '1-2 years', color: COLORS.dataGreen, label: 'Excellent' },
+    { range: '3-4 years', color: COLORS.dataLightGreen, label: 'Good' },
+    { range: '5-6 years', color: COLORS.dataYellow, label: 'Moderate' },
+    { range: '7-8 years', color: COLORS.dataOrange, label: 'Fair' },
+    { range: '9-10 years', color: COLORS.dataRed, label: 'Poor' },
+  ];
+
+  return (
+    <Paper 
+      elevation={0}
+      sx={{ 
+        backgroundColor: COLORS.blackOverlay,
+        backdropFilter: 'blur(8px)',
+        border: `1px solid ${COLORS.whiteVeryLow}`,
+        borderRadius: 2,
+        p: 2,
+      }}
+    >
+      <Typography variant="subtitle2" sx={{ color: COLORS.whiteHigh, fontWeight: 600, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+        Payback Period Legend
+      </Typography>
+      <Stack spacing={0.75}>
+        {legendItems.map((item) => (
+          <Box key={item.range} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box 
+              sx={{ 
+                width: 20, 
+                height: 14, 
+                backgroundColor: item.color,
+                borderRadius: 0.5,
+                border: `1px solid ${COLORS.blackLow}`,
+              }} 
+            />
+            <Typography variant="caption" sx={{ color: COLORS.whiteMedium, flex: 1 }}>
+              {item.range}
+            </Typography>
+            <Typography variant="caption" sx={{ color: COLORS.whiteHigh, fontWeight: 500 }}>
+              {item.label}
+            </Typography>
+          </Box>
+        ))}
+      </Stack>
+    </Paper>
+  );
+};
+
+// Stats panel component
+interface StatsPanelProps {
+  cells: GridCell[];
+}
+
+const StatsPanel: React.FC<StatsPanelProps> = ({ cells }) => {
+  const avgPayback = cells.length > 0 
+    ? (cells.reduce((sum, c) => sum + c.paybackPeriod, 0) / cells.length).toFixed(1)
+    : '0';
+
+  return (
+    <Paper 
+      elevation={0}
+      sx={{ 
+        backgroundColor: COLORS.blackOverlay,
+        backdropFilter: 'blur(8px)',
+        border: `1px solid ${COLORS.whiteVeryLow}`,
+        borderRadius: 2,
+        p: 2,
+      }}
+    >
+      <Typography variant="subtitle2" sx={{ color: COLORS.whiteHigh, fontWeight: 600, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <GridOnIcon fontSize="small" />
+        Analysis Summary
+      </Typography>
+      
+      <Stack spacing={1.5}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="caption" sx={{ color: COLORS.whiteMedium }}>
+            Total Grid Cells
+          </Typography>
+          <Typography variant="body2" sx={{ color: COLORS.whiteHigh, fontWeight: 600 }}>
+            {cells.length.toLocaleString()}
+          </Typography>
+        </Box>
+        
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="caption" sx={{ color: COLORS.whiteMedium }}>
+            Avg. Payback Period
+          </Typography>
+          <Typography variant="body2" sx={{ color: COLORS.whiteHigh, fontWeight: 600 }}>
+            {avgPayback} years
+          </Typography>
+        </Box>
+      </Stack>
+    </Paper>
+  );
+};
+
+export default function PrescriptionMapViewer() {
   const navigate = useNavigate();
   const { data: committedCoords, hasCoordinates, isLoading, clearCoordinateData, formSubmitted, setFormSubmitted } = useCoordinates();
   
@@ -262,13 +347,10 @@ export default function PrescriptionMapViewer({ data, height = '400px', width = 
   const boundaryLayerRef = React.useRef<L.Polyline | null>(null);
   const tooltipRef = React.useRef<HTMLDivElement | null>(null);
   
-  // Extract boundary coordinates from context or data prop
+  const [cells, setCells] = React.useState<GridCell[]>([]);
+  
+  // Extract boundary coordinates from context
   const boundaryCoords = React.useMemo<LatLng[]>(() => {
-    // Direct array of coords
-    if (Array.isArray(data) && data.length > 0 && 'lat' in data[0]) {
-      return data as LatLng[];
-    }
-    
     // From context (GeoJSON FeatureCollection)
     if (committedCoords && (committedCoords as any).type === 'FeatureCollection') {
       const fc = committedCoords as any;
@@ -277,7 +359,6 @@ export default function PrescriptionMapViewer({ data, height = '400px', width = 
       );
       
       if (polyFeature?.geometry?.coordinates?.[0]) {
-        // GeoJSON is [lng, lat], convert to {lat, lng}
         return polyFeature.geometry.coordinates[0].map((coord: [number, number]) => ({
           lat: coord[1],
           lng: coord[0],
@@ -286,7 +367,7 @@ export default function PrescriptionMapViewer({ data, height = '400px', width = 
     }
     
     return [];
-  }, [data, committedCoords]);
+  }, [committedCoords]);
 
   // Initialize map
   React.useEffect(() => {
@@ -295,7 +376,11 @@ export default function PrescriptionMapViewer({ data, height = '400px', width = 
     const map = L.map(mapContainerRef.current, {
       center: [46.7, -116.96],
       zoom: 14,
+      zoomControl: false,
     });
+    
+    // Add zoom control to bottom right
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
     
     mapRef.current = map;
     
@@ -314,15 +399,16 @@ export default function PrescriptionMapViewer({ data, height = '400px', width = 
     const tooltip = document.createElement('div');
     tooltip.style.cssText = `
       position: absolute;
-      background: white;
-      padding: 6px 10px;
-      border-radius: 4px;
+      background: rgba(0,0,0,0.85);
+      padding: 8px 12px;
+      border-radius: 6px;
       font-size: 12px;
-      color: #111;
+      color: #fff;
       pointer-events: none;
       z-index: 1000;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
       display: none;
+      border: 1px solid rgba(255,255,255,0.1);
     `;
     document.body.appendChild(tooltip);
     tooltipRef.current = tooltip;
@@ -354,7 +440,7 @@ export default function PrescriptionMapViewer({ data, height = '400px', width = 
     
     // Draw boundary line
     const latLngs = boundaryCoords.map(c => L.latLng(c.lat, c.lng));
-    latLngs.push(latLngs[0]); // Close the polygon
+    latLngs.push(latLngs[0]);
     
     const boundaryLine = L.polyline(latLngs, {
       color: COLORS.gold,
@@ -364,9 +450,10 @@ export default function PrescriptionMapViewer({ data, height = '400px', width = 
     
     boundaryLayerRef.current = boundaryLine;
     
-    // Generate grid cells (100m x 100m)
-    const cells = generateGridCells(boundaryCoords, 25);
-    console.log(`[PrescriptionMapViewer] Generated ${cells.length} grid cells`);
+    // Generate grid cells
+    const generatedCells = generateGridCells(boundaryCoords, 25);
+    setCells(generatedCells);
+    console.log(`[PrescriptionMapViewer] Generated ${generatedCells.length} grid cells`);
     
     // Hover handler for tooltip
     const handleHover = (cell: GridCell | null, e: MouseEvent) => {
@@ -374,8 +461,9 @@ export default function PrescriptionMapViewer({ data, height = '400px', width = 
       
       if (cell) {
         tooltipRef.current.innerHTML = `
-          <strong>Payback Period:</strong> ${cell.paybackPeriod}<br/>
-          <strong>Application Rate:</strong> ${cell.applicationRate}
+          <div style="font-weight: 600; margin-bottom: 4px; color: #a5b4fc;">Cell Details</div>
+          <div>Payback: <strong>${cell.paybackPeriod} years</strong></div>
+          <div>Application Rate: <strong>${cell.applicationRate} tons/acre</strong></div>
         `;
         tooltipRef.current.style.display = 'block';
         tooltipRef.current.style.left = `${e.clientX + 12}px`;
@@ -386,13 +474,13 @@ export default function PrescriptionMapViewer({ data, height = '400px', width = 
     };
     
     // Add grid canvas layer
-    const gridLayer = new GridCanvasLayer(cells, handleHover);
+    const gridLayer = new GridCanvasLayer(generatedCells, handleHover);
     gridLayer.addTo(map);
     gridLayerRef.current = gridLayer;
     
     // Fit bounds to boundary
     const bounds = L.latLngBounds(latLngs);
-    map.fitBounds(bounds, { padding: [40, 40] });
+    map.fitBounds(bounds, { padding: [60, 60] });
     
   }, [boundaryCoords, formSubmitted]);
 
@@ -407,72 +495,153 @@ export default function PrescriptionMapViewer({ data, height = '400px', width = 
         mapRef.current.removeLayer(gridLayerRef.current);
         gridLayerRef.current = null;
       }
+      setCells([]);
     }
   }, [formSubmitted]);
 
-  return (
-    <Box>
-      {/* Guard: show message if no coordinates or form not submitted */}
-      {!isLoading && (!hasCoordinates || !formSubmitted) && (
-        <Container maxWidth="sm">
-          <Box
-            sx={{
+  const handleReset = () => {
+    clearCoordinateData();
+    setFormSubmitted(false);
+    navigate('/');
+  };
+
+  // Empty state
+  if (!isLoading && (!hasCoordinates || !formSubmitted)) {
+    return (
+      <Container maxWidth="sm">
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '70vh',
+            textAlign: 'center',
+            gap: 3,
+          }}
+        >
+          <Box 
+            sx={{ 
+              width: 80, 
+              height: 80, 
+              borderRadius: '50%', 
+              backgroundColor: COLORS.indigoLight,
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              minHeight: '400px',
-              textAlign: 'center',
-              gap: 2,
             }}
           >
-            <Typography variant="h5" sx={{ color: COLORS.whiteHigh, fontWeight: 700 }}>
-              No Farm Coordinates Found
+            <MapIcon sx={{ fontSize: 40, color: COLORS.indigo }} />
+          </Box>
+          
+          <Box>
+            <Typography variant="h4" sx={{ color: COLORS.whiteHigh, fontWeight: 700, mb: 1 }}>
+              No Prescription Data
             </Typography>
-            <Typography variant="body2" sx={{ color: COLORS.whiteMedium, maxWidth: 400 }}>
-              To view prescription maps, please submit your farm configuration with boundary coordinates.
+            <Typography variant="body1" sx={{ color: COLORS.whiteMedium, maxWidth: 400 }}>
+              To view prescription maps and biochar application recommendations, please submit your farm configuration with boundary coordinates.
             </Typography>
-            <Button
-              variant="contained"
-              onClick={() => navigate('/')}
-              sx={{
-                backgroundColor: COLORS.indigo,
+          </Box>
+          
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => navigate('/')}
+            sx={{
+              backgroundColor: COLORS.indigo,
+              px: 4,
+              py: 1.5,
               '&:hover': { backgroundColor: COLORS.indigoHover },
-              }}
-            >
-              Go to Input Page
-            </Button>
-          </Box>
-        </Container>
-      )}
+            }}
+          >
+            Configure Farm Data
+          </Button>
+        </Box>
+      </Container>
+    );
+  }
 
-      {/* Show map only when coordinates are committed AND form was submitted */}
-      {!isLoading && hasCoordinates && formSubmitted && (
-        <>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => {
-                clearCoordinateData();
-                setFormSubmitted(false);
-                navigate('/');
-              }}
-              sx={{ textTransform: 'none' }}
-            >
-              Reset and re-enter farm info
-            </Button>
-          </Box>
-
-          <Typography variant="body2" sx={{ color: COLORS.whiteMedium, mb: 1 }}>
-            Displaying farm boundary and grid cells with estimated payback periods. Hover over cells for details.
+  return (
+    <Box sx={{ height: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column', p: 2 }}>
+      {/* Header */}
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        mb: 2,
+        pb: 2,
+        borderBottom: `1px solid ${COLORS.whiteVeryLow}`
+      }}>
+        <Box>
+          <Typography variant="h4" sx={{ color: COLORS.whiteHigh, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            Prescription Map
           </Typography>
+          <Typography variant="body2" sx={{ color: COLORS.whiteMedium, mt: 0.5 }}>
+            Biochar application recommendations based on your field analysis
+          </Typography>
+        </Box>
+        
+        <Stack direction="row" spacing={1.5}>
+          <Button
+            variant="outlined"
+            startIcon={<RestartAltIcon />}
+            onClick={handleReset}
+            sx={{
+              borderColor: COLORS.errorBorder,
+              color: COLORS.error,
+              textTransform: 'none',
+              '&:hover': {
+                borderColor: COLORS.error,
+                backgroundColor: COLORS.errorLight,
+              },
+            }}
+          >
+            Reset
+          </Button>
+        </Stack>
+      </Box>
 
-          <Box sx={{ height, width, position: 'relative' }}>
-            <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
+      {/* Main content */}
+      <Box sx={{ flex: 1, display: 'flex', gap: 2, minHeight: 0 }}>
+        {/* Map container */}
+        <Box sx={{ 
+          flex: 1, 
+          position: 'relative',
+          borderRadius: 2,
+          overflow: 'hidden',
+          border: `1px solid ${COLORS.whiteVeryLow}`,
+          boxShadow: `0 4px 20px ${COLORS.blackLow}`,
+        }}>
+          <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
+          
+          {/* Info overlay */}
+          <Box sx={{
+            position: 'absolute',
+            top: 12,
+            left: 12,
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            backgroundColor: COLORS.blackOverlay,
+            backdropFilter: 'blur(4px)',
+            borderRadius: 1,
+            px: 1.5,
+            py: 0.75,
+          }}>
+            <InfoOutlinedIcon sx={{ fontSize: 16, color: COLORS.whiteMedium }} />
+            <Typography variant="caption" sx={{ color: COLORS.whiteMedium }}>
+              Hover over cells to see details
+            </Typography>
           </Box>
-        </>
-      )}
+        </Box>
+
+        {/* Sidebar */}
+        <Box sx={{ width: 280, display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0 }}>
+          <StatsPanel cells={cells} />
+          <PaybackLegend />
+        </Box>
+      </Box>
     </Box>
   );
 }

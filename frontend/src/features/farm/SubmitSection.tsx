@@ -1,5 +1,5 @@
 import { Box, Button, Stack, Typography } from '@mui/material';
-import { COLORS } from '../styles/colors';
+import { COLORS } from '../../styles/colors';
 
 interface SubmitSectionProps {
   coordsReady: boolean;
@@ -21,7 +21,7 @@ export default function SubmitSection({ coordsReady, onSubmit }: SubmitSectionPr
           sx={{ 
             px: 4, 
             backgroundColor: COLORS.indigo, 
-            '&:hover': { backgroundColor: '#7a81ff' },
+            '&:hover': { backgroundColor: COLORS.indigoHover },
             '&:disabled': {
               backgroundColor: COLORS.indigo,
               opacity: 0.6,
@@ -38,7 +38,7 @@ export default function SubmitSection({ coordsReady, onSubmit }: SubmitSectionPr
         )}
         {coordsReady && (
           <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 500 }}>
-            Boundary received — ready to submit
+            Boundary received - ready to submit
           </Typography>
         )}
       </Stack>

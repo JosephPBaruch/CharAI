@@ -1,8 +1,11 @@
 import { Box, Typography, Container } from "@mui/material";
-import FarmBiocharForm from "../components/FarmBiocharForm";
+import { FarmBiocharForm } from "../features/farm";
 import { COLORS } from "../styles/colors";
+import { useAuth } from "../contexts/AuthContext";
 
 const LandingPage = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <Container maxWidth="lg">
       <Box
@@ -25,7 +28,7 @@ const LandingPage = () => {
           </Typography>
         </Box>
 
-        <FarmBiocharForm />
+        {isAuthenticated && <FarmBiocharForm />}
       </Box>
     </Container>
   );

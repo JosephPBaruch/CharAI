@@ -4,9 +4,9 @@ import { type LatLngLiteral } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Box } from "@mui/material";
+import { COLORS } from "../../styles/colors";
 
 // temporary workaround for marker icon clash between Vite and React Leaflet
-// Cast to any to silence TS error on private property access.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -30,12 +30,55 @@ const ClickHandler: React.FC<ClickHandlerProps> = ({ markers, setMarkers }) => {
   return null;
 };
 
+interface DraggableMarkerProps {
+  position: LatLngLiteral;
+  index: number;
+  onDragEnd: (index: number, newPosition: LatLngLiteral) => void;
+}
+
+const DraggableMarker: React.FC<DraggableMarkerProps> = ({ position, index, onDragEnd }) => {
+  const markerRef = React.useRef<L.Marker | null>(null);
+
+  const eventHandlers = React.useMemo(
+    () => ({
+      dragend() {
+        const marker = markerRef.current;
+        if (marker != null) {
+          const newPos = marker.getLatLng();
+          onDragEnd(index, { lat: newPos.lat, lng: newPos.lng });
+        }
+      },
+    }),
+    [index, onDragEnd]
+  );
+
+  return (
+    <Marker
+      draggable={true}
+      eventHandlers={eventHandlers}
+      position={position}
+      ref={markerRef}
+    />
+  );
+};
+
 interface InteractiveFarmMapProps {
   markers: LatLngLiteral[];
   setMarkers: React.Dispatch<React.SetStateAction<LatLngLiteral[]>>;
 }
 
 export default function InteractiveFarmMap({ markers, setMarkers }: InteractiveFarmMapProps) {
+  const handleMarkerDragEnd = React.useCallback(
+    (index: number, newPosition: LatLngLiteral) => {
+      setMarkers((prevMarkers) => {
+        const updated = [...prevMarkers];
+        updated[index] = newPosition;
+        return updated;
+      });
+    },
+    [setMarkers]
+  );
+
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
       <MapContainer
@@ -64,10 +107,25 @@ export default function InteractiveFarmMap({ markers, setMarkers }: InteractiveF
         <ClickHandler markers={markers} setMarkers={setMarkers} />
 
         {markers.map((position, idx) => (
-          <Marker key={idx} position={position} />
+          <DraggableMarker
+            key={idx}
+            position={position}
+            index={idx}
+            onDragEnd={handleMarkerDragEnd}
+          />
         ))}
 
-        {markers.length >= 3 && <Polygon positions={markers}></Polygon>}
+        {markers.length >= 3 && (
+          <Polygon 
+            positions={markers}
+            pathOptions={{
+              color: COLORS.gold,
+              weight: 3,
+              fillColor: COLORS.gold,
+              fillOpacity: 0.15,
+            }}
+          />
+        )}
       </MapContainer>
     </Box>
   );

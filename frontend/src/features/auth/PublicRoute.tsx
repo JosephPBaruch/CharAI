@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router';
 import { Box, CircularProgress } from '@mui/material';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface PublicRouteProps {
   element: React.ReactNode;

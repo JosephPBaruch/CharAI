@@ -2,10 +2,8 @@ import { Box, Button, IconButton, Stack, Typography, CircularProgress } from "@m
 import { styled } from "@mui/material/styles";
 import React from "react";
 import CloseIcon from "@mui/icons-material/Close";
-import { uploadCoordinateFile } from "../services/fileUploadService";
-import { parseFileToGeoJSON } from "../services/coordinateService";
-import { useCoordinates } from "../contexts/CoordinateContext";
-import { COLORS } from "../styles/colors";
+import { uploadYieldFile } from "../../services/fileUploadService";
+import { COLORS } from "../../styles/colors";
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -19,9 +17,8 @@ const VisuallyHiddenInput = styled('input')({
   width: 1,
 });
 
-export default function CoordinateFileUpload(props: { onSelect?: (file: File | null) => void; onUploadComplete?: () => void }) {
+export default function YieldFileUpload(props: { onSelect?: (file: File | null) => void; onUploadComplete?: () => void }) {
   const { onSelect, onUploadComplete } = props || {};
-  const { setCoordinateData } = useCoordinates();
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -38,17 +35,19 @@ export default function CoordinateFileUpload(props: { onSelect?: (file: File | n
     if (!selectedFile) return;
 
     setIsLoading(true);
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
     try {
-      // Parse file locally and save to context (temporary localStorage-based storage)
-      const geojson = await parseFileToGeoJSON(selectedFile);
-      setCoordinateData(geojson);
-      console.log("Success! Coordinates saved locally");
-      setSelectedFile(null);
-      onSelect?.(null);
-      onUploadComplete?.();
+      const response = await uploadYieldFile(formData);
+      if (response) {
+        console.log("Success! File uploaded");
+        setSelectedFile(null);
+        onSelect?.(null);
+        onUploadComplete?.();
+      }
     } catch (err: any) {
-      console.error('Failed to process coordinates:', err);
-      // TODO: Show error message in UI
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -69,15 +68,15 @@ export default function CoordinateFileUpload(props: { onSelect?: (file: File | n
             textTransform: 'none', 
             fontSize: '1rem',
             backgroundColor: COLORS.indigo,
-            '&:hover': { backgroundColor: '#7a81ff' }
+            '&:hover': { backgroundColor: COLORS.indigoHover }
           }}
         >
           Choose file
           <VisuallyHiddenInput
-            type="file"
-            accept=".shp,.shx,.dbf,.geojson,.csv,.kml,.kmz,.json"
-            onChange={handleFileChange}
-          />
+              type="file"
+              accept=".csv,.xml,.shp,.shx,.dbf,.txt"
+              onChange={handleFileChange}
+            />
         </Button>
       ) : (
         <Stack
@@ -86,7 +85,7 @@ export default function CoordinateFileUpload(props: { onSelect?: (file: File | n
           sx={{
             alignItems: 'center',
             padding: 1.5,
-            backgroundColor: 'rgba(100, 108, 255, 0.1)',
+            backgroundColor: COLORS.indigoLight,
             border: `1px solid ${COLORS.indigo}`,
             borderRadius: 1,
             minWidth: 300,
@@ -122,7 +121,7 @@ export default function CoordinateFileUpload(props: { onSelect?: (file: File | n
             textTransform: 'none', 
             fontSize: '1rem',
             backgroundColor: COLORS.indigo,
-            '&:hover': { backgroundColor: '#7a81ff' }
+            '&:hover': { backgroundColor: COLORS.indigoHover }
           }}
         >
           {isLoading ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}

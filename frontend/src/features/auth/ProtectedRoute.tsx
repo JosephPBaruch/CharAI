@@ -1,5 +1,5 @@
 import { Box, CircularProgress } from '@mui/material';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ProtectedRouteProps {
   element: React.ReactNode;
@@ -33,8 +33,6 @@ export function ProtectedRoute({ element, fallback }: ProtectedRouteProps) {
     if (fallback) {
       return <>{fallback}</>;
     }
-    // If no fallback provided, redirect would be handled by PublicRoute wrapping
-    // But since we're in ProtectedRoute, we show nothing (or could redirect)
     return null;
   }
 

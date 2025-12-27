@@ -1,7 +1,7 @@
 import { Box, Button, Typography, Container } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
-import FarmBiocharForm from '../components/FarmBiocharForm';
+import { FarmBiocharForm } from '../features/farm';
 import { COLORS } from '../styles/colors';
 
 const HomePage = () => {
@@ -41,7 +41,7 @@ const HomePage = () => {
           <Button
             variant="contained"
             onClick={handleLogout}
-            sx={{ height: 'fit-content', backgroundColor: '#d32f2f', '&:hover': { backgroundColor: '#c62828' } }}
+            sx={{ height: 'fit-content', backgroundColor: COLORS.errorBg, '&:hover': { backgroundColor: COLORS.errorHover } }}
           >
             Log Out
           </Button>

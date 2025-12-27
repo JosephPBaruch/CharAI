@@ -1,5 +1,5 @@
 import { Box, TextField, Typography, InputAdornment } from '@mui/material';
-import { COLORS } from '../styles/colors';
+import { COLORS } from '../../styles/colors';
 
 interface BudgetSettingsProps {
   globalMax: number | '';
