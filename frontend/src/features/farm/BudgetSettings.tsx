@@ -21,6 +21,7 @@ export default function BudgetSettings({ globalMax, onChange }: BudgetSettingsPr
         value={globalMax}
         onChange={(e) => onChange(e.target.value === '' ? '' : Number(e.target.value))}
         size="small"
+        inputProps={{ maxLength: 10 }}
         slotProps={{
           input: {
             startAdornment: (

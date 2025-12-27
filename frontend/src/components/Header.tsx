@@ -36,16 +36,23 @@ const Header = () => {
             <>
               <Button
                 component={RouterLink}
+                to="/"
+                sx={{ color: COLORS.whiteHigh, textTransform: 'none', fontSize: '1rem' }}
+              >
+                Home
+              </Button>
+              <Button
+                component={RouterLink}
                 to="/output"
                 sx={{ color: COLORS.whiteHigh, textTransform: 'none', fontSize: '1rem' }}
               >
-                Output
+                Maps
               </Button>
               <Button
                 onClick={handleLogout}
                 sx={{ color: COLORS.whiteHigh, textTransform: 'none', fontSize: '1rem' }}
               >
-                Log out
+                Logout
               </Button>
             </>
           ) : (

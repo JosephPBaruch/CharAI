@@ -67,53 +67,6 @@ export default function FarmBiocharForm() {
   const coordsReady = coordUploaded || hasPendingCoordinates || hasCoordinates;
   const isPriceValid = field.price !== '' && field.price > 0;
 
-  const FormContent = () => (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Title Section */}
-      <Box>
-        <Typography variant="h5" sx={{ color: COLORS.whiteHigh, fontWeight: 700, mb: 0.5 }}>
-          Farm Configuration
-        </Typography>
-        <Typography variant="body2" sx={{ color: COLORS.whiteMedium }}>
-          Configure your field's crop and selling price, set your biochar budget, and upload boundary coordinates to calculate optimal application rates.
-        </Typography>
-      </Box>
-
-      {/* Budget Settings */}
-      <BudgetSettings globalMax={globalMax} onChange={setGlobalMax} />
-
-      {/* Field Configuration */}
-      <FieldsList
-        field={field}
-        onUpdateField={updateField}
-      />
-
-      {/* File Upload Section */}
-      <FileUploadSection
-        onCoordSelect={handleCoordSelect}
-        onCoordUploaded={handleCoordUploaded}
-        onYieldSelect={handleYieldSelect}
-        onYieldUploaded={handleYieldUploaded}
-      />
-
-      {/* Submit Section */}
-      <SubmitSection
-        coordsReady={coordsReady && isPriceValid}
-        onSubmit={() => {
-          if (!isPriceValid) {
-            alert('Please enter a valid crop selling price.');
-            return;
-          }
-          const payload = { globalMax, field };
-          console.log('Submit payload', payload);
-          commitPendingCoordinates();
-          setFormSubmitted(true);
-          closeModal();
-        }}
-      />
-    </Box>
-  );
-
   return (
     <>
       {/* Modal Trigger Button */}
@@ -147,7 +100,50 @@ export default function FarmBiocharForm() {
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: 0, pb: 3 }}>
-          <FormContent />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Title Section */}
+            <Box>
+              <Typography variant="h5" sx={{ color: COLORS.whiteHigh, fontWeight: 700, mb: 0.5 }}>
+                Farm Configuration
+              </Typography>
+              <Typography variant="body2" sx={{ color: COLORS.whiteMedium }}>
+                Configure your field's crop and selling price, set your biochar budget, and upload boundary coordinates to calculate optimal application rates.
+              </Typography>
+            </Box>
+
+            {/* Budget Settings */}
+            <BudgetSettings globalMax={globalMax} onChange={setGlobalMax} />
+
+            {/* Field Configuration */}
+            <FieldsList
+              field={field}
+              onUpdateField={updateField}
+            />
+
+            {/* File Upload Section */}
+            <FileUploadSection
+              onCoordSelect={handleCoordSelect}
+              onCoordUploaded={handleCoordUploaded}
+              onYieldSelect={handleYieldSelect}
+              onYieldUploaded={handleYieldUploaded}
+            />
+
+            {/* Submit Section */}
+            <SubmitSection
+              coordsReady={coordsReady && isPriceValid}
+              onSubmit={() => {
+                if (!isPriceValid) {
+                  alert('Please enter a valid crop selling price.');
+                  return;
+                }
+                const payload = { globalMax, field };
+                console.log('Submit payload', payload);
+                commitPendingCoordinates();
+                setFormSubmitted(true);
+                closeModal();
+              }}
+            />
+          </Box>
         </DialogContent>
       </Dialog>
     </>

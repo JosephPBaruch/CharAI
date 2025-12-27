@@ -1,21 +1,10 @@
-import { Box, Button, Typography, Container } from '@mui/material';
-import { useNavigate } from 'react-router';
+import { Box, Typography, Container } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 import { FarmBiocharForm } from '../features/farm';
 import { COLORS } from '../styles/colors';
 
 const HomePage = () => {
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
+  const { user } = useAuth();
 
   return (
     <Container maxWidth="lg">
@@ -27,24 +16,14 @@ const HomePage = () => {
           py: 4,
         }}
       >
-        {/* Header: title + logout */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box>
-            <Typography variant="h3" component="h1" sx={{ color: COLORS.whiteHigh, fontWeight: 700, mb: 1 }}>
-              Welcome, {user?.first_name || user?.username}!
-            </Typography>
-            <Typography variant="body1" sx={{ color: COLORS.whiteMedium }}>
-              Manage your farm biochar applications and data below.
-            </Typography>
-          </Box>
-
-          <Button
-            variant="contained"
-            onClick={handleLogout}
-            sx={{ height: 'fit-content', backgroundColor: COLORS.errorBg, '&:hover': { backgroundColor: COLORS.errorHover } }}
-          >
-            Log Out
-          </Button>
+        {/* Header */}
+        <Box>
+          <Typography variant="h3" component="h1" sx={{ color: COLORS.whiteHigh, fontWeight: 700, mb: 1 }}>
+            Welcome, {user?.first_name || user?.username}!
+          </Typography>
+          <Typography variant="body1" sx={{ color: COLORS.whiteMedium }}>
+            Manage your farm biochar applications and data below.
+          </Typography>
         </Box>
 
         {/* Intro boilerplate */}
