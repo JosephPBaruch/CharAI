@@ -52,7 +52,7 @@ export default function ManualCoordinateUpload() {
 
     const boundary: Feature<Polygon> = {
       type: 'Feature',
-      properties: { type: 'boundary' },
+      properties: { type: 'boundary', applicationRate: 5, paybackPeriod: 3 },
       geometry: {
         type: 'Polygon',
         coordinates: [coords],

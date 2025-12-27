@@ -43,13 +43,30 @@ export default function InteractiveFarmMap({ markers, setMarkers }: InteractiveF
         zoom={6}
         style={{ height: "100%", width: "100%" }}
       >
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        {/* ESRI Satellite Imagery */}
+        <TileLayer
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+        />
+
+        {/* ESRI Transportation Layer */}
+        <TileLayer
+          url='https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}'
+          attribution="Transportation &copy; Esri"
+        />
+
+        {/* ESRI City Labels Layer */}
+        <TileLayer
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+          attribution="Cities &copy; Esri"
+        />
 
         <ClickHandler markers={markers} setMarkers={setMarkers} />
 
         {markers.map((position, idx) => (
           <Marker key={idx} position={position} />
         ))}
+
         {markers.length >= 3 && <Polygon positions={markers}></Polygon>}
       </MapContainer>
     </Box>
