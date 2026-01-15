@@ -110,3 +110,9 @@ sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
 
 ### Cloudflare Tunnel
+
+CSRF cookie:
+
+use the /auth/user/ endpoint to see the CSRF token in the cookies. Use that in the other requests by setting:
+
+X-CSRFToken in the headers
