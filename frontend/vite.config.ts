@@ -1,11 +1,14 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+// import { defineConfig } from "vite";
+// import react from "@vitejs/plugin-react";
 
-export default defineConfig({
-  plugins: [react()],
-  base: "/",
+export default {
   server: {
-    host: "0.0.0.0",
+    host: true,
     port: 5173,
+    hmr: {
+      host: "192.168.254.93",
+      protocol: "ws",
+      // clientPort: 80, // sometimes needed if proxying WS through :80
+    },
   },
-});
+};
