@@ -1,7 +1,7 @@
 :80 {
     # Anything under /api goes to the backend
     handle_path /api/* {
-        reverse_proxy 127.0.0.1:8000
+        reverse_proxy 127.0.0.1:8000/api/
     }
 
     # Everything else goes to the frontend
