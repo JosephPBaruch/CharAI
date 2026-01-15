@@ -50,7 +50,7 @@ const SignupPage = () => {
         sx={{
           width: '100%',
           maxWidth: 500,
-          backgroundColor: '#1a1a1a',
+          backgroundColor: COLORS.bgCard,
           padding: 3,
           borderRadius: 2,
           boxShadow: `0 4px 12px ${COLORS.blackMedium}`,
