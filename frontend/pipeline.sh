@@ -5,4 +5,4 @@ EXTERNAL_PORT=5173
 
 docker build -t $IMAGE .
 
-docker run -d -p $EXPOSE_PORT:$INTERNAL_PORT --name $IMAGE $IMAGE
+docker run -d -p $EXTERNAL_PORT:$INTERNAL_PORT --name $IMAGE $IMAGE
