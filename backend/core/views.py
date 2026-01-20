@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .serializers import RegisterSerializer, UserSerializer
+from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer
 
 #api calls & endpoints
 class RegisterView(APIView):
@@ -77,3 +77,51 @@ class UserInfoView(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class FieldDataView(APIView):
+    """API endpoint for processing prescription map field data"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        """
+        Accept field data with GeoJSON features and field metadata
+        
+        Expected format:
+        {
+            "globalMax": "",
+            "field": {
+                "id": "main-field",
+                "cropType": "Wheat",
+                "customCrop": "",
+                "price": 23,
+                "unit": "bushel"
+            },
+            "data": {
+                "type": "FeatureCollection",
+                "features": [...]
+            }
+        }
+        """
+        serializer = FieldDataSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            validated_data = serializer.validated_data
+            
+            # Process the data
+            field_info = validated_data.get('field')
+            geojson_data = validated_data.get('data')
+            global_max = validated_data.get('globalMax', '')
+            
+            # Here you can add logic to process, store, or analyze the field data
+            response_data = {
+                'message': 'Field data received successfully',
+                'field_id': field_info.get('id'),
+                'crop_type': field_info.get('cropType'),
+                'features_count': len(geojson_data.get('features', [])),
+                'global_max': global_max
+            }
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
