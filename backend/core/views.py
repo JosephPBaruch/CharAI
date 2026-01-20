@@ -4,7 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer
+from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer, FieldModelSerializer, PrescriptionMapSerializer
+from .models import Field, PrescriptionMap
 
 #api calls & endpoints
 class RegisterView(APIView):
@@ -83,6 +84,29 @@ class FieldDataView(APIView):
     """API endpoint for processing prescription map field data"""
     permission_classes = [permissions.IsAuthenticated]
 
+    def get(self, request):
+        """
+        Get all fields for the current user with their IDs
+        
+        Returns:
+        {
+            "fields": [
+                {
+                    "id": 1,
+                    "field_id": "main-field",
+                    "crop_type": "Wheat",
+                    ...
+                },
+                ...
+            ]
+        }
+        """
+        fields = Field.objects.filter(user=request.user)
+        serializer = FieldModelSerializer(fields, many=True)
+        return Response({
+            'fields': serializer.data
+        }, status=status.HTTP_200_OK)
+
     def post(self, request):
         """
         Accept field data with GeoJSON features and field metadata
@@ -113,15 +137,95 @@ class FieldDataView(APIView):
             geojson_data = validated_data.get('data')
             global_max = validated_data.get('globalMax', '')
             
-            # Here you can add logic to process, store, or analyze the field data
+            # Create or update the field record
+            field, created = Field.objects.update_or_create(
+                user=request.user,
+                field_id=field_info.get('id'),
+                defaults={
+                    'crop_type': field_info.get('cropType'),
+                    'custom_crop': field_info.get('customCrop', ''),
+                    'price': field_info.get('price'),
+                    'unit': field_info.get('unit'),
+                    'global_max': global_max,
+                    'geojson_data': geojson_data,
+                }
+            )
+            
             response_data = {
                 'message': 'Field data received successfully',
-                'field_id': field_info.get('id'),
-                'crop_type': field_info.get('cropType'),
+                'created': created,
+                'field_id': field.field_id,
+                'crop_type': field.crop_type,
                 'features_count': len(geojson_data.get('features', [])),
                 'global_max': global_max
             }
             
-            return Response(response_data, status=status.HTTP_200_OK)
+            return Response(response_data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class PrescriptionMapView(APIView):
+    """API endpoint to retrieve prescription map data for a field"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, field_id):
+        """
+        Get prescription map data for a specific field
+        
+        Returns sample prescription map data with GeoJSON features
+        """
+        try:
+            field = Field.objects.get(user=request.user, field_id=field_id)
+        except Field.DoesNotExist:
+            return Response({
+                'error': 'Field not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Get or create prescription map
+        prescription_map, _ = PrescriptionMap.objects.get_or_create(
+            field=field,
+            defaults={
+                'prescription_data': {
+                    'type': 'FeatureCollection',
+                    'features': [
+                        {
+                            'type': 'Feature',
+                            'properties': {
+                                'applicationRate': 5.5,
+                                'paybackPeriod': 3,
+                                'type': 'boundary'
+                            },
+                            'geometry': {
+                                'type': 'Polygon',
+                                'coordinates': [[
+                                    [-117.12799072265626, 47.410866618794536],
+                                    [-117.06481933593751, 47.379713888843426],
+                                    [-117.15545654296876, 47.33597602644443],
+                                    [-117.12799072265626, 47.410866618794536]
+                                ]]
+                            }
+                        },
+                        {
+                            'type': 'Feature',
+                            'properties': {
+                                'applicationRate': 3.2,
+                                'paybackPeriod': 2,
+                                'type': 'zone'
+                            },
+                            'geometry': {
+                                'type': 'Polygon',
+                                'coordinates': [[
+                                    [-117.06481933593751, 47.379713888843426],
+                                    [-117.00164794921876, 47.348561159292175],
+                                    [-117.09228515625, 47.30482329634525],
+                                    [-117.06481933593751, 47.379713888843426]
+                                ]]
+                            }
+                        }
+                    ]
+                }
+            }
+        )
+        
+        serializer = PrescriptionMapSerializer(prescription_map)
+        return Response(serializer.data, status=status.HTTP_200_OK)
