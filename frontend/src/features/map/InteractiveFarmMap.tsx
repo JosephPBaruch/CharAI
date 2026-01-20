@@ -82,8 +82,8 @@ export default function InteractiveFarmMap({ markers, setMarkers }: InteractiveF
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
       <MapContainer
-        center={[46.4402, -117.13005]}
-        zoom={6}
+        center={[46.7324, -117.0002]}
+        zoom={13}
         style={{ height: "100%", width: "100%" }}
       >
         {/* ESRI Satellite Imagery */}
