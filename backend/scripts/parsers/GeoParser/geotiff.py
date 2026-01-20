@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import numpy as np
 import rasterio
@@ -33,45 +33,51 @@ class GeoTIFFData:
 
     @classmethod
     def from_file(cls, path: Union[str, Path], band: int = 1) -> "GeoTIFFData":
-        """Load GeoTIFF from disk. Converts nodata values to NaN and casts to float32."""
-
         file_path = Path(path).expanduser().resolve()
         if not file_path.exists():
             raise FileNotFoundError(f"GeoTIFF not found at '{file_path}'.")
+        
+        if not file_path.is_file():
+            raise ValueError(f"Path is not a file: '{file_path}'")
 
-        with rasterio.open(file_path) as src:
-            if band < 1 or band > src.count:
-                raise ValueError(f"Requested band {band} not available (count={src.count}).")
+        try:
+            with rasterio.open(file_path) as src:
+                if band < 1 or band > src.count:
+                    raise ValueError(f"Requested band {band} not available (count={src.count}).")
+                
+                if src.width == 0 or src.height == 0:
+                    raise ValueError(f"Invalid raster dimensions: {src.width}x{src.height}")
 
-            # Read as masked array so nodata is automatically masked, then replace with NaN.
-            masked = src.read(band, masked=True).astype("float32")
-            data = masked.filled(np.nan)
+                masked: np.ma.MaskedArray = src.read(band, masked=True).astype("float32")
+                data: np.ndarray = masked.filled(np.nan)
 
-            nodata_value = None
-            if src.nodatavals:
-                nodata_value = src.nodatavals[band - 1]
+                nodata_value: Optional[Number] = None
+                if src.nodatavals:
+                    nodata_value = src.nodatavals[band - 1]
 
-            crs_str = src.crs.to_string() if src.crs else None
-            transform = src.transform
-            bounds = src.bounds
-            pixel_size = (abs(transform.a), abs(transform.e))
-            finite = np.isfinite(data)
-            min_elevation = float(np.nanmin(data)) if finite.any() else None
-            max_elevation = float(np.nanmax(data)) if finite.any() else None
+                crs_str: Optional[str] = src.crs.to_string() if src.crs else None
+                transform: Affine = src.transform
+                bounds: BoundingBox = src.bounds
+                pixel_size: Tuple[float, float] = (abs(transform.a), abs(transform.e))
+                finite: np.ndarray = np.isfinite(data)
+                min_elevation: Optional[float] = float(np.nanmin(data)) if finite.any() else None
+                max_elevation: Optional[float] = float(np.nanmax(data)) if finite.any() else None
 
-            return cls(
-                path=file_path,
-                data=data,
-                width=src.width,
-                height=src.height,
-                crs=crs_str,
-                transform=transform,
-                bounds=bounds,
-                nodata=nodata_value,
-                pixel_size=pixel_size,
-                min_elevation=min_elevation,
-                max_elevation=max_elevation,
-            )
+                return cls(
+                    path=file_path,
+                    data=data,
+                    width=src.width,
+                    height=src.height,
+                    crs=crs_str,
+                    transform=transform,
+                    bounds=bounds,
+                    nodata=nodata_value,
+                    pixel_size=pixel_size,
+                    min_elevation=min_elevation,
+                    max_elevation=max_elevation,
+                )
+        except rasterio.errors.RasterioIOError as e:
+            raise ValueError(f"Failed to read GeoTIFF '{file_path}': {e}") from e
 
     @property
     def shape(self) -> Tuple[int, int]:
@@ -83,48 +89,35 @@ class GeoTIFFData:
         """Get elevation at the given pixel coordinate."""
 
         if row < 0 or col < 0 or row >= self.height or col >= self.width:
-            raise IndexError(f"Pixel index ({row}, {col}) is outside raster bounds.")
+            raise IndexError(
+                f"Pixel index ({row}, {col}) is outside raster bounds "
+                f"(0-{self.height-1}, 0-{self.width-1})."
+            )
         return float(self.data[row, col])
 
     def sample_world(self, x: Number, y: Number) -> float:
-        """Get elevation at world coordinates (uses raster CRS)."""
-
+        row: float
+        col: float
         row, col = ~self.transform * (x, y)
         return self.sample_pixel(int(round(row)), int(round(col)))
 
     def normalized(self) -> np.ndarray:
         """Returns elevation normalized to [0, 1]. NaNs are ignored."""
 
-        arr = self.data
-        finite_mask = np.isfinite(arr)
+        arr: np.ndarray = self.data
+        finite_mask: np.ndarray = np.isfinite(arr)
         if not finite_mask.any():
             return np.full_like(arr, np.nan, dtype="float32")
 
-        min_val = np.nanmin(arr)
-        max_val = np.nanmax(arr)
+        min_val: float = np.nanmin(arr)
+        max_val: float = np.nanmax(arr)
         if np.isclose(max_val, min_val):
             return np.zeros_like(arr, dtype="float32")
 
-        norm = (arr - min_val) / (max_val - min_val)
+        norm: np.ndarray = (arr - min_val) / (max_val - min_val)
         return norm.astype("float32")
 
-    def elevation_range(self) -> Tuple[Optional[float], Optional[float]]:
-        """Returns (min, max) elevation. Computes and caches if needed."""
-
-        if self.min_elevation is not None and self.max_elevation is not None:
-            return self.min_elevation, self.max_elevation
-
-        finite = np.isfinite(self.data)
-        if not finite.any():
-            return None, None
-
-        self.min_elevation = float(np.nanmin(self.data))
-        self.max_elevation = float(np.nanmax(self.data))
-        return self.min_elevation, self.max_elevation
-
-    def metadata_dict(self) -> Dict[str, object]:
-        """Export metadata as JSON-serializable dict."""
-
+    def metadata_dict(self) -> Dict[str, Any]:
         return {
             "path": str(self.path),
             "width": self.width,

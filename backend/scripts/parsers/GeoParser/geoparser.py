@@ -3,14 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import numpy as np
-
-try:
-    from .geotiff import GeoTIFFData
-except ImportError:  # pragma: no cover - allows running as a script without package context
-    from geotiff import GeoTIFFData
+from geotiff import GeoTIFFData
 
 
 PathLike = Path | str
@@ -33,24 +29,31 @@ class GeoParser:
         return self._geotiff
 
     def get_elevation_array(self, normalize: bool = False) -> np.ndarray:
-        """Return the elevation array, optionally normalized to [0, 1]."""
-
         geotiff = self._ensure_loaded()
-        return geotiff.normalized() if normalize else geotiff.data
+        data = geotiff.normalized() if normalize else geotiff.data
+        
+        if not np.isfinite(data).any():
+            raise ValueError("Elevation data contains no valid values (all NaN/Inf)")
+        
+        return data
 
-    def to_backend_payload(self, include_data: bool = False) -> dict:
-        """Return a JSON-serializable payload with metadata (and optionally data)."""
-
+    def to_backend_response(self, include_data: bool = False) -> Dict[str, Any]:
         geotiff = self._ensure_loaded()
 
-        payload = {
+        response = {
             "metadata": geotiff.metadata_dict(),
         }
 
         if include_data:
-            payload["data"] = geotiff.data.ravel().tolist()
+            data_size = geotiff.data.size
+            max_size = 100_000_000  # 100M elements
+            if data_size > max_size:
+                raise ValueError(
+                    f"Data array too large: {data_size} elements (max: {max_size})"
+                )
+            response["data"] = geotiff.data.ravel().tolist()
 
-        return payload
+        return response
 
     def _validate_path(self) -> None:
         if not self.path.exists():
@@ -69,29 +72,10 @@ class GeoParser:
         return self._geotiff
 
 
-def parse_geotiff(path: PathLike, *, normalize: bool = False, include_data: bool = False) -> dict:
-    """Convenience helper to load a GeoTIFF and return a backend-ready payload."""
-
+def parse_geotiff(path: PathLike, *, normalize: bool = False, include_data: bool = False) -> Dict[str, Any]:
     parser = GeoParser(path)
     parser.parse()
-    payload = parser.to_backend_payload(include_data=include_data)
+    response = parser.to_backend_response(include_data=include_data)
     if include_data and normalize:
-        payload["data"] = parser.get_elevation_array(normalize=True).ravel().tolist()
-    return payload
-
-
-if __name__ == "__main__":
-    # Simple sanity check example for local runs.
-    default_path = Path(__file__).resolve().parent / "palouse_test.tif"
-    parser = GeoParser(default_path)
-    tiff = parser.parse()
-
-    print(f"Loaded GeoTIFF: {tiff.path}")
-    print(f"Size: {tiff.width} x {tiff.height}")
-    print(f"CRS: {tiff.crs}")
-    print(f"Bounds: {tiff.bounds}")
-    finite = np.isfinite(tiff.data)
-    if finite.any():
-        print(f"Elevation min/max: {np.nanmin(tiff.data):.2f} / {np.nanmax(tiff.data):.2f}")
-    else:
-        print("Elevation data contains only NaNs.")
+        response["data"] = parser.get_elevation_array(normalize=True).ravel().tolist()
+    return response

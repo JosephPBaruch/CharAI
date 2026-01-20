@@ -27,5 +27,5 @@ Built GeoTIFF parser for DEM file ingestion pipeline.
 
 ## TODO
 - Wire up to Django upload endpoint
-- Unit tests
+- Unit tests (nogo for this other functional tests are better)
 - Multi-band support if needed

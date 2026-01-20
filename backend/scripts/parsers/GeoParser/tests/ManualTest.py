@@ -1,16 +1,18 @@
 """Quick manual test runner for GeoTIFF parsing.
 
 Usage:
-    py test.py path/to/file.tif
+    py ManualTest.py path/to/file.tif
 """
 
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
+import sys
+
+sys.path.insert(0, str(Path(__file__).parent.parent)) #allows it to use the other modules
 
 from geoparser import GeoParser
 from geotiff import GeoTIFFData
@@ -25,8 +27,7 @@ def describe(tiff: GeoTIFFData, elevation: np.ndarray) -> None:
     print(f"Bounds: {tiff.bounds}")
     print(f"Nodata: {tiff.nodata}")
     print(f"Pixel size: {tiff.pixel_size}")
-    min_el, max_el = tiff.elevation_range()
-    print(f"Stored elevation min/max: {min_el} / {max_el}")
+    print(f"Stored elevation min/max: {tiff.min_elevation} / {tiff.max_elevation}")
 
     finite = np.isfinite(elevation)
     if finite.any():
