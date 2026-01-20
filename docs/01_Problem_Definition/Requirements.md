@@ -1,8 +1,8 @@
-# Project Requirements — Biochar Placement Optimization Tool
+# Project Requirements - Biochar Placement Optimization Tool
 
 ## Table of Contents
 
-- [Project Requirements — Biochar Placement Optimization Tool](#project-requirements--biochar-placement-optimization-tool)
+- [Project Requirements - Biochar Placement Optimization Tool](#project-requirements--biochar-placement-optimization-tool)
   - [Table of Contents](#table-of-contents)
   - [Functional Requirements](#functional-requirements)
     - [User-Facing Input/Output](#user-facing-inputoutput)
@@ -65,11 +65,11 @@ The total budget of the product shall not exceed $1000.
 
 The following schedule outline shall be followed:
 
-- Approval of Requirements — Sept. 30, 2025
-- Concept Design Review — Nov. 30, 2025
-- EPO of long lead parts — Dec. 8, 2025
-- Detailed Design Review — Feb. 9, 2026
-- ER of drawing package — Mar. 2, 2026
-- Complete Prototype Build — Apr. 5, 2026
-- UI Design EXPO — Apr. 26, 2026
-- Final Report / Drawings — May 4, 2026
+- Approval of Requirements - Sept. 30, 2025
+- Concept Design Review - Nov. 30, 2025
+- EPO of long lead parts - Dec. 8, 2025
+- Detailed Design Review - Feb. 9, 2026
+- ER of drawing package - Mar. 2, 2026
+- Complete Prototype Build - Apr. 5, 2026
+- UI Design EXPO - Apr. 26, 2026
+- Final Report / Drawings - May 4, 2026

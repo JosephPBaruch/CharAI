@@ -15,7 +15,7 @@ const Header = () => {
   };
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: 'rgba(36, 36, 36, 1)', boxShadow: `0 2px 8px ${COLORS.blackLow}` }}>
+    <AppBar position="static" sx={{ backgroundColor: COLORS.bgPage, boxShadow: `0 2px 8px ${COLORS.blackLow}` }}>
       <Toolbar sx={{ 
         display: 'flex', 
         justifyContent: 'space-between',
@@ -35,10 +35,24 @@ const Header = () => {
           {isAuthenticated ? (
             <>
               <Button
+                component={RouterLink}
+                to="/"
+                sx={{ color: COLORS.whiteHigh, textTransform: 'none', fontSize: '1rem' }}
+              >
+                Home
+              </Button>
+              <Button
+                component={RouterLink}
+                to="/output"
+                sx={{ color: COLORS.whiteHigh, textTransform: 'none', fontSize: '1rem' }}
+              >
+                Maps
+              </Button>
+              <Button
                 onClick={handleLogout}
                 sx={{ color: COLORS.whiteHigh, textTransform: 'none', fontSize: '1rem' }}
               >
-                Log out
+                Logout
               </Button>
             </>
           ) : (
