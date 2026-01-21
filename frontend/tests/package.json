@@ -1,19 +1,16 @@
 {
   "name": "charai-functional-tests",
   "version": "1.0.0",
-  "description": "Functional tests for CharAI using Playwright and Cucumber",
+  "description": "Functional tests for CharAI using Playwright",
   "scripts": {
-    "test": "cucumber-js",
-    "test:headed": "cucumber-js --format progress",
-    "test:report": "cucumber-js --format html:reports/cucumber-report.html",
-    "test:no-skip": "cucumber-js --tags 'not @skip'"
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "HEADLESS=false playwright test",
+    "test:report": "playwright test --reporter=html"
   },
   "devDependencies": {
-    "@cucumber/cucumber": "^10.9.0",
     "@playwright/test": "^1.40.0",
     "@types/node": "^25.0.9",
-    "playwright": "^1.57.0",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
 }

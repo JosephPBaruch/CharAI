@@ -8,6 +8,6 @@
     "resolveJsonModule": true,
     "types": ["node"]
   },
-  "include": ["features/**/*", "support/**/*"],
+  "include": ["**/*.ts"],
   "exclude": ["node_modules"]
 }
