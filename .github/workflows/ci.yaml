@@ -56,10 +56,10 @@ jobs:
           response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000 || echo "000")
           echo "Backend response code: $response"
           if [ "$response" = "000" ]; then
-            echo "❌ Backend endpoint is not accessible"
+            echo "Backend endpoint is not accessible"
             exit 1
           else
-            echo "✅ Backend endpoint is accessible (HTTP $response)"
+            echo "Backend endpoint is accessible (HTTP $response)"
           fi
 
       - name: Validate frontend endpoint
@@ -68,10 +68,10 @@ jobs:
           response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173 || echo "000")
           echo "Frontend response code: $response"
           if [ "$response" = "000" ]; then
-            echo "❌ Frontend endpoint is not accessible"
+            echo "Frontend endpoint is not accessible"
             exit 1
           else
-            echo "✅ Frontend endpoint is accessible (HTTP $response)"
+            echo "Frontend endpoint is accessible (HTTP $response)"
           fi
 
       - name: Show container logs on failure
