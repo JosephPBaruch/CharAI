@@ -3,6 +3,13 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Build arguments with defaults
+ARG VITE_API_URL="http://localhost/api"
+ARG VITE_APP_URL="http://localhost"
+
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_APP_URL=$VITE_APP_URL
+
 # Install dependencies with lockfile for reproducible builds
 COPY package.json package-lock.json ./
 RUN npm ci
