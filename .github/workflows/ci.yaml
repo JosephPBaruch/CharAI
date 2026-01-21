@@ -16,6 +16,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
       - name: Build backend Docker image
         run: |
           cd backend
@@ -73,6 +78,24 @@ jobs:
           else
             echo "Frontend endpoint is accessible (HTTP $response)"
           fi
+
+      - name: Install Playwright dependencies
+        run: |
+          cd frontend/tests
+          npm install
+          npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: |
+          cd frontend/tests
+          npm test
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-test-reports
+          path: frontend/tests/reports/
 
       - name: Show container logs on failure
         if: failure()
