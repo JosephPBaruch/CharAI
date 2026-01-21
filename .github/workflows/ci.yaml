@@ -79,6 +79,15 @@ jobs:
             echo "Frontend endpoint is accessible (HTTP $response)"
           fi
 
+      - name: Additional wait for Playwright
+        run: |
+          echo "Waiting additional time for services to stabilize..."
+          sleep 10
+          echo "Testing frontend reachability one more time..."
+          curl -v http://localhost:5173 || true
+          echo "\nDocker container status:"
+          docker ps
+
       - name: Install Playwright dependencies
         run: |
           cd frontend/tests
@@ -86,8 +95,11 @@ jobs:
           npx playwright install --with-deps
 
       - name: Run Playwright tests
+        env:
+          BASE_URL: http://localhost:5173
         run: |
           cd frontend/tests
+          echo "Running tests against BASE_URL=$BASE_URL"
           npm run test:report
 
       - name: Upload test report
