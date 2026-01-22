@@ -8,14 +8,19 @@ test.describe("CharAI.feature", () => {
     await page.goto(baseUrl);
     await expect(page).toHaveURL(/localhost:5173/);
 
+    // generate unique username and email
+    const timestamp = Date.now();
+    const uniqueUsername = `testuser${timestamp}`;
+    const uniqueEmail = `testuser${timestamp}@example.com`;
+
     // Navigate to signup page
     await page.click('[data-testid="signup-button"]');
     await expect(page).toHaveURL(/\/signup/);
 
     // Fill in signup form
-    await page.fill('[data-testid="username-input"]', "testuser");
-    await page.fill('[data-testid="email-input"]', "testuser@example.com");
-    await page.fill('input[name="first_name"]', "Test");
+    await page.fill('[data-testid="username-input"]', uniqueUsername);
+    await page.fill('[data-testid="email-input"]', uniqueEmail);
+    await page.fill('input[name="first_name"]', uniqueUsername);
     await page.fill('input[name="last_name"]', "User");
     await page.fill('input[name="password"]', "TestPassword123");
     await page.fill('input[name="password2"]', "TestPassword123");
@@ -25,7 +30,13 @@ test.describe("CharAI.feature", () => {
 
     // wait 3 seconds for any potential redirects
     await page.waitForTimeout(3000);
+
+    // Look for the text: "Welcome, Test!"
+    await expect(
+      page.locator(`text=Welcome, ${uniqueUsername}!`),
+    ).toBeVisible();
+
     // Verify successful registration (redirects to home page)
-    // await expect(page).toHaveURL(baseUrl, { timeout: 10000 });
+    await expect(page).toHaveURL(baseUrl, { timeout: 10000 });
   });
 });
