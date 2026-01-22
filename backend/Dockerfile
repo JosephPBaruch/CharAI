@@ -5,6 +5,12 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
+# Set environment variables from .env
+ENV DEBUG=True \
+    SECRET_KEY=change-me \
+    ALLOWED_HOSTS=127.0.0.1,localhost,192.168.254.93 \
+    DATABASE_URL=sqlite:///db.sqlite3
+
 # Set work directory inside the container
 WORKDIR /app
 
