@@ -30,6 +30,10 @@ jobs:
         run: |
           cd frontend
           docker build -t char-ai-frontend .
+          docker build \
+            --build-arg VITE_API_URL="http://localhost:8000/api" \
+            --build-arg VITE_APP_URL="http://localhost:5173" \
+            -t char-ai-frontend .
 
       - name: Run backend container
         run: |
