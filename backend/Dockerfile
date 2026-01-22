@@ -17,6 +17,9 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 # Copy the rest of the project
 COPY . .
 
+# Run database migrations to initialize the database
+RUN python manage.py migrate
+
 # Expose port Django will run on
 EXPOSE 8000
 
