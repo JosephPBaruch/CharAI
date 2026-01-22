@@ -72,6 +72,7 @@ const Header = () => {
               </Button>
               <Button
                 onClick={handleLogout}
+                data-testid="logout-button"
                 sx={{
                   color: COLORS.whiteHigh,
                   textTransform: "none",
@@ -97,6 +98,7 @@ const Header = () => {
               <Button
                 component={RouterLink}
                 to="/login"
+                data-testid="login-button"
                 sx={{
                   color: COLORS.whiteHigh,
                   textTransform: "none",
