@@ -1,1 +1,1 @@
-export { default as InteractiveFarmMap } from './InteractiveFarmMap';
+export { default as InteractiveFarmMap } from "./InteractiveFarmMap";

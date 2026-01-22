@@ -1,7 +1,9 @@
-import type { FeatureCollection, Geometry } from 'geojson';
+import type { FeatureCollection, Geometry } from "geojson";
 
 // Compute LngLatBoundsLike ([[minLng, minLat], [maxLng, maxLat]]) from a GeoJSON FeatureCollection
-export function computeBoundsFromGeoJSON(data: FeatureCollection): [[number, number], [number, number]] | null {
+export function computeBoundsFromGeoJSON(
+  data: FeatureCollection,
+): [[number, number], [number, number]] | null {
   let minLng = Infinity;
   let minLat = Infinity;
   let maxLng = -Infinity;
@@ -9,7 +11,7 @@ export function computeBoundsFromGeoJSON(data: FeatureCollection): [[number, num
 
   const expand = (coords: any): void => {
     if (!coords) return;
-    if (typeof coords[0] === 'number' && typeof coords[1] === 'number') {
+    if (typeof coords[0] === "number" && typeof coords[1] === "number") {
       const lng = coords[0];
       const lat = coords[1];
       if (lng < minLng) minLng = lng;
@@ -25,15 +27,15 @@ export function computeBoundsFromGeoJSON(data: FeatureCollection): [[number, num
     const geom: Geometry | null = feature.geometry as any;
     if (!geom) continue;
     switch (geom.type) {
-      case 'Point':
-      case 'MultiPoint':
-      case 'LineString':
-      case 'MultiLineString':
-      case 'Polygon':
-      case 'MultiPolygon':
+      case "Point":
+      case "MultiPoint":
+      case "LineString":
+      case "MultiLineString":
+      case "Polygon":
+      case "MultiPolygon":
         expand((geom as any).coordinates);
         break;
-      case 'GeometryCollection':
+      case "GeometryCollection":
         for (const g of (geom as any).geometries || []) {
           expand((g as any).coordinates);
         }
@@ -43,9 +45,17 @@ export function computeBoundsFromGeoJSON(data: FeatureCollection): [[number, num
     }
   }
 
-  if (minLng === Infinity || minLat === Infinity || maxLng === -Infinity || maxLat === -Infinity) {
+  if (
+    minLng === Infinity ||
+    minLat === Infinity ||
+    maxLng === -Infinity ||
+    maxLat === -Infinity
+  ) {
     return null;
   }
 
-  return [[minLng, minLat], [maxLng, maxLat]];
+  return [
+    [minLng, minLat],
+    [maxLng, maxLat],
+  ];
 }

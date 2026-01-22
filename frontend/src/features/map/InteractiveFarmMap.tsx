@@ -1,5 +1,11 @@
 import React from "react";
-import { MapContainer, TileLayer, Marker, useMapEvent, Polygon } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMapEvent,
+  Polygon,
+} from "react-leaflet";
 import { type LatLngLiteral } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -36,7 +42,11 @@ interface DraggableMarkerProps {
   onDragEnd: (index: number, newPosition: LatLngLiteral) => void;
 }
 
-const DraggableMarker: React.FC<DraggableMarkerProps> = ({ position, index, onDragEnd }) => {
+const DraggableMarker: React.FC<DraggableMarkerProps> = ({
+  position,
+  index,
+  onDragEnd,
+}) => {
   const markerRef = React.useRef<L.Marker | null>(null);
 
   const eventHandlers = React.useMemo(
@@ -49,7 +59,7 @@ const DraggableMarker: React.FC<DraggableMarkerProps> = ({ position, index, onDr
         }
       },
     }),
-    [index, onDragEnd]
+    [index, onDragEnd],
   );
 
   return (
@@ -67,7 +77,10 @@ interface InteractiveFarmMapProps {
   setMarkers: React.Dispatch<React.SetStateAction<LatLngLiteral[]>>;
 }
 
-export default function InteractiveFarmMap({ markers, setMarkers }: InteractiveFarmMapProps) {
+export default function InteractiveFarmMap({
+  markers,
+  setMarkers,
+}: InteractiveFarmMapProps) {
   const handleMarkerDragEnd = React.useCallback(
     (index: number, newPosition: LatLngLiteral) => {
       setMarkers((prevMarkers) => {
@@ -76,7 +89,7 @@ export default function InteractiveFarmMap({ markers, setMarkers }: InteractiveF
         return updated;
       });
     },
-    [setMarkers]
+    [setMarkers],
   );
 
   return (
@@ -94,7 +107,7 @@ export default function InteractiveFarmMap({ markers, setMarkers }: InteractiveF
 
         {/* ESRI Transportation Layer */}
         <TileLayer
-          url='https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}'
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}"
           attribution="Transportation &copy; Esri"
         />
 
@@ -116,7 +129,7 @@ export default function InteractiveFarmMap({ markers, setMarkers }: InteractiveF
         ))}
 
         {markers.length >= 3 && (
-          <Polygon 
+          <Polygon
             positions={markers}
             pathOptions={{
               color: COLORS.gold,

@@ -1,10 +1,10 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
-import type { FeatureCollection } from 'geojson';
+import { createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
+import type { FeatureCollection } from "geojson";
 
-const STORAGE_KEY = 'charai_coordinate_data'; // committed/approved coordinates
-const PENDING_STORAGE_KEY = 'charai_coordinate_pending'; // latest user input (manual or upload) before submit
-const SUBMIT_STORAGE_KEY = 'charai_farm_submitted';
+const STORAGE_KEY = "charai_coordinate_data"; // committed/approved coordinates
+const PENDING_STORAGE_KEY = "charai_coordinate_pending"; // latest user input (manual or upload) before submit
+const SUBMIT_STORAGE_KEY = "charai_farm_submitted";
 
 type LatLng = { lat: number; lng: number };
 
@@ -21,31 +21,41 @@ interface CoordinateContextType {
   clearCoordinateData: () => void;
 }
 
-const CoordinateContext = createContext<CoordinateContextType | undefined>(undefined);
+const CoordinateContext = createContext<CoordinateContextType | undefined>(
+  undefined,
+);
 
 export function CoordinateProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<FeatureCollection | null>(null);
-  const [pendingData, setPendingData] = useState<FeatureCollection | null>(null);
+  const [pendingData, setPendingData] = useState<FeatureCollection | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [formSubmitted, setFormSubmittedState] = useState<boolean>(false);
 
   // Helper: convert [{lat,lng}, ...] to a closed GeoJSON FeatureCollection with temporary default properties
-  const coordsToFeatureCollection = (coords: LatLng[]): FeatureCollection | null => {
+  const coordsToFeatureCollection = (
+    coords: LatLng[],
+  ): FeatureCollection | null => {
     if (!coords || coords.length < 3) return null;
-    const ring: [number, number][] = coords.map(p => [p.lng, p.lat]);
+    const ring: [number, number][] = coords.map((p) => [p.lng, p.lat]);
     const first = ring[0];
     const last = ring[ring.length - 1];
     if (first[0] !== last[0] || first[1] !== last[1]) {
       ring.push([...first]);
     }
     return {
-      type: 'FeatureCollection',
+      type: "FeatureCollection",
       features: [
         {
-          type: 'Feature',
-          properties: { applicationRate: 5, paybackPeriod: 3, type: 'boundary' },
+          type: "Feature",
+          properties: {
+            applicationRate: 5,
+            paybackPeriod: 3,
+            type: "boundary",
+          },
           geometry: {
-            type: 'Polygon',
+            type: "Polygon",
             coordinates: [ring],
           },
         },
@@ -68,10 +78,10 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
 
       const storedSubmitted = localStorage.getItem(SUBMIT_STORAGE_KEY);
       if (storedSubmitted) {
-        setFormSubmittedState(storedSubmitted === 'true');
+        setFormSubmittedState(storedSubmitted === "true");
       }
     } catch (err) {
-      console.debug('Failed to load coordinates from localStorage:', err);
+      console.debug("Failed to load coordinates from localStorage:", err);
     } finally {
       setIsLoading(false);
     }
@@ -89,7 +99,7 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(PENDING_STORAGE_KEY, JSON.stringify(fc));
     } catch (err) {
-      console.error('Failed to save pending coordinates to localStorage:', err);
+      console.error("Failed to save pending coordinates to localStorage:", err);
     }
   };
 
@@ -97,8 +107,8 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
     if (!pendingData) return;
     // Ensure temporary default properties exist for hover purposes
     const committed: FeatureCollection = {
-      type: 'FeatureCollection',
-      features: pendingData.features.map(f => ({
+      type: "FeatureCollection",
+      features: pendingData.features.map((f) => ({
         ...f,
         properties: {
           applicationRate: f.properties?.applicationRate ?? 5,
@@ -107,25 +117,28 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
         },
       })),
     };
-    
-    console.log('Committed Coordinates GeoJSON:', JSON.stringify(committed, null, 2));
+
+    console.log(
+      "Committed Coordinates GeoJSON:",
+      JSON.stringify(committed, null, 2),
+    );
 
     setData(committed);
     setFormSubmittedState(true);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(committed));
-      localStorage.setItem(SUBMIT_STORAGE_KEY, 'true');
+      localStorage.setItem(SUBMIT_STORAGE_KEY, "true");
     } catch (err) {
-      console.error('Failed to commit coordinates to localStorage:', err);
+      console.error("Failed to commit coordinates to localStorage:", err);
     }
   };
 
   const setFormSubmitted = (submitted: boolean) => {
     setFormSubmittedState(submitted);
     try {
-      localStorage.setItem(SUBMIT_STORAGE_KEY, submitted ? 'true' : 'false');
+      localStorage.setItem(SUBMIT_STORAGE_KEY, submitted ? "true" : "false");
     } catch (err) {
-      console.error('Failed to save submission flag to localStorage:', err);
+      console.error("Failed to save submission flag to localStorage:", err);
     }
   };
 
@@ -136,9 +149,9 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(PENDING_STORAGE_KEY);
-      localStorage.setItem(SUBMIT_STORAGE_KEY, 'false');
+      localStorage.setItem(SUBMIT_STORAGE_KEY, "false");
     } catch (err) {
-      console.error('Failed to clear coordinates from localStorage:', err);
+      console.error("Failed to clear coordinates from localStorage:", err);
     }
   };
 
@@ -165,7 +178,7 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
 export function useCoordinates() {
   const context = useContext(CoordinateContext);
   if (!context) {
-    throw new Error('useCoordinates must be used within a CoordinateProvider');
+    throw new Error("useCoordinates must be used within a CoordinateProvider");
   }
   return context;
 }

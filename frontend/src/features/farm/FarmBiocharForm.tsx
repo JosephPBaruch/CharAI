@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Box,
   Button,
@@ -7,32 +7,37 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import { COLORS } from '../../styles/colors';
-import BudgetSettings from './BudgetSettings';
-import FieldsList from './FieldsList';
-import type { FieldEntry } from './FieldsList';
-import FileUploadSection from './FileUploadSection';
-import SubmitSection from './SubmitSection';
-import { useCoordinates } from '../../contexts/CoordinateContext';
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import { COLORS } from "../../styles/colors";
+import BudgetSettings from "./BudgetSettings";
+import FieldsList from "./FieldsList";
+import type { FieldEntry } from "./FieldsList";
+import FileUploadSection from "./FileUploadSection";
+import SubmitSection from "./SubmitSection";
+import { useCoordinates } from "../../contexts/CoordinateContext";
 
 const DEFAULT_FIELD = (): FieldEntry => ({
-  id: 'main-field',
-  cropType: 'Wheat',
-  customCrop: '',
-  price: '',
-  unit: 'bushel',
+  id: "main-field",
+  cropType: "Wheat",
+  customCrop: "",
+  price: "",
+  unit: "bushel",
 });
 
 export default function FarmBiocharForm() {
-  const { hasCoordinates, hasPendingCoordinates, setFormSubmitted, commitPendingCoordinates } = useCoordinates();
+  const {
+    hasCoordinates,
+    hasPendingCoordinates,
+    setFormSubmitted,
+    commitPendingCoordinates,
+  } = useCoordinates();
   const [field, setField] = React.useState<FieldEntry>(DEFAULT_FIELD());
-  const [globalMax, setGlobalMax] = React.useState<number | ''>('');
+  const [globalMax, setGlobalMax] = React.useState<number | "">("");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   const updateField = (patch: Partial<FieldEntry>) => {
-    setField(prev => ({ ...prev, ...patch }));
+    setField((prev) => ({ ...prev, ...patch }));
   };
 
   // file/manual coordinate state (ready when uploaded OR drawn OR already present)
@@ -65,7 +70,7 @@ export default function FarmBiocharForm() {
   const closeModal = () => setIsModalOpen(false);
 
   const coordsReady = coordUploaded || hasPendingCoordinates || hasCoordinates;
-  const isPriceValid = field.price !== '' && field.price > 0;
+  const isPriceValid = field.price !== "" && field.price > 0;
 
   return (
     <>
@@ -73,9 +78,12 @@ export default function FarmBiocharForm() {
       <Button
         variant="contained"
         onClick={openModal}
-        sx={{ backgroundColor: COLORS.indigo, '&:hover': { backgroundColor: COLORS.indigoHover } }}
+        sx={{
+          backgroundColor: COLORS.indigo,
+          "&:hover": { backgroundColor: COLORS.indigoHover },
+        }}
       >
-        {hasCoordinates ? 'Edit Farm Configuration' : 'Configure Farm'}
+        {hasCoordinates ? "Edit Farm Configuration" : "Configure Farm"}
       </Button>
 
       {/* Modal Dialog */}
@@ -87,27 +95,32 @@ export default function FarmBiocharForm() {
         PaperProps={{
           sx: {
             backgroundColor: COLORS.blackFull,
-            backgroundImage: 'none',
+            backgroundImage: "none",
             color: COLORS.whiteHigh,
-            maxHeight: '90vh',
-            overflowY: 'auto',
-          }
+            maxHeight: "90vh",
+            overflowY: "auto",
+          },
         }}
       >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'flex-end', p: 1 }}>
+        <DialogTitle sx={{ display: "flex", justifyContent: "flex-end", p: 1 }}>
           <IconButton onClick={closeModal} sx={{ color: COLORS.whiteMedium }}>
             <CloseIcon />
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: 0, pb: 3 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             {/* Title Section */}
             <Box>
-              <Typography variant="h5" sx={{ color: COLORS.whiteHigh, fontWeight: 700, mb: 0.5 }}>
+              <Typography
+                variant="h5"
+                sx={{ color: COLORS.whiteHigh, fontWeight: 700, mb: 0.5 }}
+              >
                 Farm Configuration
               </Typography>
               <Typography variant="body2" sx={{ color: COLORS.whiteMedium }}>
-                Configure your field's crop and selling price, set your biochar budget, and upload boundary coordinates to calculate optimal application rates.
+                Configure your field's crop and selling price, set your biochar
+                budget, and upload boundary coordinates to calculate optimal
+                application rates.
               </Typography>
             </Box>
 
@@ -115,10 +128,7 @@ export default function FarmBiocharForm() {
             <BudgetSettings globalMax={globalMax} onChange={setGlobalMax} />
 
             {/* Field Configuration */}
-            <FieldsList
-              field={field}
-              onUpdateField={updateField}
-            />
+            <FieldsList field={field} onUpdateField={updateField} />
 
             {/* File Upload Section */}
             <FileUploadSection
@@ -133,11 +143,11 @@ export default function FarmBiocharForm() {
               coordsReady={coordsReady && isPriceValid}
               onSubmit={() => {
                 if (!isPriceValid) {
-                  alert('Please enter a valid crop selling price.');
+                  alert("Please enter a valid crop selling price.");
                   return;
                 }
                 const payload = { globalMax, field };
-                console.log('Submit payload', payload);
+                console.log("Submit payload", payload);
                 commitPendingCoordinates();
                 setFormSubmitted(true);
                 closeModal();

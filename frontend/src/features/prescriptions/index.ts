@@ -1,1 +1,1 @@
-export { default as PrescriptionMapViewer } from './PrescriptionMapViewer';
+export { default as PrescriptionMapViewer } from "./PrescriptionMapViewer";

@@ -1,23 +1,33 @@
-import { Box, Button, IconButton, Stack, Typography, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Button,
+  IconButton,
+  Stack,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import { uploadYieldFile } from "../../services/fileUploadService";
 import { COLORS } from "../../styles/colors";
 
-const VisuallyHiddenInput = styled('input')({
-  clip: 'rect(0 0 0 0)',
-  clipPath: 'inset(50%)',
+const VisuallyHiddenInput = styled("input")({
+  clip: "rect(0 0 0 0)",
+  clipPath: "inset(50%)",
   height: 1,
-  overflow: 'hidden',
-  position: 'absolute',
+  overflow: "hidden",
+  position: "absolute",
   bottom: 0,
   left: 0,
-  whiteSpace: 'nowrap',
+  whiteSpace: "nowrap",
   width: 1,
 });
 
-export default function YieldFileUpload(props: { onSelect?: (file: File | null) => void; onUploadComplete?: () => void }) {
+export default function YieldFileUpload(props: {
+  onSelect?: (file: File | null) => void;
+  onUploadComplete?: () => void;
+}) {
   const { onSelect, onUploadComplete } = props || {};
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -36,7 +46,7 @@ export default function YieldFileUpload(props: { onSelect?: (file: File | null) 
 
     setIsLoading(true);
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    formData.append("file", selectedFile);
 
     try {
       const response = await uploadYieldFile(formData);
@@ -59,31 +69,38 @@ export default function YieldFileUpload(props: { onSelect?: (file: File | null) 
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        alignItems: "flex-start",
+      }}
+    >
       {!selectedFile ? (
         <Button
           variant="contained"
           component="label"
-          sx={{ 
-            textTransform: 'none', 
-            fontSize: '1rem',
+          sx={{
+            textTransform: "none",
+            fontSize: "1rem",
             backgroundColor: COLORS.indigo,
-            '&:hover': { backgroundColor: COLORS.indigoHover }
+            "&:hover": { backgroundColor: COLORS.indigoHover },
           }}
         >
           Choose file
           <VisuallyHiddenInput
-              type="file"
-              accept=".csv,.xml,.shp,.shx,.dbf,.txt"
-              onChange={handleFileChange}
-            />
+            type="file"
+            accept=".csv,.xml,.shp,.shx,.dbf,.txt"
+            onChange={handleFileChange}
+          />
         </Button>
       ) : (
         <Stack
           direction="row"
           spacing={1}
           sx={{
-            alignItems: 'center',
+            alignItems: "center",
             padding: 1.5,
             backgroundColor: COLORS.indigoLight,
             border: `1px solid ${COLORS.indigo}`,
@@ -96,7 +113,7 @@ export default function YieldFileUpload(props: { onSelect?: (file: File | null) 
             sx={{
               flex: 1,
               color: COLORS.whiteHigh,
-              wordBreak: 'break-word',
+              wordBreak: "break-word",
             }}
           >
             {selectedFile.name}
@@ -117,15 +134,15 @@ export default function YieldFileUpload(props: { onSelect?: (file: File | null) 
           variant="contained"
           onClick={handleFileSubmit}
           disabled={isLoading}
-          sx={{ 
-            textTransform: 'none', 
-            fontSize: '1rem',
+          sx={{
+            textTransform: "none",
+            fontSize: "1rem",
             backgroundColor: COLORS.indigo,
-            '&:hover': { backgroundColor: COLORS.indigoHover }
+            "&:hover": { backgroundColor: COLORS.indigoHover },
           }}
         >
           {isLoading ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
-          {isLoading ? 'Uploading...' : 'Submit file'}
+          {isLoading ? "Uploading..." : "Submit file"}
         </Button>
       )}
     </Box>
