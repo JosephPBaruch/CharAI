@@ -5,12 +5,15 @@ import {
   Marker,
   useMapEvent,
   Polygon,
+  useMap,
 } from "react-leaflet";
 import { type LatLngLiteral } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Box } from "@mui/material";
 import { COLORS } from "../../styles/colors";
+import "leaflet-control-geocoder/dist/Control.Geocoder.css";
+import "leaflet-control-geocoder";
 
 // temporary workaround for marker icon clash between Vite and React Leaflet
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,6 +36,36 @@ const ClickHandler: React.FC<ClickHandlerProps> = ({ markers, setMarkers }) => {
   useMapEvent("click", (e) => {
     setMarkers([...markers, e.latlng]);
   });
+  return null;
+};
+
+interface GeocoderControlProps {
+  onLocationFound: (position: LatLngLiteral) => void;
+}
+
+const GeocoderControl: React.FC<GeocoderControlProps> = ({
+  onLocationFound,
+}) => {
+  const map = useMap();
+
+  React.useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const geocoder = (L.Control as any).geocoder({
+      defaultMarkGeocode: false,
+    });
+
+    geocoder.on("markgeocode", (e: { geocode: { center: L.LatLng } }) => {
+      const latlng = e.geocode.center;
+      onLocationFound({ lat: latlng.lat, lng: latlng.lng });
+      map.setView(latlng, 16);
+    });
+
+    geocoder.addTo(map);
+
+    return () => {
+      map.removeControl(geocoder);
+    };
+  }, [map, onLocationFound]);
   return null;
 };
 
@@ -92,6 +125,13 @@ export default function InteractiveFarmMap({
     [setMarkers],
   );
 
+  const handleLocationFound = React.useCallback(
+    (position: LatLngLiteral) => {
+      setMarkers((prevMarkers) => [...prevMarkers, position]);
+    },
+    [setMarkers],
+  );
+
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
       <MapContainer
@@ -116,6 +156,8 @@ export default function InteractiveFarmMap({
           url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
           attribution="Cities &copy; Esri"
         />
+
+        <GeocoderControl onLocationFound={handleLocationFound} />
 
         <ClickHandler markers={markers} setMarkers={setMarkers} />
 
