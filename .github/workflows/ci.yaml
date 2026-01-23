@@ -5,8 +5,7 @@ on:
     branches:
       - "**"
   pull_request:
-    branches:
-      - "**"
+    branches: [main]
 
 jobs:
   build-and-test:
@@ -15,6 +14,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
 
       - name: Build backend Docker image
         run: |
@@ -25,18 +29,26 @@ jobs:
         run: |
           cd frontend
           docker build -t char-ai-frontend .
+          docker build \
+            --build-arg VITE_API_URL="http://localhost:8000/api" \
+            --build-arg VITE_APP_URL="http://localhost:5173" \
+            -t char-ai-frontend .
 
       - name: Run backend container
         run: |
           docker run -d \
             -p 8000:8000 \
+            -e DEBUG=True \
+            -e SECRET_KEY=ci-test-key \
+            -e ALLOWED_HOSTS=localhost,127.0.0.1 \
+            -e DATABASE_URL=sqlite:///db.sqlite3 \
             --name django-backend \
             django-backend
 
       - name: Run frontend container
         run: |
           docker run -d \
-            -p 5173:80 \
+            -p 5173:5173 \
             --name char-ai-frontend \
             char-ai-frontend
 
@@ -73,6 +85,36 @@ jobs:
           else
             echo "Frontend endpoint is accessible (HTTP $response)"
           fi
+
+      - name: Additional wait for Playwright
+        run: |
+          echo "Waiting additional time for services to stabilize..."
+          sleep 10
+          echo "Testing frontend reachability one more time..."
+          curl -v http://localhost:5173 || true
+          echo "\nDocker container status:"
+          docker ps
+
+      - name: Install Playwright dependencies
+        run: |
+          cd frontend/tests
+          npm install
+          npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        env:
+          BASE_URL: http://localhost:5173
+        run: |
+          cd frontend/tests
+          echo "Running tests against BASE_URL=$BASE_URL"
+          npm run test:report
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/tests/playwright-report/
 
       - name: Show container logs on failure
         if: failure()

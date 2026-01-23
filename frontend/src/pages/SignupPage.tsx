@@ -82,6 +82,7 @@ const SignupPage = () => {
             variant="outlined"
             fullWidth
             disabled={isLoading}
+            inputProps={{ "data-testid": "username-input" }}
             sx={{
               "& .MuiOutlinedInput-root": {
                 color: COLORS.whiteHigh,
@@ -104,6 +105,7 @@ const SignupPage = () => {
             variant="outlined"
             fullWidth
             disabled={isLoading}
+            inputProps={{ "data-testid": "email-input" }}
             sx={{
               "& .MuiOutlinedInput-root": {
                 color: COLORS.whiteHigh,

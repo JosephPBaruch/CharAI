@@ -6,7 +6,7 @@ Feature: CharAI
 
     Scenario: User creates an account
         When a user creates an account
-        Then the system saves the user's information
+        Then the system saves the users information
 
     Scenario: User signs in
         When a user signs into the system
