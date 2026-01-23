@@ -16,6 +16,7 @@ import MapIcon from "@mui/icons-material/Map";
 import GridOnIcon from "@mui/icons-material/GridOn";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { GETFields, GETPrescriptionMap } from "../../api/fetch";
 
 type LatLng = { lat: number; lng: number };
 
@@ -465,6 +466,18 @@ export default function PrescriptionMapViewer() {
 
   // Initialize map
   React.useEffect(() => {
+    // TODO: Use the prescription map which is retrieve from the backend
+    // Currently, the prescription map is generated
+    GETFields().then((fields) => {
+      console.log(
+        GETPrescriptionMap(fields["fields"][0]["field_id"].toString()).then(
+          (data) => {
+            console.log(data);
+          },
+        ),
+      );
+    });
+
     if (!mapContainerRef.current || mapRef.current) return;
 
     const map = L.map(mapContainerRef.current, {

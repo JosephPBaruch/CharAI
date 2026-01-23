@@ -16,6 +16,7 @@ import type { FieldEntry } from "./FieldsList";
 import FileUploadSection from "./FileUploadSection";
 import SubmitSection from "./SubmitSection";
 import { useCoordinates } from "../../contexts/CoordinateContext";
+import { POSTFieldData } from "../../api/fetch";
 
 const DEFAULT_FIELD = (): FieldEntry => ({
   id: "main-field",
@@ -27,6 +28,7 @@ const DEFAULT_FIELD = (): FieldEntry => ({
 
 export default function FarmBiocharForm() {
   const {
+    data,
     hasCoordinates,
     hasPendingCoordinates,
     setFormSubmitted,
@@ -146,9 +148,9 @@ export default function FarmBiocharForm() {
                   alert("Please enter a valid crop selling price.");
                   return;
                 }
-                const payload = { globalMax, field };
-                console.log("Submit payload", payload);
                 commitPendingCoordinates();
+                const payload = { globalMax, field, data };
+                POSTFieldData(payload);
                 setFormSubmitted(true);
                 closeModal();
               }}
