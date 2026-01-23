@@ -32,14 +32,11 @@ test.describe("CharAI.feature", () => {
     // Submit the form
     await page.click('button[type="submit"]');
 
-    // wait 3 seconds for any potential redirects
-    await page.waitForTimeout(3000);
-
     // Look for the text: "Welcome, Test!"
     await expect(page.locator(`text=Welcome, ${username}!`)).toBeVisible();
 
     // Verify successful registration (redirects to home page)
-    await expect(page).toHaveURL(baseUrl, { timeout: 10000 });
+    await expect(page).toHaveURL(baseUrl);
   };
 
   const loginUser = async (page: Page, username: string, password: string) => {
@@ -60,7 +57,7 @@ test.describe("CharAI.feature", () => {
     await expect(page.locator(`text=Welcome, ${username}!`)).toBeVisible();
 
     // Verify successful registration (redirects to home page)
-    await expect(page).toHaveURL(baseUrl, { timeout: 10000 });
+    await expect(page).toHaveURL(baseUrl);
   };
 
   const logoutUser = async (page: Page) => {
@@ -68,7 +65,7 @@ test.describe("CharAI.feature", () => {
     await expect(page).toHaveURL(/localhost:5173/);
 
     await page.click('[data-testid="logout-button"]');
-    await expect(page).toHaveURL(baseUrl, { timeout: 10000 });
+    await expect(page).toHaveURL(baseUrl);
 
     await expect(page.locator('[data-testid="login-button"]')).toBeVisible();
   };
