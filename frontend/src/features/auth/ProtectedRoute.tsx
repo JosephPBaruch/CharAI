@@ -1,5 +1,5 @@
-import { Box, CircularProgress } from '@mui/material';
-import { useAuth } from '../../contexts/AuthContext';
+import { Box, CircularProgress } from "@mui/material";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface ProtectedRouteProps {
   element: React.ReactNode;
@@ -18,10 +18,10 @@ export function ProtectedRoute({ element, fallback }: ProtectedRouteProps) {
     return (
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100%',
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
         }}
       >
         <CircularProgress />

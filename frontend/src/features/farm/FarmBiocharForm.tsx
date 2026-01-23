@@ -148,7 +148,6 @@ export default function FarmBiocharForm() {
                   alert("Please enter a valid crop selling price.");
                   return;
                 }
-
                 commitPendingCoordinates();
                 const payload = { globalMax, field, data };
                 POSTFieldData(payload);
