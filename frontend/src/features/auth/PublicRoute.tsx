@@ -1,6 +1,6 @@
-import { Navigate } from 'react-router';
-import { Box, CircularProgress } from '@mui/material';
-import { useAuth } from '../../contexts/AuthContext';
+import { Navigate } from "react-router";
+import { Box, CircularProgress } from "@mui/material";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface PublicRouteProps {
   element: React.ReactNode;
@@ -17,10 +17,10 @@ export function PublicRoute({ element }: PublicRouteProps) {
     return (
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100%',
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
         }}
       >
         <CircularProgress />

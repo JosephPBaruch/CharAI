@@ -20,11 +20,16 @@ const LandingPage = () => {
         }}
       >
         <Box>
-          <Typography variant="h3" component="h1" sx={{ color: COLORS.whiteHigh, fontWeight: 700, mb: 1 }}>
+          <Typography
+            variant="h3"
+            component="h1"
+            sx={{ color: COLORS.whiteHigh, fontWeight: 700, mb: 1 }}
+          >
             CharAI
           </Typography>
           <Typography variant="body1" sx={{ color: COLORS.whiteMedium }}>
-            Optimize your farm's biochar application with AI-powered recommendations
+            Optimize your farm's biochar application with AI-powered
+            recommendations
           </Typography>
         </Box>
 
@@ -32,6 +37,6 @@ const LandingPage = () => {
       </Box>
     </Container>
   );
-}
+};
 
 export default LandingPage;

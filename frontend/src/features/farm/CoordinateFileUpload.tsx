@@ -1,4 +1,11 @@
-import { Box, Button, IconButton, Stack, Typography, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Button,
+  IconButton,
+  Stack,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React from "react";
 import CloseIcon from "@mui/icons-material/Close";
@@ -6,19 +13,22 @@ import { parseFileToGeoJSON } from "../../services/coordinateService";
 import { useCoordinates } from "../../contexts/CoordinateContext";
 import { COLORS } from "../../styles/colors";
 
-const VisuallyHiddenInput = styled('input')({
-  clip: 'rect(0 0 0 0)',
-  clipPath: 'inset(50%)',
+const VisuallyHiddenInput = styled("input")({
+  clip: "rect(0 0 0 0)",
+  clipPath: "inset(50%)",
   height: 1,
-  overflow: 'hidden',
-  position: 'absolute',
+  overflow: "hidden",
+  position: "absolute",
   bottom: 0,
   left: 0,
-  whiteSpace: 'nowrap',
+  whiteSpace: "nowrap",
   width: 1,
 });
 
-export default function CoordinateFileUpload(props: { onSelect?: (file: File | null) => void; onUploadComplete?: () => void }) {
+export default function CoordinateFileUpload(props: {
+  onSelect?: (file: File | null) => void;
+  onUploadComplete?: () => void;
+}) {
   const { onSelect, onUploadComplete } = props || {};
   const { setCoordinateData } = useCoordinates();
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
@@ -46,7 +56,7 @@ export default function CoordinateFileUpload(props: { onSelect?: (file: File | n
       onSelect?.(null);
       onUploadComplete?.();
     } catch (err: any) {
-      console.error('Failed to process coordinates:', err);
+      console.error("Failed to process coordinates:", err);
       // TODO: Show error message in UI
     } finally {
       setIsLoading(false);
@@ -59,16 +69,23 @@ export default function CoordinateFileUpload(props: { onSelect?: (file: File | n
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        alignItems: "flex-start",
+      }}
+    >
       {!selectedFile ? (
         <Button
           variant="contained"
           component="label"
-          sx={{ 
-            textTransform: 'none', 
-            fontSize: '1rem',
+          sx={{
+            textTransform: "none",
+            fontSize: "1rem",
             backgroundColor: COLORS.indigo,
-            '&:hover': { backgroundColor: COLORS.indigoHover }
+            "&:hover": { backgroundColor: COLORS.indigoHover },
           }}
         >
           Choose file
@@ -83,7 +100,7 @@ export default function CoordinateFileUpload(props: { onSelect?: (file: File | n
           direction="row"
           spacing={1}
           sx={{
-            alignItems: 'center',
+            alignItems: "center",
             padding: 1.5,
             backgroundColor: COLORS.indigoLight,
             border: `1px solid ${COLORS.indigo}`,
@@ -96,7 +113,7 @@ export default function CoordinateFileUpload(props: { onSelect?: (file: File | n
             sx={{
               flex: 1,
               color: COLORS.whiteHigh,
-              wordBreak: 'break-word',
+              wordBreak: "break-word",
             }}
           >
             {selectedFile.name}
@@ -117,15 +134,15 @@ export default function CoordinateFileUpload(props: { onSelect?: (file: File | n
           variant="contained"
           onClick={handleFileSubmit}
           disabled={isLoading}
-          sx={{ 
-            textTransform: 'none', 
-            fontSize: '1rem',
+          sx={{
+            textTransform: "none",
+            fontSize: "1rem",
             backgroundColor: COLORS.indigo,
-            '&:hover': { backgroundColor: COLORS.indigoHover }
+            "&:hover": { backgroundColor: COLORS.indigoHover },
           }}
         >
           {isLoading ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
-          {isLoading ? 'Uploading...' : 'Submit file'}
+          {isLoading ? "Uploading..." : "Submit file"}
         </Button>
       )}
     </Box>
