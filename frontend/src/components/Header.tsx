@@ -1,7 +1,7 @@
-import { Link as RouterLink } from 'react-router';
-import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
-import { useAuth } from '../contexts/AuthContext';
-import { COLORS } from '../styles/colors';
+import { Link as RouterLink } from "react-router";
+import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
+import { useAuth } from "../contexts/AuthContext";
+import { COLORS } from "../styles/colors";
 
 const Header = () => {
   const { isAuthenticated, logout } = useAuth();
@@ -10,35 +10,76 @@ const Header = () => {
     try {
       await logout();
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: 'rgba(36, 36, 36, 1)', boxShadow: `0 2px 8px ${COLORS.blackLow}` }}>
-      <Toolbar sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between',
-        paddingX: 3,
-        minHeight: 64,
-        width: '100%',
-      }}>
-        <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', flexShrink: 0 }}>
-          <RouterLink 
+    <AppBar
+      position="static"
+      sx={{
+        backgroundColor: COLORS.bgPage,
+        boxShadow: `0 2px 8px ${COLORS.blackLow}`,
+      }}
+    >
+      <Toolbar
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          paddingX: 3,
+          minHeight: 64,
+          width: "100%",
+        }}
+      >
+        <Typography
+          variant="h6"
+          component="div"
+          sx={{ fontWeight: "bold", flexShrink: 0 }}
+        >
+          <RouterLink
             to="/"
-            style={{ textDecoration: 'none', color: 'inherit' }}
+            style={{ textDecoration: "none", color: "inherit" }}
           >
             CharAI
           </RouterLink>
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1, flexShrink: 0, alignItems: 'center' }}>
+        <Box
+          sx={{ display: "flex", gap: 1, flexShrink: 0, alignItems: "center" }}
+        >
           {isAuthenticated ? (
             <>
               <Button
-                onClick={handleLogout}
-                sx={{ color: COLORS.whiteHigh, textTransform: 'none', fontSize: '1rem' }}
+                component={RouterLink}
+                to="/"
+                sx={{
+                  color: COLORS.whiteHigh,
+                  textTransform: "none",
+                  fontSize: "1rem",
+                }}
               >
-                Log out
+                Home
+              </Button>
+              <Button
+                component={RouterLink}
+                to="/output"
+                sx={{
+                  color: COLORS.whiteHigh,
+                  textTransform: "none",
+                  fontSize: "1rem",
+                }}
+              >
+                Maps
+              </Button>
+              <Button
+                onClick={handleLogout}
+                data-testid="logout-button"
+                sx={{
+                  color: COLORS.whiteHigh,
+                  textTransform: "none",
+                  fontSize: "1rem",
+                }}
+              >
+                Logout
               </Button>
             </>
           ) : (
@@ -46,21 +87,35 @@ const Header = () => {
               <Button
                 component={RouterLink}
                 to="/"
-                sx={{ color: COLORS.whiteHigh, textTransform: 'none', fontSize: '1rem' }}
+                sx={{
+                  color: COLORS.whiteHigh,
+                  textTransform: "none",
+                  fontSize: "1rem",
+                }}
               >
                 Home
               </Button>
               <Button
                 component={RouterLink}
                 to="/login"
-                sx={{ color: COLORS.whiteHigh, textTransform: 'none', fontSize: '1rem' }}
+                data-testid="login-button"
+                sx={{
+                  color: COLORS.whiteHigh,
+                  textTransform: "none",
+                  fontSize: "1rem",
+                }}
               >
                 Log in
               </Button>
               <Button
                 component={RouterLink}
+                data-testid="signup-button"
                 to="/signup"
-                sx={{ color: COLORS.whiteHigh, textTransform: 'none', fontSize: '1rem' }}
+                sx={{
+                  color: COLORS.whiteHigh,
+                  textTransform: "none",
+                  fontSize: "1rem",
+                }}
               >
                 Sign up
               </Button>
