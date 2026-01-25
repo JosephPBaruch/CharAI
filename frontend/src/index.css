@@ -77,3 +77,22 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Geocoder styling overrides */
+.leaflet-control-geocoder input {
+  color: black !important;
+}
+
+.leaflet-control-geocoder .geocoder-form input::placeholder {
+  color: #666 !important;
+}
+
+.leaflet-control-geocoder .geocoder-control-input {
+  color: black !important;
+}
+
+/* If there's a loading/blinking bar, target it similarly */
+.leaflet-control-geocoder .geocoder-spinner {
+  color: black !important;
+  border-color: black !important;
+}
