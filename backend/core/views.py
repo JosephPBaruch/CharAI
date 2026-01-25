@@ -180,6 +180,27 @@ class PrescriptionMapView(APIView):
             return Response({
                 'error': 'Field not found'
             }, status=status.HTTP_404_NOT_FOUND)
+            
+        # TODO: Check to see if prescription map already exists (if it does, return it and don't create a new one) 
+            
+            
+        # TODO: Geotiff generator call here
+        
+        # TODO: Geotiff parsers here
+        
+        # TODO: Fetch additional data here
+        
+        # TODO: Duplicate the data set (set1, set2)
+        
+        # TODO: Modify the data set2 with effect of biochar
+        
+        # TODO: Send set1 to yield predictor
+        
+        # TODO: Send set2 (biochar) to yield predictor
+        
+        # TODO: send predicton1 and prediction2 to prescription map genreator
+        
+        # TODO: Format and send prescirption map data (continue this below)
         
         # Get or create prescription map
         prescription_map, _ = PrescriptionMap.objects.get_or_create(
