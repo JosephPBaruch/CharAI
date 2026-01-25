@@ -4,17 +4,14 @@ Django management command for DEM generation.
 Location: your_app/management/commands/generate_dem.py
 
 Usage examples:
-# Single point (uses width/height)
-python manage.py generate_dem --coords 45.5,-122.5 --width 1000 --height 1000 --output test.tif
-
 # Two points (creates rectangle)
-python manage.py generate_dem --coords 45.5,-122.5 45.6,-122.4 --output test.tif
+python manage.py generate_dem --coords 45.5,-122.7 45.6,-122.6 --output test.tif
 
-# Multiple points (creates polygon)
-python manage.py generate_dem --coords 45.5,-122.5 45.6,-122.5 45.6,-122.4 45.5,-122.4 --output test.tif
+# Multiple points (creates polygon) also Palouse area
+python manage.py generate_dem --coords 46.72,-117.18 46.73,-117.18 46.73,-117.16 46.72,-117.16 --output test.tif
 
-# Palouse area
-python manage.py generate_dem --coords 46.7258679056,-117.0708102133 --width 2528 --height 1340 --output palouse.tif
+# Rocky Mountains area
+python manage.py generate_dem --coords 39.5,-105.8 39.6,-105.7 --output test.tif
 """
 
 from django.core.management.base import BaseCommand, CommandError
@@ -37,19 +34,7 @@ class Command(BaseCommand):
             '--coords',
             nargs='+',
             required=True,
-            help='Coordinates as "lat,lon" pairs (space-separated)'
-        )
-        parser.add_argument(
-            '--width',
-            type=float,
-            default=None,
-            help='Width in meters (for single point)'
-        )
-        parser.add_argument(
-            '--height',
-            type=float,
-            default=None,
-            help='Height in meters (for single point)'
+            help='Coordinates as "lat,lon" pairs (space-separated, minimum 2 required)'
         )
         parser.add_argument(
             '--dem-type',
@@ -76,20 +61,14 @@ class Command(BaseCommand):
         output_file = options['output']
         resolution = options['resolution']
 
+        # Require at least 2 coordinates
+        if len(coords) < 2:
+            raise CommandError("At least 2 coordinates required")
+
         self.stdout.write(f"Parsed {len(coords)} coordinate(s)")
 
         # Determine bounding box based on number of coordinates
-        if len(coords) == 1:
-            # Single point - requires width/height
-            if not options['width'] or not options['height']:
-                raise CommandError("Width and height required for single coordinate")
-            
-            bounds = self.calculate_bounds_from_point(
-                coords[0], 
-                options['width'], 
-                options['height']
-            )
-        elif len(coords) == 2:
+        if len(coords) == 2:
             # Two points - create rectangle
             bounds = self.calculate_bounds_from_two_points(coords[0], coords[1])
         else:
@@ -135,23 +114,6 @@ class Command(BaseCommand):
             except ValueError as e:
                 raise CommandError(f"Error parsing coordinate '{coord_str}': {e}")
         return coords
-
-    def calculate_bounds_from_point(self, coord, width, height):
-        """Calculate bounds from center point and dimensions"""
-        lat, lon = coord
-        
-        lat_per_meter = 1.0 / 111320.0
-        lon_per_meter = 1.0 / (111320.0 * np.cos(np.radians(lat)))
-
-        half_height_deg = (height / 2.0) * lat_per_meter
-        half_width_deg = (width / 2.0) * lon_per_meter
-
-        south = lat - half_height_deg
-        north = lat + half_height_deg
-        west = lon - half_width_deg
-        east = lon + half_width_deg
-
-        return (south, west, north, east)
 
     def calculate_bounds_from_two_points(self, coord1, coord2):
         """Calculate bounds from two corner points"""
