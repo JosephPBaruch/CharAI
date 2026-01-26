@@ -4,6 +4,10 @@ from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.core.management import call_command
+from django.conf import settings
+from datetime import datetime
+import os
 from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer, FieldModelSerializer, PrescriptionMapSerializer
 from .models import Field, PrescriptionMap
 
@@ -183,11 +187,33 @@ class PrescriptionMapView(APIView):
             
         # TODO: Check to see if prescription map already exists (if it does, return it and don't create a new one)
         
-        # TODO: Format coordinates from field.geojson_data
-        # coords = format_coordinates(field.geojson_data)
-            
-        # TODO: Geotiff generator call here
-        # tiff_file_path = generate_geotiff(coords)
+        # Format coordinates from field.geojson_data
+        coords = []
+        for feature in field.geojson_data.get('features', []):
+            if feature['geometry']['type'] == 'Polygon':
+                # Get first ring coordinates
+                ring = feature['geometry']['coordinates'][0]
+                # Convert from [lon, lat] to (lat, lon)
+                coords.extend([(lat, lon) for lon, lat in ring])
+        
+        # Generate unique filename for the DEM
+        dem_dir = os.path.join(settings.MEDIA_ROOT, 'dems')
+        os.makedirs(dem_dir, exist_ok=True)
+        tiff_file_path = os.path.join(
+            dem_dir,
+            f'field_{field.id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.tif'
+        )
+        
+        # Call geotiff generator
+        if coords:
+            coords_str = [f"{lat},{lon}" for lat, lon in coords]
+            call_command(
+                'generate_dem',
+                '--coords', *coords_str,
+                '--output', tiff_file_path,
+                '--dem-type', 'SRTMGL3',
+                '--resolution', '5.0'
+            )
         
         # TODO: Geotiff parsers here
         # field_data = parse_geotiff(tiff_file_path)
