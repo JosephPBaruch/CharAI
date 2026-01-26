@@ -1,4 +1,3 @@
-@skip
 Feature: CharAI
 
     These scenarios represent user interactions with the system. The purpose of this

@@ -110,14 +110,14 @@ The frontend integrates with Django REST Framework using **TokenAuthentication**
 
 ### Key Files
 
-- `src/services/authService.ts` — API calls and token management
-- `src/contexts/AuthContext.tsx` — Auth state and methods
-- `src/types/auth.ts` — TypeScript types for auth
-- `src/components/ProtectedRoute.tsx` — Guards authenticated pages
-- `src/components/PublicRoute.tsx` — Prevents logged-in users from seeing login/signup
-- `src/pages/LoginPage.tsx` — Login form
-- `src/pages/SignupPage.tsx` — Registration form
-- `src/pages/HomePage.tsx` — Protected home page (shown only to authenticated users)
+- `src/services/authService.ts` - API calls and token management
+- `src/contexts/AuthContext.tsx` - Auth state and methods
+- `src/types/auth.ts` - TypeScript types for auth
+- `src/components/ProtectedRoute.tsx` - Guards authenticated pages
+- `src/components/PublicRoute.tsx` - Prevents logged-in users from seeing login/signup
+- `src/pages/LoginPage.tsx` - Login form
+- `src/pages/SignupPage.tsx` - Registration form
+- `src/pages/HomePage.tsx` - Protected home page (shown only to authenticated users)
 
 ---
 
@@ -172,10 +172,10 @@ Commit both `package.json` and the lock file to version control.
 - **Package manager**: `npm`
 - **Project root**: `src/`
 - **Main commands**:
-  - `npm run dev` — start development server
-  - `npm run build` — build for production and type check
-  - `npm run preview` — preview production build
-  - `npm run lint` — lint codebase
+  - `npm run dev` - start development server
+  - `npm run build` - build for production and type check
+  - `npm run preview` - preview production build
+  - `npm run lint` - lint codebase
 - **Configuration**:
   - TypeScript: `tsconfig.json`
   - Vite: `vite.config.ts`
