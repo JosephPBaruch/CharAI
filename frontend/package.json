@@ -16,6 +16,7 @@
     "@mui/material": "^7.3.5",
     "@turf/turf": "^7.3.1",
     "leaflet": "^1.9.4",
+    "leaflet-control-geocoder": "^3.3.1",
     "maplibre-gl": "^5.15.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

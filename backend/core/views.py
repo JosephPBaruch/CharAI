@@ -4,6 +4,10 @@ from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.core.management import call_command
+from django.conf import settings
+from datetime import datetime
+import os
 from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer, FieldModelSerializer, PrescriptionMapSerializer
 from .models import Field, PrescriptionMap
 
@@ -180,6 +184,60 @@ class PrescriptionMapView(APIView):
             return Response({
                 'error': 'Field not found'
             }, status=status.HTTP_404_NOT_FOUND)
+            
+        # TODO: Check to see if prescription map already exists (if it does, return it and don't create a new one)
+        
+        # Format coordinates from field.geojson_data
+        coords = []
+        for feature in field.geojson_data.get('features', []):
+            if feature['geometry']['type'] == 'Polygon':
+                # Get first ring coordinates
+                ring = feature['geometry']['coordinates'][0]
+                # Convert from [lon, lat] to (lat, lon)
+                coords.extend([(lat, lon) for lon, lat in ring])
+        
+        # Generate unique filename for the DEM
+        dem_dir = os.path.join(settings.MEDIA_ROOT, 'dems')
+        os.makedirs(dem_dir, exist_ok=True)
+        tiff_file_path = os.path.join(
+            dem_dir,
+            f'field_{field.id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.tif'
+        )
+        
+        # Call geotiff generator
+        if coords:
+            coords_str = [f"{lat},{lon}" for lat, lon in coords]
+            call_command(
+                'generate_dem',
+                '--coords', *coords_str,
+                '--output', tiff_file_path,
+                '--dem-type', 'SRTMGL3',
+                '--resolution', '5.0'
+            )
+        
+        # TODO: Geotiff parsers here
+        # field_data = parse_geotiff(tiff_file_path)
+        
+        # TODO: Fetch additional data here
+        # field_data = fetch_additional_data(field_data)
+        
+        # TODO: Duplicate the data set (set1, set2)
+        # field_data_set1 = field_data
+        # field_data_set1 = field_data
+        
+        # TODO: Modify the data set2 with effect of biochar
+        # field_data_set2 = apply_biochar_effect(field_data)
+        
+        # TODO: Send set1 to yield predictor/calculator
+        # prediction1 = yield_predictor(field_data_set1)
+        
+        # TODO: Send set2 (biochar) to yield predictor
+        # prediction2 = yield_predictor(field_data_set2)
+        
+        # TODO: send predicton1 and prediction2 to prescription map genreator
+        # prescription_map_data = generate_prescription_map(prediction1, prediction2)
+        
+        # TODO: Format and send prescirption map data (continue this below)
         
         # Get or create prescription map
         prescription_map, _ = PrescriptionMap.objects.get_or_create(
