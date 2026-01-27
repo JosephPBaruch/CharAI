@@ -3,18 +3,20 @@ import { useNavigate } from "react-router";
 import { Link as RouterLink } from "react-router";
 import {
   Box,
-  TextField,
   Button,
   Typography,
   CircularProgress,
+  Alert,
 } from "@mui/material";
 import { useAuth } from "../contexts/AuthContext";
 import type { LoginRequest } from "../types/auth";
 import { COLORS } from "../styles/colors";
+import { FormTextField } from "../components/FormTextField";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { login, isLoading } = useAuth();
+  const [errorMessage, setErrorMessage] = useState("");
   const [formData, setFormData] = useState<LoginRequest>({
     username: "",
     password: "",
@@ -30,10 +32,8 @@ const LoginPage = () => {
       await login(formData);
       navigate("/");
     } catch (err: any) {
-      // Intentionally no UI error handling per user request. Log for debugging only.
-      // Errors are not displayed in the UI.
-      // eslint-disable-next-line no-console
-      console.warn("Login error (not shown in UI):", err);
+      const safeErrorMessage = err?.error || "Login failed. Please try again.";
+      setErrorMessage(safeErrorMessage);
     }
   };
 
@@ -71,52 +71,36 @@ const LoginPage = () => {
           onSubmit={handleSubmit}
           sx={{ display: "flex", flexDirection: "column", gap: 2 }}
         >
-          <TextField
+          <FormTextField
             label="Username"
             name="username"
             value={formData.username}
             onChange={handleChange}
-            variant="outlined"
-            fullWidth
-            disabled={isLoading}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                color: COLORS.whiteHigh,
-                "& fieldset": { borderColor: COLORS.whiteLow },
-                "&:hover fieldset": { borderColor: COLORS.whiteMedium },
-              },
-              "& .MuiInputBase-input::placeholder": {
-                color: COLORS.whiteMedium,
-                opacity: 1,
-              },
-              "& .MuiInputLabel-root": { color: COLORS.whiteHigh },
-            }}
           />
 
-          <TextField
+          <FormTextField
             label="Password"
             name="password"
             type="password"
             value={formData.password}
             onChange={handleChange}
-            variant="outlined"
-            fullWidth
-            disabled={isLoading}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                color: COLORS.whiteHigh,
-                "& fieldset": { borderColor: COLORS.whiteLow },
-                "&:hover fieldset": { borderColor: COLORS.whiteMedium },
-              },
-              "& .MuiInputBase-input::placeholder": {
-                color: COLORS.whiteMedium,
-                opacity: 1,
-              },
-              "& .MuiInputLabel-root": { color: COLORS.whiteHigh },
-            }}
           />
 
-          {/* No UI error alerts per user request */}
+          {!!errorMessage && (
+            <Alert
+              severity="error"
+              sx={{
+                backgroundColor: `${COLORS.error}20`,
+                color: COLORS.error,
+                border: `1px solid ${COLORS.error}`,
+                "& .MuiAlert-icon": {
+                  color: COLORS.error,
+                },
+              }}
+            >
+              {errorMessage}
+            </Alert>
+          )}
 
           <Button
             type="submit"
