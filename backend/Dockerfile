@@ -1,33 +1,35 @@
-# Use an official Python image
+# Production-ready Django container
 FROM python:3.12-slim
 
-# Prevent Python from writing .pyc files and enable unbuffered logs
+# Keep bytecode out of the image and stdout unbuffered
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-# Set environment variables from .env
-ENV DEBUG=True \
-    SECRET_KEY=change-me \
-    ALLOWED_HOSTS=127.0.0.1,localhost,192.168.254.93 \
-    DATABASE_URL=sqlite:///db.sqlite3
-
-# Set work directory inside the container
 WORKDIR /app
 
-# Copy requirements first (better layer caching)
-COPY requirements.txt .
+# Install system build deps only if needed for Python packages
+RUN apt-get update
+#  \
+    # && apt-get install -y --no-install-recommends build-essential 
+    # \
+    # && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-RUN pip install --upgrade pip && pip install -r requirements.txt
+# Install Python deps
+COPY requirements.txt ./
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir gunicorn
 
-# Copy the rest of the project
+# Copy project code
 COPY . .
 
-# Run database migrations to initialize the database
-RUN python manage.py migrate
+# Drop root
+RUN useradd -m appuser && chown -R appuser /app
+USER appuser
 
-# Expose port Django will run on
+# Runtime configuration is passed via environment (DEBUG, SECRET_KEY, ALLOWED_HOSTS, DATABASE_URL)
+ENV PORT=8000
 EXPOSE 8000
 
-# Default command: run Django dev server
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Serve with gunicorn
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]

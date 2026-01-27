@@ -37,17 +37,36 @@ jobs:
       - name: Create test network
         run: docker network create charai-net
 
+      - name: Run PostgreSQL container
+        run: |
+          docker run -d \
+            -e POSTGRES_DB=charai_test \
+            -e POSTGRES_USER=charai \
+            -e POSTGRES_PASSWORD=testpass \
+            --network charai-net \
+            --name postgres-test \
+            postgres:16-alpine
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          timeout 30 bash -c 'until docker exec postgres-test pg_isready -U charai > /dev/null; do sleep 1; done'
+
       - name: Run backend container
         run: |
           docker run -d \
             -p 8000:8000 \
-            -e DEBUG=True \
+            -e DEBUG=False \
             -e SECRET_KEY=ci-test-key \
-            -e ALLOWED_HOSTS=localhost,127.0.0.1 \
-            -e DATABASE_URL=sqlite:///db.sqlite3 \
+            -e DATABASE_URL=postgresql://charai:testpass@postgres-test:5432/charai_test \
+            -e OPENTOPOGRAPHY_API_KEY=keykey \
+            -e ALLOWED_HOSTS=localhost,127.0.0.1,char-ai-frontend \
             --network charai-net \
             --name django-backend \
             django-backend
+
+      - name: Run database migrations
+        run: |
+          docker exec django-backend python manage.py migrate
 
       - name: Run frontend container
         run: |
@@ -92,5 +111,5 @@ jobs:
       - name: Cleanup containers
         if: always()
         run: |
-          docker stop django-backend char-ai-frontend || true
-          docker rm django-backend char-ai-frontend || true
+          docker stop django-backend char-ai-frontend postgres-test || true
+          docker rm django-backend char-ai-frontend postgres-test || true
