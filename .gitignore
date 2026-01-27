@@ -9,3 +9,5 @@
 */.dockerignore
 
 test-results/
+
+*.tif
