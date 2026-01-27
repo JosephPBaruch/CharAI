@@ -34,22 +34,6 @@ jobs:
             --build-arg VITE_APP_URL="http://localhost" \
             -t char-ai-frontend .
 
-      - name: Login to Azure Container Registry
-        if: success()
-        run: |
-          echo "${{ secrets.AZURE_REGISTRY_PASSWORD }}" | docker login \
-            -u "${{ secrets.AZURE_REGISTRY_USERNAME }}" \
-            --password-stdin \
-            ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}
-
-      - name: Push backend image to Azure Container Registry
-        if: success()
-        run: |
-          docker tag django-backend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:latest
-          docker tag django-backend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:${{ github.sha }}
-          docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:latest
-          docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:${{ github.sha }}
-
       - name: Create test network
         run: docker network create charai-net
 
@@ -129,3 +113,27 @@ jobs:
         run: |
           docker stop django-backend char-ai-frontend postgres-test || true
           docker rm django-backend char-ai-frontend postgres-test || true
+
+      - name: Login to Azure Container Registry
+        if: success()
+        run: |
+          echo "${{ secrets.AZURE_REGISTRY_PASSWORD }}" | docker login \
+            -u "${{ secrets.AZURE_REGISTRY_USERNAME }}" \
+            --password-stdin \
+            ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}
+
+      - name: Push backend image to Azure Container Registry
+        if: success()
+        run: |
+          docker tag django-backend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:latest
+          docker tag django-backend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:${{ github.sha }}
+          docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:latest
+          docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:${{ github.sha }}
+
+      - name: Push frontend image to Azure Container Registry
+        if: success()
+        run: |
+          docker tag char-ai-frontend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:latest
+          docker tag char-ai-frontend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:${{ github.sha }}
+          docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:latest
+          docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:${{ github.sha }}
