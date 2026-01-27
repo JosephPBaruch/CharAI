@@ -1,0 +1,13 @@
+:80 {
+    # Proxy API requests to backend
+    handle /api/* {
+        reverse_proxy host.docker.internal:8000
+    }
+
+    # Serve static files
+    handle * {
+        root * /srv
+        try_files {path} /index.html
+        file_server
+    }
+}

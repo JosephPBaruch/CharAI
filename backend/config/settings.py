@@ -23,7 +23,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 DEBUG = env("DEBUG")
 SECRET_KEY = env("SECRET_KEY")
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["127.0.0.1", "localhost"])
 
 
 # Application definition
@@ -142,6 +142,8 @@ SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Vite default port
     "http://127.0.0.1:5173",
+    "http://localhost",  # Frontend container
+    "http://127.0.0.1",  # Frontend container via IP
 ]
 CORS_ALLOW_CREDENTIALS = True
 

@@ -1,6 +1,6 @@
 import { test, expect, Page } from "@playwright/test";
 
-const baseUrl = process.env.BASE_URL || "http://localhost:5173";
+const baseUrl = process.env.BASE_URL || "http://localhost";
 
 // Mirrors scenarios from CharAI.feature so Playwright Test UI can display them.
 test.describe("CharAI.feature", () => {
@@ -10,7 +10,7 @@ test.describe("CharAI.feature", () => {
     password: string,
   ) => {
     await page.goto(baseUrl);
-    await expect(page).toHaveURL(/localhost:5173/);
+    await expect(page).toHaveURL(/localhost/);
 
     // generate unique username and email
 
@@ -41,7 +41,7 @@ test.describe("CharAI.feature", () => {
 
   const loginUser = async (page: Page, username: string, password: string) => {
     await page.goto(baseUrl);
-    await expect(page).toHaveURL(/localhost:5173/);
+    await expect(page).toHaveURL(/localhost/);
 
     // Navigate to login page
     await page.click('[data-testid="login-button"]');
@@ -62,7 +62,7 @@ test.describe("CharAI.feature", () => {
 
   const logoutUser = async (page: Page) => {
     await page.goto(baseUrl);
-    await expect(page).toHaveURL(/localhost:5173/);
+    await expect(page).toHaveURL(/localhost/);
 
     await page.click('[data-testid="logout-button"]');
     await expect(page).toHaveURL(baseUrl);
