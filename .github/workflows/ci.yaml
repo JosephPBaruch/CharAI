@@ -55,7 +55,7 @@ jobs:
         run: |
           docker run -d \
             -p 8000:8000 \
-            -e DEBUG=False \
+            -e DEBUG=True \
             -e SECRET_KEY=ci-test-key \
             -e DATABASE_URL=postgresql://charai:testpass@postgres-test:5432/charai_test \
             -e OPENTOPOGRAPHY_API_KEY=keykey \
