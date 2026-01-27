@@ -146,5 +146,11 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost",  # Frontend container
     "http://127.0.0.1",  # Frontend container via IP
 ]
+
+# Add ALLOWED_HOSTS to CORS_ALLOWED_ORIGINS with http and https
+for host in ALLOWED_HOSTS:
+    CORS_ALLOWED_ORIGINS.append(f"http://{host}")
+    CORS_ALLOWED_ORIGINS.append(f"https://{host}")
+
 CORS_ALLOW_CREDENTIALS = True
 
