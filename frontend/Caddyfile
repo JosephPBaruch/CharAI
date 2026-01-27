@@ -1,7 +1,7 @@
 :80 {
     # Proxy API requests to backend
     handle /api/* {
-        reverse_proxy host.docker.internal:8000
+        reverse_proxy {env.BACKEND_HOST}:{env.BACKEND_PORT}
     }
 
     # Serve static files

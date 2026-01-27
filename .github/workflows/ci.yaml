@@ -34,6 +34,9 @@ jobs:
             --build-arg VITE_APP_URL="http://localhost" \
             -t char-ai-frontend .
 
+      - name: Create test network
+        run: docker network create charai-net
+
       - name: Run backend container
         run: |
           docker run -d \
@@ -42,6 +45,7 @@ jobs:
             -e SECRET_KEY=ci-test-key \
             -e ALLOWED_HOSTS=localhost,127.0.0.1 \
             -e DATABASE_URL=sqlite:///db.sqlite3 \
+            --network charai-net \
             --name django-backend \
             django-backend
 
@@ -49,6 +53,9 @@ jobs:
         run: |
           docker run -d \
             -p 80:80 \
+            -e BACKEND_HOST=django-backend \
+            -e BACKEND_PORT=8000 \
+            --network charai-net \
             --name char-ai-frontend \
             char-ai-frontend
 

@@ -24,6 +24,10 @@ FROM caddy:alpine
 # Caddy configuration
 COPY Caddyfile /etc/caddy/Caddyfile
 
+# Default backend target; can be overridden at runtime
+ENV BACKEND_HOST=host.docker.internal \
+	BACKEND_PORT=8000
+
 # Static assets
 COPY --from=builder /app/dist /srv
 
