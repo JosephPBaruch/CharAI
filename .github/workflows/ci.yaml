@@ -115,7 +115,7 @@ jobs:
           docker rm django-backend char-ai-frontend postgres-test || true
 
       - name: Login to Azure Container Registry
-        if: success()
+        if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           echo "${{ secrets.AZURE_REGISTRY_PASSWORD }}" | docker login \
             -u "${{ secrets.AZURE_REGISTRY_USERNAME }}" \
@@ -123,7 +123,7 @@ jobs:
             ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}
 
       - name: Push backend image to Azure Container Registry
-        if: success()
+        if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           docker tag django-backend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:latest
           docker tag django-backend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:${{ github.sha }}
@@ -131,7 +131,7 @@ jobs:
           docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:${{ github.sha }}
 
       - name: Push frontend image to Azure Container Registry
-        if: success()
+        if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           docker tag char-ai-frontend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:latest
           docker tag char-ai-frontend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:${{ github.sha }}
