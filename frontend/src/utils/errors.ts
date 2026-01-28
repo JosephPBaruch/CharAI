@@ -1,9 +1,7 @@
 import { type FieldErrors, type DjangoErrorResponse } from "../types/auth.ts";
 
 // Parses signup error response for field-specific errors, improving UX and simplifying frontend component code
-export function normalizeRegisterErrors(
-  error: DjangoErrorResponse,
-): FieldErrors {
+export function normalizeSignupErrors(error: DjangoErrorResponse): FieldErrors {
   const fieldErrors: FieldErrors = {};
 
   for (const field in error) {

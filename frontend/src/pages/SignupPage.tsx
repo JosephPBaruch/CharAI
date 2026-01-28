@@ -5,7 +5,7 @@ import { Box, Button, Typography, CircularProgress } from "@mui/material";
 import { useAuth } from "../contexts/AuthContext";
 import type { FieldErrors, RegisterRequest } from "../types/auth";
 import { COLORS } from "../styles/colors";
-import { normalizeRegisterErrors } from "../utils/errors";
+import { normalizeSignupErrors } from "../utils/errors";
 import { FormTextField } from "../components/FormTextField";
 
 const SignupPage = () => {
@@ -41,7 +41,7 @@ const SignupPage = () => {
       await register(formData);
       navigate("/");
     } catch (err: any) {
-      setErrors(normalizeRegisterErrors(err));
+      setErrors(normalizeSignupErrors(err));
     }
   };
 
