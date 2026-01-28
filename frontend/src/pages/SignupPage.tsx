@@ -84,6 +84,11 @@ const SignupPage = () => {
             name="username"
             value={formData.username}
             onChange={handleChange}
+            slotProps={{
+              htmlInput: {
+                "data-testid": "username-input",
+              },
+            }}
             errorText={errors.username}
           />
 
