@@ -2,15 +2,20 @@ import { Link as RouterLink } from "react-router";
 import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
 import { useAuth } from "../contexts/AuthContext";
 import { COLORS } from "../styles/colors";
+import { useToast } from "../contexts/ToastContext";
 
 const Header = () => {
   const { isAuthenticated, logout } = useAuth();
+  const { showToast } = useToast();
 
   const handleLogout = async () => {
     try {
       await logout();
     } catch (error) {
-      console.error("Logout failed:", error);
+      showToast({
+        message: "Logout failed. Please try again.",
+        severity: "error",
+      });
     }
   };
 

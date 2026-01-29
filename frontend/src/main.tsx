@@ -6,14 +6,17 @@ import Header from "./components/Header.tsx";
 import AppRoutes from "./components/AppRoutes.tsx";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CoordinateProvider } from "./contexts/CoordinateContext";
+import { ToastProvider } from "./contexts/ToastContext.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
         <CoordinateProvider>
-          <Header />
-          <AppRoutes />
+          <ToastProvider>
+            <Header />
+            <AppRoutes />
+          </ToastProvider>
         </CoordinateProvider>
       </AuthProvider>
     </BrowserRouter>
