@@ -23,7 +23,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  // no UI error state; errors are not surfaced in the UI per user request
 
   // On mount, check if user is already authenticated
   useEffect(() => {
@@ -71,7 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(response.user);
       }
     } catch (err: any) {
-      // do not store error in UI state
       setUser(null);
       throw err;
     } finally {
