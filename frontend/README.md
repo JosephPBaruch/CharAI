@@ -72,23 +72,6 @@ frontend/
 
 ---
 
-## Environment Variables
-
-All local URLs (such as the backend API URL or the frontend development server) should be configured in a `.env` file in the project root rather than hard-coded.
-
-Example `.env`:
-
-```bash
-# .env
-VITE_API_URL="http://127.0.0.1:8000/api"  # Django backend API URL (default)
-VITE_APP_URL="http://localhost:5173"  # Frontend development server (default)
-```
-
-> Note: These values may differ per developer environment. Use the ports the local servers run on. 
-> Note: Only variables prefixed with `VITE_ are exposed to the Vite client.
-
----
-
 ## Authentication
 
 The frontend integrates with Django REST Framework using **TokenAuthentication** and **SessionAuthentication**:
@@ -132,6 +115,7 @@ npm run lint
 ```
 
 The following scripts are available in `package.json`:
+
 ```json
 {
   "scripts": {
@@ -164,8 +148,6 @@ Commit both `package.json` and the lock file to version control.
 ## Summary
 
 - **Package manager**: `npm`
-- **Development server**: Configured in a `.env` file, maybe via VITE_APP_URL
-- **Backend API**: Configured in a a `.env` file, maybe via VITE_API_URL
 - **Framework**: React 18+ with TypeScript
 - **UI Library**: Material UI (MUI)
 - **Routing**: React Router v6
@@ -186,27 +168,25 @@ Commit both `package.json` and the lock file to version control.
 ## Getting Started
 
 1. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
-2. **Set up environment**:
-   ```bash
-   cp .env.example .env  # (or create .env manually with VITE_API_URL)
-   ```
+2. **Ensure backend is running**:
 
-3. **Ensure backend is running**:
    ```bash
    # In the backend directory
    python manage.py runserver
    ```
 
-4. **Start the dev server**:
+3. **Start the dev server**:
+
    ```bash
    npm run dev
    ```
 
-5. **Open the app**:
+4. **Open the app**:
    - Navigate to configured frontend server URL
    - Sign up or log in to see the protected home page
 

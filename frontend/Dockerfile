@@ -3,13 +3,6 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Build arguments with defaults
-ARG VITE_API_URL="https://charai-frontend.proudgrass-c5ac7326.westus2.azurecontainerapps.io/api"
-ARG VITE_APP_URL="https://charai-frontend.proudgrass-c5ac7326.westus2.azurecontainerapps.io"
-
-ENV VITE_API_URL=$VITE_API_URL
-ENV VITE_APP_URL=$VITE_APP_URL
-
 # Install dependencies with lockfile for reproducible builds
 COPY package.json package-lock.json ./
 RUN npm ci

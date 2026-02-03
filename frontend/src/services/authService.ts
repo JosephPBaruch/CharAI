@@ -6,10 +6,8 @@ import {
   type LogoutResponse,
 } from "../types/auth";
 
-const DEFAULT_API = "http://localhost:8000/api";
-const API_URL = (
-  (import.meta.env.VITE_API_URL || DEFAULT_API) + "/auth"
-).replace(/\/$/, "");
+const DEFAULT_API = "/api";
+const API_URL = DEFAULT_API + "/auth";
 
 const TOKEN_KEY = "authToken";
 
@@ -24,7 +22,7 @@ function storeToken(token: string) {
 function getToken(): string | null {
   try {
     return localStorage.getItem(TOKEN_KEY);
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -32,7 +30,7 @@ function getToken(): string | null {
 function clearToken() {
   try {
     localStorage.removeItem(TOKEN_KEY);
-  } catch (e) {
+  } catch {
     // ignore
   }
 }
@@ -43,7 +41,7 @@ async function handleResponse(response: Response) {
   if (text) {
     try {
       data = JSON.parse(text);
-    } catch (e) {
+    } catch {
       data = text;
     }
   }
