@@ -2,6 +2,7 @@
     # Proxy API requests to backend
     handle /api/* {
         reverse_proxy {env.BACKEND_HOST}:{env.BACKEND_PORT}
+        # https://charai-backend.internal.proudgrass-c5ac7326.westus2.azurecontainerapps.io
     }
 
     # Serve static files
