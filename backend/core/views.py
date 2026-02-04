@@ -15,6 +15,7 @@ from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer
 from .models import Field, PrescriptionMap
 from modules.GeoParser import GeoParser
 from .yield_calculator import YieldCalculator
+from .services import compute_payback_period_grid, format_grid_as_geojson
 
 #api calls & endpoints
 class RegisterView(APIView):
@@ -263,52 +264,27 @@ class PrescriptionMapView(APIView):
         
         # TODO: send predicton1 and prediction2 to prescription map genreator
         # prescription_map_data = generate_prescription_map(prediction1, prediction2)
-        
+        payback_period_grid = compute_payback_period_grid(
+            yield_control=control_yield_prediction,
+            yield_biochar=biochar_yield_prediction,
+            crop_price=50.0, # temp placeholder
+            biochar_application_rate=20.0, # temp placeholder
+            biochar_price=500.0 # temp placeholder
+        )
+
         # TODO: Format and send prescirption map data (continue this below)
-        
+        prescription_geojson = format_grid_as_geojson(
+            geotiff=geotiff_data,
+            pbp_grid=payback_period_grid,
+            biochar_application_rate=20.0, # temp placeholder
+            feature_type="zone",
+        )
+
         # Get or create prescription map
         prescription_map, _ = PrescriptionMap.objects.get_or_create(
             field=field,
             defaults={
-                'prescription_data': {
-                    'type': 'FeatureCollection',
-                    'features': [
-                        {
-                            'type': 'Feature',
-                            'properties': {
-                                'applicationRate': 5.5,
-                                'paybackPeriod': 3,
-                                'type': 'boundary'
-                            },
-                            'geometry': {
-                                'type': 'Polygon',
-                                'coordinates': [[
-                                    [-117.12799072265626, 47.410866618794536],
-                                    [-117.06481933593751, 47.379713888843426],
-                                    [-117.15545654296876, 47.33597602644443],
-                                    [-117.12799072265626, 47.410866618794536]
-                                ]]
-                            }
-                        },
-                        {
-                            'type': 'Feature',
-                            'properties': {
-                                'applicationRate': 3.2,
-                                'paybackPeriod': 2,
-                                'type': 'zone'
-                            },
-                            'geometry': {
-                                'type': 'Polygon',
-                                'coordinates': [[
-                                    [-117.06481933593751, 47.379713888843426],
-                                    [-117.00164794921876, 47.348561159292175],
-                                    [-117.09228515625, 47.30482329634525],
-                                    [-117.06481933593751, 47.379713888843426]
-                                ]]
-                            }
-                        }
-                    ]
-                }
+                'prescription_data': prescription_geojson
             }
         )
         
