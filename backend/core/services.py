@@ -1,19 +1,18 @@
 import numpy as np
 import pandas as pd
 from typing import Dict, Any
-from GeoParser import GeoTIFFData # Braydyn's future module
 
 # Compute payback period (years) for each grid cell, giving the prescription map its main data
 def compute_payback_period_grid(
-    yield_control: pd.DataFrame,
-    yield_biochar: pd.DataFrame,
+    yield_control_df: pd.DataFrame,
+    yield_biochar_df: pd.DataFrame,
     crop_sales_price: float,
     biochar_application_rate: float,
     biochar_price: float,
 ) -> pd.DataFrame:
     # Merge yield prediction data frames by index
-    merged_predictions = yield_biochar.merge(
-        yield_control,
+    merged_predictions = yield_biochar_df.merge(
+        yield_control_df,
         on=["Index", "Lat", "Long"],
         suffixes=("_Biochar", "_Control"),
         how="inner",
@@ -45,46 +44,49 @@ def compute_payback_period_grid(
     return result
 
 def format_grid_as_geojson(
-    geotiff: GeoTIFFData,
-    pbp_grid: np.ndarray,
+    payback_period_df: pd.DataFrame,
     biochar_application_rate: float,
-    feature_type: str = 'zone',
+    # Assumes Lat and Long fields are the cell's center points, so we find cell's borders
+    # TODO: Add cell border calculation logic based on feet / meters, aka different cell size units
+    # TODO: Refactor cell border logic into separate function
+    cell_size_in_degrees: float = 0.0002
 ) -> Dict[str, Any]:
+    """
+    Convert DataFrame with 'Lat', 'Long', 'Payback_Period' into GeoJSON polygons.
+    """
     features = []
-    height, width = pbp_grid.shape
 
-    for row in range(height):
-        for col in range(width):
-            pbp_value = pbp_grid[row, col]
-            if not np.isfinite(pbp_value):
-                continue
-            
-            # Compute pixel corners in lat/lon coordinates using GeoTIFF spatial transformation metadata
-            x_min, y_max = geotiff.transform * (col, row)
-            x_max, y_min = geotiff.transform * (col + 1, row + 1)
+    half_size = cell_size_in_degrees / 2
 
-            polygon_coords = [
-                [x_min, y_max],
-                [x_max, y_max],
-                [x_max, y_min],
-                [x_min, y_min],
-                [x_min, y_max],
-            ]
+    for _, row in payback_period_df.iterrows():
+        lat = row["Lat"]
+        lng = row["Long"]
+        pbp = row["Payback_Period"]
 
-            feature = {
-                'type': 'Feature',
-                'properties': {
-                    'applicationRate': float(biochar_application_rate),
-                    'paybackPeriod': float(pbp_value),
-                    'type': feature_type,
-                },
-                'geometry': {
-                    'type': 'Polygon',
-                    'coordinates': [polygon_coords],
-                },
-            }
-            features.append(feature)
+        # Polygon corners around the point
+        polygon = [
+            [lng - half_size, lat + half_size],
+            [lng + half_size, lat + half_size],
+            [lng + half_size, lat - half_size],
+            [lng - half_size, lat - half_size],
+            [lng - half_size, lat + half_size],
+        ]
+
+        features.append({
+            "type": "Feature",
+            "properties": {
+                "paybackPeriod": float(pbp),
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [polygon],
+            },
+        })
+
     return {
-        'type': 'FeatureCollection',
-        'features': features,
+        "type": "FeatureCollection",
+        "properties": {
+            "applicationRate": float(biochar_application_rate),
+        },
+        "features": features,
     }
