@@ -4,17 +4,11 @@
         format json
         level DEBUG
     }
-    # Proxy API requests to backend
+
     handle /api/* {
-        # If BACKEND_PORT is set, use host:port; otherwise fall back to host only
-        @has_port {
-            expression {env.BACKEND_PORT} != ""
-        }
-        reverse_proxy @has_port {env.BACKEND_HOST}:{env.BACKEND_PORT}
-        reverse_proxy {env.BACKEND_HOST}
+        reverse_proxy {env.BACKEND_HOST}:{env.BACKEND_PORT}
     }
 
-    # Serve static files
     handle * {
         root * /srv
         try_files {path} /index.html
