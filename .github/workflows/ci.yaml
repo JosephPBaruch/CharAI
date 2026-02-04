@@ -69,8 +69,7 @@ jobs:
         run: |
           docker run -d \
             -p 80:80 \
-            -e BACKEND_HOST=django-backend \
-            -e BACKEND_PORT=8000 \
+            -e BACKEND_URL=http://django-backend:8000 \
             --network charai-net \
             --name char-ai-frontend \
             char-ai-frontend

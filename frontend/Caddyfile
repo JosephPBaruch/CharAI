@@ -6,7 +6,7 @@
     }
 
     handle /api/* {
-        reverse_proxy {env.BACKEND_HOST}:{env.BACKEND_PORT}
+        reverse_proxy {env.BACKEND_URL}
     }
 
     handle * {
