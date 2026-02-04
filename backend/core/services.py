@@ -1,33 +1,48 @@
 import numpy as np
+import pandas as pd
 from typing import Dict, Any
 from GeoParser import GeoTIFFData # Braydyn's future module
 
 # Compute payback period (years) for each grid cell, giving the prescription map its main data
 def compute_payback_period_grid(
-    yield_control: np.ndarray,
-    yield_biochar: np.ndarray,
-    crop_price: float,
+    yield_control: pd.DataFrame,
+    yield_biochar: pd.DataFrame,
+    crop_sales_price: float,
     biochar_application_rate: float,
     biochar_price: float,
-) -> np.ndarray:
-    # yield_control and yield_biochar are 2D arrays representing the field's yield predictions
-    # 1. Calculate yield difference per cell
-    yield_delta = yield_biochar - yield_control
+) -> pd.DataFrame:
+    # Merge yield prediction data frames by index
+    merged_predictions = yield_biochar.merge(
+        yield_control,
+        on=["Index", "Lat", "Long"],
+        suffixes=("_Biochar", "_Control"),
+        how="inner",
+    )
 
-    # 2. Find marginal revenue per cell
-    marginal_revenue = yield_delta * crop_price
+    # Calculate yield differences
+    merged_predictions["Yield_Delta"] = (
+        merged_predictions["Yield_Biochar"] - merged_predictions["Yield_Control"]
+    )
 
-    # 3. Find amendment cost to be used in payback period equation, configured for adjustable biochar application rate
+    # Find marginal revenue based on yield differences
+    merged_predictions["Marginal_Revenue"] = merged_predictions["Yield_Delta"] * crop_sales_price
+
+    # Calculate biochar cost per cell (one time as application rate is constant across field)
     biochar_cost = biochar_application_rate * biochar_price
 
-    # 4. Initialize payback period grid with infinity, making it easier to handle negative payback periods
-    payback_period_grid = np.full(yield_delta.shape, np.inf, dtype="float32")
+    # Add payback period with mask in case of negative ROI
+    merged_predictions["Payback_Period"] = np.inf
+    valid_payback_mask = merged_predictions["Marginal_Revenue"] > 0
 
-    # 5. Append payback period values to each cell, keep negative payback period values as positive infinity
-    valid_payback_mask = marginal_revenue > 0
-    payback_period_grid[valid_payback_mask] = biochar_cost / marginal_revenue[valid_payback_mask]
+    merged_predictions.loc[valid_payback_mask, "Payback_Period"] = (
+        biochar_cost / merged_predictions.loc[valid_payback_mask, "Marginal_Revenue"]
+    )
 
-    return payback_period_grid
+    # Return DataFrame in expected Format [Index, Lat, Long, Payback_Period aka ROI]
+    result = pd.DataFrame(
+        merged_predictions.loc[:, ["Index", "Lat", "Long", "Payback_Period"]]
+    )
+    return result
 
 def format_grid_as_geojson(
     geotiff: GeoTIFFData,
