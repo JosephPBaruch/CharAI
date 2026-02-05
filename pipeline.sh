@@ -1,7 +1,38 @@
 #!/usr/bin/env bash
 set -e
 
+# EXAMPELARY USAGE:
+    # ./pipeline.sh --hosts 127.0.0.1
+    # # or
+    # ./pipeline.sh --hosts=127.0.0.1
+
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Parse CLI args (supports: --hosts value  OR  --hosts=value)
+ALLOWED_HOSTS=""
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--hosts)
+			shift
+			if [[ -n "$1" ]]; then
+				ALLOWED_HOSTS="$1"
+				shift
+			else
+				echo "Error: --hosts requires a value" >&2
+				exit 1
+			fi
+			;;
+		--hosts=*)
+			ALLOWED_HOSTS="${1#*=}"
+			shift
+			;;
+		*)
+			# ignore unknown args
+			shift
+			;;
+	esac
+done
 
 echo "Starting database..."
 cd "$SCRIPT_DIR/database"
@@ -12,7 +43,11 @@ timeout 30 bash -c 'until docker exec postgres-test pg_isready -U charai > /dev/
 
 echo "Starting backend..."
 cd "$SCRIPT_DIR/backend"
-./pipeline.sh
+if [[ -n "$ALLOWED_HOSTS" ]]; then
+	./pipeline.sh --hosts "$ALLOWED_HOSTS"
+else
+	./pipeline.sh
+fi
 
 echo "Running backend migrations..."
 docker exec django-backend python manage.py migrate

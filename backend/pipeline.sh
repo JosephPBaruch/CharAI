@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
+# EXAMPELARY USAGE:
+    # ./pipeline.sh --hosts 127.0.0.1
+    # # or
+    # ./pipeline.sh --hosts=127.0.0.1
+
 # Backend pipeline with defaults matching .github/workflows/ci.yaml
 IMAGE="django-backend"
 INTERNAL_PORT=8000
@@ -12,6 +17,30 @@ DEBUG="True"
 ALLOWED_HOSTS="localhost,127.0.0.1,char-ai-frontend"
 NETWORK="charai-net"
 CONTAINER_NAME="$IMAGE"
+
+# Parse CLI args (supports: --hosts value  OR  --hosts=value)
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --hosts)
+      shift
+      if [[ -n "$1" ]]; then
+        ALLOWED_HOSTS="$1"
+        shift
+      else
+        echo "Error: --hosts requires a value" >&2
+        exit 1
+      fi
+      ;;
+    --hosts=*)
+      ALLOWED_HOSTS="${1#*=}"
+      shift
+      ;;
+    *)
+      # ignore unknown args
+      shift
+      ;;
+  esac
+done
 
 docker build -t "$IMAGE" .
 
