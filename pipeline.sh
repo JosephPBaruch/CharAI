@@ -3,18 +3,19 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-FRONTEND_DIR="${SCRIPT_DIR}/frontend"
-FRONTEND_SCRIPT="pipeline.sh"
+echo "Starting database..."
+"$SCRIPT_DIR/database/pipeline.sh"
 
-BACKEND_DIR="${SCRIPT_DIR}/backend"
-BACKEND_SCRIPT="pipeline.sh"  # rename if your backend script is named differently
+echo "Waiting for Postgres to be ready..."
+timeout 30 bash -c 'until docker exec postgres-test pg_isready -U charai > /dev/null 2>&1; do sleep 1; done'
 
-cd $FRONTEND_DIR
+echo "Starting backend..."
+"$SCRIPT_DIR/backend/pipeline.sh"
 
-./pipeline.sh "$@"
+echo "Running backend migrations..."
+docker exec django-backend python manage.py migrate
 
-cd $BACKEND_DIR
-
-./pipeline.sh "$@"
+echo "Starting frontend..."
+"$SCRIPT_DIR/frontend/pipeline.sh"
 
 echo "After Containers are running, start reverse-proxy (caddy) and cloudfare tunnel."
