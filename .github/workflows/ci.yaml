@@ -29,7 +29,6 @@ jobs:
         run: |
           cd frontend
           docker build -t char-ai-frontend .
-          docker build -t char-ai-frontend .
 
       - name: Create test network
         run: docker network create charai-net
@@ -70,7 +69,7 @@ jobs:
           docker run -d \
             -p 80:80 \
             -e BACKEND_URL=django-backend:8000 \
-            -e LOG_LEVEL=DEBUG \ 
+            -e LOG_LEVEL=DEBUG \
             --network charai-net \
             --name char-ai-frontend \
             char-ai-frontend
