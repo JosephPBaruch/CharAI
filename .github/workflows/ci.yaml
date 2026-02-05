@@ -70,6 +70,7 @@ jobs:
           docker run -d \
             -p 80:80 \
             -e BACKEND_URL=django-backend:8000 \
+            -e LOG_LEVEL=DEBUG \ 
             --network charai-net \
             --name char-ai-frontend \
             char-ai-frontend

@@ -2,7 +2,7 @@
     log {
         output stdout
         format json
-        level DEBUG
+        level {env.LOG_LEVEL} # DEBUG, INFO, WARN, ERROR
     }
 
     handle /api/* {
