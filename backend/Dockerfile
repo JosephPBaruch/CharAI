@@ -7,12 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Install system build deps only if needed for Python packages
 RUN apt-get update
-#  \
-    # && apt-get install -y --no-install-recommends build-essential 
-    # \
-    # && rm -rf /var/lib/apt/lists/*
 
 # Install Python deps
 COPY requirements.txt ./
