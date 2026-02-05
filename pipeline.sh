@@ -11,10 +11,10 @@ BACKEND_SCRIPT="pipeline.sh"  # rename if your backend script is named different
 
 cd $FRONTEND_DIR
 
-./pipeline.sh
+./pipeline.sh "$@"
 
 cd $BACKEND_DIR
 
-./pipeline.sh
+./pipeline.sh "$@"
 
 echo "After Containers are running, start reverse-proxy (caddy) and cloudfare tunnel."
