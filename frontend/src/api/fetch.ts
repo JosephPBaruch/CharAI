@@ -1,8 +1,8 @@
 import type { FeatureCollection } from "geojson";
 import type { FieldEntry } from "../features";
-import { getAuthToken } from "../services/authService";
+import { getApiUrlForApi, getAuthToken } from "../services/authService";
 
-const API_URL = "/api";
+const API_URL = getApiUrlForApi();
 
 const POSTFieldData = async (data: {
   globalMax: number | "";

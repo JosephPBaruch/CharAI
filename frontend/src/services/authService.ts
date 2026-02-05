@@ -6,10 +6,18 @@ import {
   type LogoutResponse,
 } from "../types/auth";
 
-const DEFAULT_API = "/api";
-const API_URL = DEFAULT_API + "/auth";
-
+const AUTH_URL = getApiUrl() + "/auth";
 const TOKEN_KEY = "authToken";
+
+function getApiUrl() {
+  const env = import.meta.env;
+
+  if (env.VITE_BACKEND_URL) {
+    return `${env.VITE_BACKEND_URL.replace(/\/$/, "")}/api`;
+  }
+
+  return "/api";
+}
 
 function storeToken(token: string) {
   try {
@@ -37,7 +45,7 @@ function clearToken() {
 
 async function handleResponse(response: Response) {
   const text = await response.text();
-  let data: any = null;
+  let data = null;
   if (text) {
     try {
       data = JSON.parse(text);
@@ -61,7 +69,7 @@ export const register = async (
     throw { detail: "You are already logged in" };
   }
 
-  const response = await fetch(`${API_URL}/register/`, {
+  const response = await fetch(`${AUTH_URL}/register/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -85,7 +93,7 @@ export const login = async (
     throw { detail: "You are already logged in" };
   }
 
-  const response = await fetch(`${API_URL}/login/`, {
+  const response = await fetch(`${AUTH_URL}/login/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -110,7 +118,7 @@ export const getUser = async (): Promise<UserResponse> => {
     headers["Authorization"] = `Token ${token}`;
   }
 
-  const response = await fetch(`${API_URL}/user/`, {
+  const response = await fetch(`${AUTH_URL}/user/`, {
     method: "GET",
     headers,
     credentials: "include",
@@ -129,7 +137,7 @@ export const logout = async (): Promise<LogoutResponse> => {
     headers["Authorization"] = `Token ${token}`;
   }
 
-  const response = await fetch(`${API_URL}/logout/`, {
+  const response = await fetch(`${AUTH_URL}/logout/`, {
     method: "POST",
     headers,
     credentials: "include",
@@ -142,6 +150,7 @@ export const logout = async (): Promise<LogoutResponse> => {
 
 export const getAuthToken = getToken;
 export const removeAuthToken = clearToken;
+export const getApiUrlForApi = getApiUrl;
 
 // Notes:
 // - Token-based authentication: Each user gets a unique token on register/login
