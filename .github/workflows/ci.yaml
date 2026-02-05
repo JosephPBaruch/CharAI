@@ -119,7 +119,7 @@ jobs:
             ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}
 
       - name: Push backend image to Azure Container Registry
-        # if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           docker tag django-backend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:${{ github.sha }}
           docker tag django-backend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:latest
