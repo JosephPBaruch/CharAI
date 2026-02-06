@@ -265,19 +265,17 @@ class PrescriptionMapView(APIView):
         # TODO: send predicton1 and prediction2 to prescription map genreator
         # prescription_map_data = generate_prescription_map(prediction1, prediction2)
         payback_period_grid = compute_payback_period_grid(
-            yield_control=control_yield_prediction,
-            yield_biochar=biochar_yield_prediction,
-            crop_price=50.0, # temp placeholder
-            biochar_application_rate=20.0, # temp placeholder
-            biochar_price=500.0 # temp placeholder
+            yield_biochar_df=biochar_yield_prediction,
+            yield_control_df=control_yield_prediction,
+            crop_sales_price=50.0,
+            biochar_application_rate=20.0,
+            biochar_price=500.0,
         )
 
         # TODO: Format and send prescirption map data (continue this below)
         prescription_geojson = format_grid_as_geojson(
-            geotiff=geotiff_data,
-            pbp_grid=payback_period_grid,
+            payback_period_df=payback_period_grid,
             biochar_application_rate=20.0, # temp placeholder
-            feature_type="zone",
         )
 
         # Get or create prescription map
