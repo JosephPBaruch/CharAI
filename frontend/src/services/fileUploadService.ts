@@ -1,7 +1,5 @@
-const DEFAULT_API = "http://localhost:8000/api";
-const API_URL = (
-  (import.meta.env.VITE_API_URL || DEFAULT_API) + "/data"
-).replace(/\/$/, "");
+const DEFAULT_API = "/api";
+const API_URL = DEFAULT_API + "/data";
 
 async function handleResponse(response: Response) {
   const text = await response.text();
@@ -9,7 +7,7 @@ async function handleResponse(response: Response) {
   if (text) {
     try {
       data = JSON.parse(text);
-    } catch (e) {
+    } catch {
       data = text;
     }
   }

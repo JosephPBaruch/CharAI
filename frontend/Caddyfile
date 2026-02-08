@@ -1,0 +1,17 @@
+:80 {
+    log {
+        output stdout
+        format json
+        level {env.LOG_LEVEL} # DEBUG, INFO, WARN, ERROR
+    }
+
+    handle /api/* {
+        reverse_proxy {env.BACKEND_URL}
+    }
+
+    handle * {
+        root * /srv
+        try_files {path} /index.html
+        file_server
+    }
+}
