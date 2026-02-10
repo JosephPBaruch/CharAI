@@ -1,9 +1,8 @@
 import type { FeatureCollection } from "geojson";
 import type { FieldEntry } from "../features";
-import { getAuthToken } from "../services/authService";
+import { getApiUrlForApi, getAuthToken } from "../services/authService";
 
-const DEFAULT_API = "http://localhost:8000/api";
-const API_URL = import.meta.env.VITE_API_URL || DEFAULT_API;
+const API_URL = getApiUrlForApi();
 
 const POSTFieldData = async (data: {
   globalMax: number | "";
