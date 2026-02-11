@@ -1,15 +1,15 @@
-"""GeoTIFF parser entry-point used by the backend ingestion pipeline."""
+"""GeoTIFF parser entry-point for backend ingestion pipeline."""
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import numpy as np
-from geotiff import GeoTIFFData
+from .geotiff import GeoTIFFData
 
 
-PathLike = Path | str
+PathLike = str | Path
 
 
 class GeoParser:
@@ -19,7 +19,7 @@ class GeoParser:
 
     def __init__(self, path: PathLike):
         self.path = Path(path).expanduser().resolve()
-        self._geotiff: Optional[GeoTIFFData] = None
+        self._geotiff: GeoTIFFData | None = None
 
     def parse(self) -> GeoTIFFData:
         """Load the GeoTIFF and return the data model."""
@@ -37,22 +37,20 @@ class GeoParser:
         
         return data
 
-    def to_backend_response(self, include_data: bool = False) -> Dict[str, Any]:
+    def to_backend_response(self, include_data: bool = False) -> dict[str, Any]:
         geotiff = self._ensure_loaded()
-
-        response = {
-            "metadata": geotiff.metadata_dict(),
-        }
-
+        response = {"metadata": geotiff.metadata_dict()}
+        
         if include_data:
+            # Prevent loading extremely large arrays to memory
             data_size = geotiff.data.size
-            max_size = 100_000_000  # 100M elements
+            max_size = 100_000_000
             if data_size > max_size:
                 raise ValueError(
                     f"Data array too large: {data_size} elements (max: {max_size})"
                 )
             response["data"] = geotiff.data.ravel().tolist()
-
+        
         return response
 
     def _validate_path(self) -> None:
@@ -72,7 +70,7 @@ class GeoParser:
         return self._geotiff
 
 
-def parse_geotiff(path: PathLike, *, normalize: bool = False, include_data: bool = False) -> Dict[str, Any]:
+def parse_geotiff(path: PathLike, *, normalize: bool = False, include_data: bool = False) -> dict[str, Any]:
     parser = GeoParser(path)
     parser.parse()
     response = parser.to_backend_response(include_data=include_data)
