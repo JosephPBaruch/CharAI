@@ -11,17 +11,17 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-## Stage 2: Serve the production build with Nginx
-FROM nginx:alpine
+## Stage 2: Serve the production build with Caddy
+FROM caddy:alpine
 
-# Nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Caddy configuration
+COPY Caddyfile /etc/caddy/Caddyfile
 
 # Static assets
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /srv
 
 # Expose HTTP port
-EXPOSE  80
+EXPOSE 80
 
-# Start Nginx in foreground
-CMD ["nginx", "-g", "daemon off;"]
+# Start Caddy
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]

@@ -1,205 +1,143 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { Link as RouterLink } from 'react-router';
-import { Box, TextField, Button, Typography, CircularProgress } from '@mui/material';
-import { useAuth } from '../contexts/AuthContext';
-import type { RegisterRequest } from '../types/auth';
-import { COLORS } from '../styles/colors';
+import React, { useState } from "react";
+import { useNavigate } from "react-router";
+import { Link as RouterLink } from "react-router";
+import { Box, Button, Typography, CircularProgress } from "@mui/material";
+import { useAuth } from "../contexts/AuthContext";
+import type { FieldErrors, RegisterRequest } from "../types/auth";
+import { COLORS } from "../styles/colors";
+import { normalizeSignupErrors } from "../utils/errors";
+import { FormTextField } from "../components/FormTextField";
 
 const SignupPage = () => {
   const navigate = useNavigate();
   const { register, isLoading } = useAuth();
+  const [errors, setErrors] = useState<FieldErrors>({});
   const [formData, setFormData] = useState<RegisterRequest>({
-    username: '',
-    email: '',
-    password: '',
-    password2: '',
-    first_name: '',
-    last_name: '',
+    username: "",
+    email: "",
+    password: "",
+    password2: "",
+    first_name: "",
+    last_name: "",
   });
-  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+
+    // Update form data
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear the error for this field
+    setErrors((prev) => {
+      if (!(name in prev)) return prev; // no error to clear
+      const { [name]: _, ...rest } = prev; // remove this field from errors
+      return rest;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await register(formData);
-      navigate('/');
+      navigate("/");
     } catch (err: any) {
-      // No UI error handling per user request. Log for debugging only.
-      // eslint-disable-next-line no-console
-      console.warn('Registration error (not shown in UI):', err);
+      setErrors(normalizeSignupErrors(err));
     }
   };
 
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 'calc(100vh - 64px)',
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "calc(100vh - 64px)",
         padding: 2,
       }}
     >
       <Box
         sx={{
-          width: '100%',
+          width: "100%",
           maxWidth: 500,
-          backgroundColor: '#1a1a1a',
+          backgroundColor: COLORS.bgCard,
           padding: 3,
           borderRadius: 2,
           boxShadow: `0 4px 12px ${COLORS.blackMedium}`,
         }}
       >
-        <Typography variant="h5" component="h2" sx={{ marginBottom: 2, textAlign: 'center' }}>
+        <Typography
+          variant="h5"
+          component="h2"
+          sx={{ marginBottom: 2, textAlign: "center" }}
+        >
           Sign Up
         </Typography>
 
-        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+        >
+          <FormTextField
             label="Username"
             name="username"
             value={formData.username}
             onChange={handleChange}
-            variant="outlined"
-            fullWidth
-            disabled={isLoading}
-            
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                color: COLORS.whiteHigh,
-                '& fieldset': { borderColor: COLORS.whiteLow },
-                '&:hover fieldset': { borderColor: COLORS.whiteMedium },
+            slotProps={{
+              htmlInput: {
+                "data-testid": "username-input",
               },
-              '& .MuiInputBase-input::placeholder': {
-                color: COLORS.whiteMedium,
-                opacity: 1,
-              },
-              '& .MuiInputLabel-root': { color: COLORS.whiteHigh },
             }}
+            errorText={errors.username}
           />
 
-          <TextField
+          <FormTextField
             label="Email"
             name="email"
             value={formData.email}
             onChange={handleChange}
-            variant="outlined"
-            fullWidth
-            disabled={isLoading}
-            
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                color: COLORS.whiteHigh,
-                '& fieldset': { borderColor: COLORS.whiteLow },
-                '&:hover fieldset': { borderColor: COLORS.whiteMedium },
+            slotProps={{
+              htmlInput: {
+                "data-testid": "email-input",
               },
-              '& .MuiInputBase-input::placeholder': {
-                color: COLORS.whiteMedium,
-                opacity: 1,
-              },
-              '& .MuiInputLabel-root': { color: COLORS.whiteHigh },
             }}
+            errorText={errors.email}
           />
 
-          <TextField
+          <FormTextField
             label="First name"
             name="first_name"
             value={formData.first_name}
             onChange={handleChange}
-            variant="outlined"
-            fullWidth
-            disabled={isLoading}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                color: COLORS.whiteHigh,
-                '& fieldset': { borderColor: COLORS.whiteLow },
-                '&:hover fieldset': { borderColor: COLORS.whiteMedium },
-              },
-              '& .MuiInputBase-input::placeholder': {
-                color: COLORS.whiteMedium,
-                opacity: 1,
-              },
-              '& .MuiInputLabel-root': { color: COLORS.whiteHigh },
-            }}
+            errorText={errors.first_name}
           />
 
-          <TextField
+          <FormTextField
             label="Last name"
             name="last_name"
             value={formData.last_name}
             onChange={handleChange}
-            variant="outlined"
-            fullWidth
-            disabled={isLoading}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                color: COLORS.whiteHigh,
-                '& fieldset': { borderColor: COLORS.whiteLow },
-                '&:hover fieldset': { borderColor: COLORS.whiteMedium },
-              },
-              '& .MuiInputBase-input::placeholder': {
-                color: COLORS.whiteMedium,
-                opacity: 1,
-              },
-              '& .MuiInputLabel-root': { color: COLORS.whiteHigh },
-            }}
+            errorText={errors.last_name}
           />
 
-          <TextField
+          <FormTextField
             label="Password"
             name="password"
             type="password"
             value={formData.password}
             onChange={handleChange}
-            variant="outlined"
-            fullWidth
-            disabled={isLoading}
-            
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                color: COLORS.whiteHigh,
-                '& fieldset': { borderColor: COLORS.whiteLow },
-                '&:hover fieldset': { borderColor: COLORS.whiteMedium },
-              },
-              '& .MuiInputBase-input::placeholder': {
-                color: COLORS.whiteMedium,
-                opacity: 1,
-              },
-              '& .MuiInputLabel-root': { color: COLORS.whiteHigh },
-            }}
+            errorText={errors.password}
           />
 
-          <TextField
+          <FormTextField
             label="Confirm password"
             name="password2"
             type="password"
             value={formData.password2}
             onChange={handleChange}
-            variant="outlined"
-            fullWidth
-            disabled={isLoading}
-            
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                color: COLORS.whiteHigh,
-                '& fieldset': { borderColor: COLORS.whiteLow },
-                '&:hover fieldset': { borderColor: COLORS.whiteMedium },
-              },
-              '& .MuiInputBase-input::placeholder': {
-                color: COLORS.whiteMedium,
-                opacity: 1,
-              },
-              '& .MuiInputLabel-root': { color: COLORS.whiteHigh },
-            }}
+            errorText={errors.password2}
           />
-
-          {/* No UI error alerts per user request */}
 
           <Button
             type="submit"
@@ -208,13 +146,16 @@ const SignupPage = () => {
             disabled={isLoading}
             sx={{ marginTop: 1 }}
           >
-            {isLoading ? <CircularProgress size={24} /> : 'Sign up'}
+            {isLoading ? <CircularProgress size={24} /> : "Sign up"}
           </Button>
         </Box>
-        <Box sx={{ mt: 2, textAlign: 'center' }}>
+        <Box sx={{ mt: 2, textAlign: "center" }}>
           <Typography variant="body2" sx={{ color: COLORS.whiteHigh }}>
-            Already have an account?{' '}
-            <RouterLink to="/login" style={{ color: COLORS.indigo, textDecoration: 'none' }}>
+            Already have an account?{" "}
+            <RouterLink
+              to="/login"
+              style={{ color: COLORS.indigo, textDecoration: "none" }}
+            >
               Log in here
             </RouterLink>
           </Typography>

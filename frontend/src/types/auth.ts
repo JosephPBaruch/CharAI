@@ -38,7 +38,8 @@ export interface LogoutResponse {
   message: string;
 }
 
-export interface AuthError {
-  detail?: string;
-  [key: string]: any; // Field-specific errors from Django
-}
+export type DjangoErrorResponse = {
+  [key: string]: string[] | undefined;
+};
+
+export type FieldErrors = Record<string, string>;

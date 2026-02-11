@@ -1,7 +1,12 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
-import * as authService from '../services/authService';
-import type { User, AuthResponse, LoginRequest, RegisterRequest } from '../types/auth';
+import { createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
+import * as authService from "../services/authService";
+import type {
+  User,
+  AuthResponse,
+  LoginRequest,
+  RegisterRequest,
+} from "../types/auth";
 
 interface AuthContextType {
   user: User | null;
@@ -18,7 +23,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  // no UI error state; errors are not surfaced in the UI per user request
 
   // On mount, check if user is already authenticated
   useEffect(() => {
@@ -36,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (err: any) {
-      console.debug('No active session or token invalid');
+      console.debug("No active session or token invalid");
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -66,7 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(response.user);
       }
     } catch (err: any) {
-      // do not store error in UI state
       setUser(null);
       throw err;
     } finally {
@@ -80,13 +83,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await authService.logout();
       setUser(null);
     } catch (err: any) {
-      console.warn('Logout error:', err);
+      console.warn("Logout error:", err);
       setUser(null);
     } finally {
       setIsLoading(false);
     }
   };
-
 
   const value: AuthContextType = {
     user,
@@ -96,7 +98,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register,
     logout,
     checkAuth,
-    
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -105,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

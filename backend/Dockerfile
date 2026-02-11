@@ -1,24 +1,30 @@
-# Use an official Python image
+# Production-ready Django container
 FROM python:3.12-slim
 
-# Prevent Python from writing .pyc files and enable unbuffered logs
+# Keep bytecode out of the image and stdout unbuffered
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-# Set work directory inside the container
 WORKDIR /app
 
-# Copy requirements first (better layer caching)
-COPY requirements.txt .
+RUN apt-get update
 
-# Install Python dependencies
-RUN pip install --upgrade pip && pip install -r requirements.txt
+# Install Python deps
+COPY requirements.txt ./
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir gunicorn
 
-# Copy the rest of the project
+# Copy project code
 COPY . .
 
-# Expose port Django will run on
+# Drop root
+RUN useradd -m appuser && chown -R appuser /app
+USER appuser
+
+# Runtime configuration is passed via environment (DEBUG, SECRET_KEY, ALLOWED_HOSTS, DATABASE_URL)
+ENV PORT=8000
 EXPOSE 8000
 
-# Default command: run Django dev server
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Serve with gunicorn
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+from .models import Field, PrescriptionMap
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -54,3 +55,42 @@ class LoginSerializer(serializers.Serializer):
     """Serializer for user login"""
     username = serializers.CharField(required=True)
     password = serializers.CharField(required=True, write_only=True)
+
+
+class FieldPropertiesSerializer(serializers.Serializer):
+    """Serializer for field properties in GeoJSON features"""
+    applicationRate = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
+    paybackPeriod = serializers.IntegerField(required=False)
+    type = serializers.CharField(required=False)
+
+
+class FieldSerializer(serializers.Serializer):
+    """Serializer for field metadata"""
+    id = serializers.CharField(required=True)
+    cropType = serializers.CharField(required=True)
+    customCrop = serializers.CharField(required=False, allow_blank=True)
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True)
+    unit = serializers.CharField(required=True)
+
+
+class FieldDataSerializer(serializers.Serializer):
+    """Serializer for prescription map data submission"""
+    globalMax = serializers.CharField(required=False, allow_blank=True)
+    field = FieldSerializer(required=True)
+    data = serializers.JSONField(required=True)  # GeoJSON FeatureCollection
+
+
+class FieldModelSerializer(serializers.ModelSerializer):
+    """Serializer for Field model"""
+    class Meta:
+        model = Field
+        fields = ('id', 'field_id', 'crop_type', 'custom_crop', 'price', 'unit', 'global_max', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'created_at', 'updated_at')
+
+
+class PrescriptionMapSerializer(serializers.ModelSerializer):
+    """Serializer for PrescriptionMap model"""
+    class Meta:
+        model = PrescriptionMap
+        fields = ('id', 'field', 'prescription_data', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'created_at', 'updated_at')

@@ -1,4 +1,8 @@
-*, *::before, *::after { box-sizing: border-box; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -24,7 +28,9 @@ a:hover {
   color: #535bf2;
 }
 
-body, html, #root {
+body,
+html,
+#root {
   height: 100%;
   margin: 0;
 }
@@ -35,7 +41,6 @@ body {
   min-width: 320px;
   margin: 0;
 }
-
 
 h1 {
   font-size: 3.2em;
@@ -64,7 +69,6 @@ button:focus-visible {
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
-    background-color: #ffffff;
   }
   a:hover {
     color: #747bff;
@@ -72,4 +76,23 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+/* Geocoder styling overrides */
+.leaflet-control-geocoder input {
+  color: black !important;
+}
+
+.leaflet-control-geocoder .geocoder-form input::placeholder {
+  color: #666 !important;
+}
+
+.leaflet-control-geocoder .geocoder-control-input {
+  color: black !important;
+}
+
+/* If there's a loading/blinking bar, target it similarly */
+.leaflet-control-geocoder .geocoder-spinner {
+  color: black !important;
+  border-color: black !important;
 }
