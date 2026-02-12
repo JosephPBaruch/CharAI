@@ -264,18 +264,16 @@ class PrescriptionMapView(APIView):
         
         # send predicton1 and prediction2 to prescription map genreator
         # prescription_map_data = generate_prescription_map(prediction1, prediction2)
-        payback_period_grid = compute_payback_period_grid(
-            yield_biochar_df=biochar_yield_prediction,
-            yield_control_df=control_yield_prediction,
-            crop_sales_price=50.0,
-            biochar_application_rate=20.0,
-            biochar_price=500.0,
-        )
+        import random
 
-        # Format and send prescirption map data (continue this below)
-        json_points = convert_df_to_points_json(
-            payback_period_df=payback_period_grid,
-        )
+        json_points = []
+
+        for lat, lon in coords[::5]:  # sample some boundary points
+          json_points.append({
+            "lat": lat,
+            "lng": lon,
+            "paybackPeriod": random.uniform(0, 5)
+          })
 
         prescription_data = {
             "applicationRate": 20.0, # placeholder rate
