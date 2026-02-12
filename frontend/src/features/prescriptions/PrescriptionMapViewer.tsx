@@ -31,10 +31,10 @@ interface BackendPoint {
 }
 
 interface PrescriptionMapResponse {
-  applicationRate: number;
-  boundaryCoordinates: LatLng[];
+  application_rate: number;
+  boundary_coordinates: LatLng[];
   points: BackendPoint[];
-  cellDiameterInMeters: number;
+  cell_diameter_in_meters: number;
 }
 
 const buildCellsFromBackendPoints = (
@@ -395,12 +395,14 @@ export default function PrescriptionMapViewer() {
 
   const boundaryCoords = React.useMemo<LatLng[]>(() => {
     if (!prescriptionData) return [];
-    return prescriptionData.boundaryCoordinates;
+    return prescriptionData.boundary_coordinates;
   }, [prescriptionData]);
 
   // Fetch backend data
   React.useEffect(() => {
     GETFields().then((fields) => {
+      console.log("Fields from backend:", fields);
+
       const fieldId = fields["fields"][0]["field_id"].toString();
       if (!fieldId) {
         setIsLoading(false);
@@ -409,6 +411,8 @@ export default function PrescriptionMapViewer() {
 
       GETPrescriptionMap(fieldId)
         .then((data) => {
+          console.log("Prescription map data from backend:", data);
+
           const prescriptionData = data.prescription_data;
           setPrescriptionData(prescriptionData);
 
@@ -459,7 +463,7 @@ export default function PrescriptionMapViewer() {
   React.useEffect(() => {
     if (!mapRef.current || !prescriptionData) return;
 
-    const coords = prescriptionData.boundaryCoordinates.map(
+    const coords = prescriptionData.boundary_coordinates.map(
       (c) => [c.lat, c.lng] as [number, number],
     );
 

@@ -276,8 +276,8 @@ class PrescriptionMapView(APIView):
           })
 
         prescription_data = {
-            "applicationRate": 20.0, # placeholder rate
-            "boundary": coords,
+            "application_rate": 20.0, # placeholder rate
+            "boundary_coordinates": coords,
             "points": json_points,
             "cell_diameter_in_meters": 25.0 # placeholder value, will come from Braydyn's parser?
         }
