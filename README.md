@@ -16,6 +16,7 @@ A full-stack web application built to support **precision agriculture** in the P
       - [Frontend](#frontend)
       - [Backend](#backend)
     - [Docker](#docker)
+  - [Contact](#contact)
 
 ## Project Overview
 
@@ -91,3 +92,7 @@ cd backend
 ```
 
 Replace `HOST` with the hostname or IP address to bind the services to.
+
+## Contact
+
+For questions, partnership inquiries, or to report issues, email `engr-ai4agriculture@uidaho.edu`. Please include "CharAI" in the subject line.
