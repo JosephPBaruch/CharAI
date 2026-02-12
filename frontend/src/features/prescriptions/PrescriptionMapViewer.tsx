@@ -5,16 +5,15 @@ import {
   Container,
   Paper,
   Stack,
+  CircularProgress,
 } from "@mui/material";
 import { COLORS } from "../../styles/colors";
 import React from "react";
 import { useNavigate } from "react-router";
-import { useCoordinates } from "../../contexts/CoordinateContext";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import MapIcon from "@mui/icons-material/Map";
 import GridOnIcon from "@mui/icons-material/GridOn";
-import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { GETFields, GETPrescriptionMap } from "../../api/fetch";
 
@@ -23,8 +22,41 @@ type LatLng = { lat: number; lng: number };
 interface GridCell {
   bounds: L.LatLngBounds;
   paybackPeriod: number;
-  applicationRate: number;
 }
+
+interface BackendPoint {
+  lat: number;
+  lng: number;
+  paybackPeriod: number;
+}
+
+interface PrescriptionMapResponse {
+  applicationRate: number;
+  boundaryCoordinates: LatLng[];
+  points: BackendPoint[];
+  cellDiameterInMeters: number;
+}
+
+const buildCellsFromBackendPoints = (
+  points: BackendPoint[],
+  cellDiameterInMeters = 25,
+): GridCell[] => {
+  return points.map((p) => {
+    const latitudinalRadius = metersToDegreesLat(cellDiameterInMeters) / 2;
+    const longitudinalRadius =
+      metersToDegreesLng(cellDiameterInMeters, p.lat) / 2;
+
+    const bounds = L.latLngBounds(
+      [p.lat - latitudinalRadius, p.lng - longitudinalRadius],
+      [p.lat + latitudinalRadius, p.lng + longitudinalRadius],
+    );
+
+    return {
+      bounds,
+      paybackPeriod: p.paybackPeriod,
+    };
+  });
+};
 
 // Color scale for payback period (1-10)
 const getColorForPayback = (paybackPeriod: number): string => {
@@ -35,83 +67,10 @@ const getColorForPayback = (paybackPeriod: number): string => {
   return COLORS.dataRed; // red
 };
 
-// Point-in-polygon test using ray casting algorithm
-const pointInPolygon = (point: LatLng, polygon: LatLng[]): boolean => {
-  let inside = false;
-  const x = point.lng;
-  const y = point.lat;
-
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const xi = polygon[i].lng;
-    const yi = polygon[i].lat;
-    const xj = polygon[j].lng;
-    const yj = polygon[j].lat;
-
-    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
-      inside = !inside;
-    }
-  }
-
-  return inside;
-};
-
 // Convert meters to degrees (approximate)
 const metersToDegreesLat = (meters: number): number => meters / 111320;
 const metersToDegreesLng = (meters: number, lat: number): number =>
   meters / (111320 * Math.cos((lat * Math.PI) / 180));
-
-// Generate grid cells inside a polygon boundary
-const generateGridCells = (
-  boundary: LatLng[],
-  cellSizeMeters: number,
-): GridCell[] => {
-  if (boundary.length < 3) return [];
-
-  // Find bounding box
-  let minLat = Infinity,
-    maxLat = -Infinity;
-  let minLng = Infinity,
-    maxLng = -Infinity;
-
-  for (const pt of boundary) {
-    minLat = Math.min(minLat, pt.lat);
-    maxLat = Math.max(maxLat, pt.lat);
-    minLng = Math.min(minLng, pt.lng);
-    maxLng = Math.max(maxLng, pt.lng);
-  }
-
-  const centerLat = (minLat + maxLat) / 2;
-  const cellSizeLat = metersToDegreesLat(cellSizeMeters);
-  const cellSizeLng = metersToDegreesLng(cellSizeMeters, centerLat);
-
-  const cells: GridCell[] = [];
-
-  // Generate grid cells
-  for (let lat = minLat; lat < maxLat; lat += cellSizeLat) {
-    for (let lng = minLng; lng < maxLng; lng += cellSizeLng) {
-      // Check if cell center is inside polygon
-      const cellCenter: LatLng = {
-        lat: lat + cellSizeLat / 2,
-        lng: lng + cellSizeLng / 2,
-      };
-
-      if (pointInPolygon(cellCenter, boundary)) {
-        const bounds = L.latLngBounds(
-          [lat, lng],
-          [lat + cellSizeLat, lng + cellSizeLng],
-        );
-
-        cells.push({
-          bounds,
-          paybackPeriod: Math.floor(Math.random() * 10) + 1,
-          applicationRate: 5,
-        });
-      }
-    }
-  }
-
-  return cells;
-};
 
 class GridCanvasLayer extends L.Layer {
   private _canvas: HTMLCanvasElement | null = null;
@@ -422,62 +381,107 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ cells }) => {
 
 export default function PrescriptionMapViewer() {
   const navigate = useNavigate();
-  const {
-    data: committedCoords,
-    hasCoordinates,
-    isLoading,
-    clearCoordinateData,
-    formSubmitted,
-    setFormSubmitted,
-  } = useCoordinates();
 
   const mapContainerRef = React.useRef<HTMLDivElement | null>(null);
   const mapRef = React.useRef<L.Map | null>(null);
   const gridLayerRef = React.useRef<GridCanvasLayer | null>(null);
-  const boundaryLayerRef = React.useRef<L.Polyline | null>(null);
+  const boundaryLayerRef = React.useRef<L.Polygon | null>(null);
   const tooltipRef = React.useRef<HTMLDivElement | null>(null);
 
+  const [isLoading, setIsLoading] = React.useState<boolean>(true);
+  const [prescriptionData, setPrescriptionData] =
+    React.useState<PrescriptionMapResponse | null>(null);
   const [cells, setCells] = React.useState<GridCell[]>([]);
 
-  // Extract boundary coordinates from context
   const boundaryCoords = React.useMemo<LatLng[]>(() => {
-    // From context (GeoJSON FeatureCollection)
-    if (
-      committedCoords &&
-      (committedCoords as any).type === "FeatureCollection"
-    ) {
-      const fc = committedCoords as any;
-      const polyFeature = fc.features?.find(
-        (f: any) => f.geometry?.type === "Polygon",
-      );
+    if (!prescriptionData) return [];
+    return prescriptionData.boundaryCoordinates;
+  }, [prescriptionData]);
 
-      if (polyFeature?.geometry?.coordinates?.[0]) {
-        return polyFeature.geometry.coordinates[0].map(
-          (coord: [number, number]) => ({
-            lat: coord[1],
-            lng: coord[0],
-          }),
-        );
+  // Fetch backend data
+  React.useEffect(() => {
+    GETFields().then((fields) => {
+      const fieldId = fields["fields"][0]["field_id"].toString();
+      if (!fieldId) {
+        setIsLoading(false);
+        return;
       }
+
+      GETPrescriptionMap(fieldId)
+        .then((data) => {
+          const prescriptionData = data.prescription_data;
+          setPrescriptionData(prescriptionData);
+
+          const newCells = buildCellsFromBackendPoints(
+            prescriptionData.points,
+            prescriptionData.cell_size_in_meters,
+          );
+          setCells(newCells);
+        })
+        .catch(() => setPrescriptionData(null))
+        .finally(() => setIsLoading(false));
+    });
+  }, []);
+
+  // Initialize grid layer
+  React.useEffect(() => {
+    if (!mapRef.current || cells.length === 0) return;
+
+    if (!gridLayerRef.current) {
+      gridLayerRef.current = new GridCanvasLayer(cells, (cell, e) => {
+        if (!tooltipRef.current) return;
+
+        if (!cell) {
+          tooltipRef.current.style.display = "none";
+          return;
+        }
+
+        tooltipRef.current.style.display = "block";
+        tooltipRef.current.style.left = `${e.pageX + 12}px`;
+        tooltipRef.current.style.top = `${e.pageY + 12}px`;
+
+        const center = cell.bounds.getCenter();
+
+        tooltipRef.current.innerHTML = `
+          <div><strong>Payback:</strong> ${cell.paybackPeriod} years</div>
+          <div><strong>Lat:</strong> ${center.lat.toFixed(5)}</div>
+          <div><strong>Lng:</strong> ${center.lng.toFixed(5)}</div>
+        `;
+      });
+
+      gridLayerRef.current.addTo(mapRef.current);
+    } else {
+      gridLayerRef.current.setCells(cells);
+    }
+  }, [cells]);
+
+  // Initialize and add boundary layer
+  React.useEffect(() => {
+    if (!mapRef.current || !prescriptionData) return;
+
+    const coords = prescriptionData.boundaryCoordinates.map(
+      (c) => [c.lat, c.lng] as [number, number],
+    );
+
+    if (coords.length < 3) return;
+
+    if (boundaryLayerRef.current) {
+      mapRef.current.removeLayer(boundaryLayerRef.current);
     }
 
-    return [];
-  }, [committedCoords]);
+    boundaryLayerRef.current = L.polygon(coords, {
+      color: "#00ffcc",
+      weight: 2,
+      fill: false,
+    }).addTo(mapRef.current);
+
+    mapRef.current.fitBounds(boundaryLayerRef.current.getBounds());
+  }, [prescriptionData]);
 
   // Initialize map
   React.useEffect(() => {
     // TODO: Use the prescription map which is retrieve from the backend
     // Currently, the prescription map is generated
-    GETFields().then((fields) => {
-      console.log(
-        GETPrescriptionMap(fields["fields"][0]["field_id"].toString()).then(
-          (data) => {
-            console.log(data);
-          },
-        ),
-      );
-    });
-
     if (!mapContainerRef.current || mapRef.current) return;
 
     const map = L.map(mapContainerRef.current, {
@@ -538,89 +542,11 @@ export default function PrescriptionMapViewer() {
     };
   }, []);
 
-  // Update boundary and grid when data changes
-  React.useEffect(() => {
-    const map = mapRef.current;
-    if (!map || boundaryCoords.length < 3 || !formSubmitted) return;
-
-    // Remove old layers
-    if (boundaryLayerRef.current) {
-      map.removeLayer(boundaryLayerRef.current);
-    }
-    if (gridLayerRef.current) {
-      map.removeLayer(gridLayerRef.current);
-    }
-
-    // Draw boundary line
-    const latLngs = boundaryCoords.map((c) => L.latLng(c.lat, c.lng));
-    latLngs.push(latLngs[0]);
-
-    const boundaryLine = L.polyline(latLngs, {
-      color: COLORS.gold,
-      weight: 3,
-      opacity: 1,
-    }).addTo(map);
-
-    boundaryLayerRef.current = boundaryLine;
-
-    // Generate grid cells
-    const generatedCells = generateGridCells(boundaryCoords, 25);
-    setCells(generatedCells);
-    console.log(
-      `[PrescriptionMapViewer] Generated ${generatedCells.length} grid cells`,
-    );
-
-    // Hover handler for tooltip
-    const handleHover = (cell: GridCell | null, e: MouseEvent) => {
-      if (!tooltipRef.current) return;
-
-      if (cell) {
-        tooltipRef.current.innerHTML = `
-          <div style="font-weight: 600; margin-bottom: 4px; color: #a5b4fc;">Cell Details</div>
-          <div>Payback: <strong>${cell.paybackPeriod} years</strong></div>
-          <div>Application Rate: <strong>${cell.applicationRate} tons/acre</strong></div>
-        `;
-        tooltipRef.current.style.display = "block";
-        tooltipRef.current.style.left = `${e.clientX + 12}px`;
-        tooltipRef.current.style.top = `${e.clientY + 12}px`;
-      } else {
-        tooltipRef.current.style.display = "none";
-      }
-    };
-
-    // Add grid canvas layer
-    const gridLayer = new GridCanvasLayer(generatedCells, handleHover);
-    gridLayer.addTo(map);
-    gridLayerRef.current = gridLayer;
-
-    // Fit bounds to boundary
-    const bounds = L.latLngBounds(latLngs);
-    map.fitBounds(bounds, { padding: [60, 60] });
-  }, [boundaryCoords, formSubmitted]);
-
-  // Clear grid when form not submitted
-  React.useEffect(() => {
-    if (!formSubmitted && mapRef.current) {
-      if (boundaryLayerRef.current) {
-        mapRef.current.removeLayer(boundaryLayerRef.current);
-        boundaryLayerRef.current = null;
-      }
-      if (gridLayerRef.current) {
-        mapRef.current.removeLayer(gridLayerRef.current);
-        gridLayerRef.current = null;
-      }
-      setCells([]);
-    }
-  }, [formSubmitted]);
-
-  const handleReset = () => {
-    clearCoordinateData();
-    setFormSubmitted(false);
-    navigate("/");
-  };
+  // Loading state
+  if (isLoading) return <CircularProgress />;
 
   // Empty state
-  if (!isLoading && (!hasCoordinates || !formSubmitted)) {
+  if (!prescriptionData || boundaryCoords.length < 3) {
     return (
       <Container maxWidth="sm">
         <Box
@@ -722,25 +648,6 @@ export default function PrescriptionMapViewer() {
             Biochar application recommendations based on your field analysis
           </Typography>
         </Box>
-
-        <Stack direction="row" spacing={1.5}>
-          <Button
-            variant="outlined"
-            startIcon={<RestartAltIcon />}
-            onClick={handleReset}
-            sx={{
-              borderColor: COLORS.errorBorder,
-              color: COLORS.error,
-              textTransform: "none",
-              "&:hover": {
-                borderColor: COLORS.error,
-                backgroundColor: COLORS.errorLight,
-              },
-            }}
-          >
-            Reset
-          </Button>
-        </Stack>
       </Box>
 
       {/* Main content */}
