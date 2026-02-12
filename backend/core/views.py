@@ -262,7 +262,7 @@ class PrescriptionMapView(APIView):
         logger.info(f"yield_results_result_df shape: {yield_results_result_df.shape}")
         logger.info(f"yield_results_result_df head:\n{yield_results_result_df.head()}")
         
-        # TODO: send predicton1 and prediction2 to prescription map genreator
+        # send predicton1 and prediction2 to prescription map genreator
         # prescription_map_data = generate_prescription_map(prediction1, prediction2)
         payback_period_grid = compute_payback_period_grid(
             yield_biochar_df=biochar_yield_prediction,
@@ -272,17 +272,23 @@ class PrescriptionMapView(APIView):
             biochar_price=500.0,
         )
 
-        # TODO: Format and send prescirption map data (continue this below)
-        prescription_geojson = format_grid_as_geojson(
+        # Format and send prescirption map data (continue this below)
+        json_points = convert_df_to_points_json(
             payback_period_df=payback_period_grid,
-            biochar_application_rate=20.0, # temp placeholder
         )
+
+        prescription_data = {
+            "applicationRate": 20.0, # placeholder rate
+            "boundary": coords,
+            "points": json_points,
+            "cell_diameter_in_meters": 25.0 # placeholder value, will come from Braydyn's parser?
+        }
 
         # Get or create prescription map
         prescription_map, _ = PrescriptionMap.objects.get_or_create(
             field=field,
             defaults={
-                'prescription_data': prescription_geojson
+                'prescription_data': prescription_data,
             }
         )
         

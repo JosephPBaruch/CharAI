@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 # Compute payback period (years) for each grid cell, giving the prescription map its main data
 def compute_payback_period_grid(
@@ -43,50 +43,30 @@ def compute_payback_period_grid(
     )
     return result
 
-def format_grid_as_geojson(
-    payback_period_df: pd.DataFrame,
-    biochar_application_rate: float,
-    # Assumes Lat and Long fields are the cell's center points, so we find cell's borders
-    # TODO: Add cell border calculation logic based on feet / meters, aka different cell size units
-    # TODO: Refactor cell border logic into separate function
-    cell_size_in_degrees: float = 0.0002
-) -> Dict[str, Any]:
+def convert_df_to_points_json(payback_period_df: pd.DataFrame) -> List[Dict]:
     """
-    Convert DataFrame with 'Lat', 'Long', 'Payback_Period' into GeoJSON polygons.
+    Convert a DataFrame with Index, Lat, Long, Payback_Period
+    into a JSON-friendly list of points for the frontend.
+
+    Subject to change. Currently, simplicity and output is prioritized over optimization.
+
+    Example output:
+    [
+        {"lat": 46.72, "lng": -117.18, "paybackPeriod": 3},
+        {"lat": 46.73, "lng": -117.18, "paybackPeriod": 5},
+        ...
+    ]
     """
-    features = []
+    required_columns = {"Index", "Lat", "Long", "Payback_Period"}
+    if not required_columns.issubset(payback_period_df.columns):
+        raise ValueError(f"DataFrame must contain columns {required_columns}")
 
-    half_size = cell_size_in_degrees / 2
-
+    points = []
     for _, row in payback_period_df.iterrows():
-        lat = row["Lat"]
-        lng = row["Long"]
-        pbp = row["Payback_Period"]
-
-        # Polygon corners around the point
-        polygon = [
-            [lng - half_size, lat + half_size],
-            [lng + half_size, lat + half_size],
-            [lng + half_size, lat - half_size],
-            [lng - half_size, lat - half_size],
-            [lng - half_size, lat + half_size],
-        ]
-
-        features.append({
-            "type": "Feature",
-            "properties": {
-                "paybackPeriod": float(pbp),
-            },
-            "geometry": {
-                "type": "Polygon",
-                "coordinates": [polygon],
-            },
+        points.append({
+            "lat": float(row["Lat"]),
+            "lng": float(row["Long"]),
+            "paybackPeriod": float(row["Payback_Period"]),
         })
 
-    return {
-        "type": "FeatureCollection",
-        "properties": {
-            "applicationRate": float(biochar_application_rate),
-        },
-        "features": features,
-    }
+    return points
