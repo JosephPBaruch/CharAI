@@ -17,8 +17,6 @@ import GridOnIcon from "@mui/icons-material/GridOn";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { GETFields, GETPrescriptionMap } from "../../api/fetch";
 
-type LatLng = { lat: number; lng: number };
-
 interface GridCell {
   bounds: L.LatLngBounds;
   paybackPeriod: number;
@@ -32,7 +30,7 @@ interface BackendPoint {
 
 interface PrescriptionMapResponse {
   application_rate: number;
-  boundary_coordinates: LatLng[];
+  boundary_coordinates: [number, number][];
   points: BackendPoint[];
   cell_diameter_in_meters: number;
 }
@@ -393,7 +391,7 @@ export default function PrescriptionMapViewer() {
     React.useState<PrescriptionMapResponse | null>(null);
   const [cells, setCells] = React.useState<GridCell[]>([]);
 
-  const boundaryCoords = React.useMemo<LatLng[]>(() => {
+  const boundaryCoords = React.useMemo<[number, number][]>(() => {
     if (!prescriptionData) return [];
     return prescriptionData.boundary_coordinates;
   }, [prescriptionData]);
@@ -418,7 +416,7 @@ export default function PrescriptionMapViewer() {
 
           const newCells = buildCellsFromBackendPoints(
             prescriptionData.points,
-            prescriptionData.cell_size_in_meters,
+            prescriptionData.cell_diameter_in_meters,
           );
           setCells(newCells);
         })
@@ -463,9 +461,7 @@ export default function PrescriptionMapViewer() {
   React.useEffect(() => {
     if (!mapRef.current || !prescriptionData) return;
 
-    const coords = prescriptionData.boundary_coordinates.map(
-      (c) => [c.lat, c.lng] as [number, number],
-    );
+    const coords = prescriptionData.boundary_coordinates as [number, number][];
 
     if (coords.length < 3) return;
 
@@ -484,6 +480,7 @@ export default function PrescriptionMapViewer() {
 
   // Initialize map
   React.useEffect(() => {
+    console.log("Map effect running", mapContainerRef.current);
     // TODO: Use the prescription map which is retrieve from the backend
     // Currently, the prescription map is generated
     if (!mapContainerRef.current || mapRef.current) return;
@@ -544,7 +541,7 @@ export default function PrescriptionMapViewer() {
         mapRef.current = null;
       }
     };
-  }, []);
+  }, [isLoading]);
 
   // Loading state
   if (isLoading) return <CircularProgress />;
@@ -669,7 +666,7 @@ export default function PrescriptionMapViewer() {
         >
           <div
             ref={mapContainerRef}
-            style={{ height: "100%", width: "100%" }}
+            style={{ height: "600px", width: "300px" }}
           />
 
           {/* Info overlay */}
