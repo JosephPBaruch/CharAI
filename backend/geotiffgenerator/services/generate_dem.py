@@ -1,7 +1,8 @@
 """
 DEM Generation Service
 
-Location: your_app/services/generate_dem.py
+Location: geotiffgenerator/services/generate_dem.py
+(see test_dem.py for usage example)
 
 This service handles Digital Elevation Model (DEM) generation from coordinates.
 Used internally by other scripts and services.
