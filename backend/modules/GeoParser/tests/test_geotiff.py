@@ -64,13 +64,6 @@ class TestGeoTIFFData(unittest.TestCase):
         # Verify cell_size_m >= requested_cell_size_m (effective is always >= requested)
         self.assertTrue((df["cell_size_m"] >= df["requested_cell_size_m"] * 0.99).all())  # 0.99 for float tolerance
 
-    def test_to_pixel_dataframe(self) -> None:
-        df = self.tiff.to_pixel_dataframe()
-        for col in ["row", "col", "lat", "lon", "elev_m"]:
-            self.assertIn(col, df.columns)
-        expected_len = int(np.isfinite(self.tiff.data).sum())
-        self.assertEqual(len(df), expected_len)
-
 
 if __name__ == "__main__":
     unittest.main()

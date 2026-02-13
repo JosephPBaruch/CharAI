@@ -92,22 +92,6 @@ class GeoTIFFData:
 
         return self.data.shape
 
-    def sample_pixel(self, row: int, col: int) -> float:
-        """Get elevation at the given pixel coordinate."""
-
-        if row < 0 or col < 0 or row >= self.height or col >= self.width:
-            raise IndexError(
-                f"Pixel index ({row}, {col}) is outside raster bounds "
-                f"(0-{self.height-1}, 0-{self.width-1})."
-            )
-        return float(self.data[row, col])
-
-    def sample_world(self, x: Number, y: Number) -> float:
-        row: float
-        col: float
-        row, col = ~self.transform * (x, y)
-        return self.sample_pixel(int(round(row)), int(round(col)))
-
     def normalized(self) -> np.ndarray:
         """Returns elevation normalized to [0, 1]. NaNs are ignored."""
 
@@ -328,35 +312,4 @@ class GeoTIFFData:
             df["elev_range_m"] = df["elev_range_m"].round(2)
             df["elev_std_m"] = df["elev_std_m"].round(3)
         
-        return df
-
-    def to_pixel_dataframe(self, output_crs: str = "EPSG:4326", remove_nodata: bool = True):
-        """
-        Returns a pixel-level dataframe for debugging (optional).
-        """
-        if not HAS_PANDAS:
-            raise ImportError("pandas is required for to_pixel_dataframe(). Install with: pip install pandas")
-        rows, cols = np.meshgrid(
-            np.arange(self.height),
-            np.arange(self.width),
-            indexing="ij",
-        )
-        xs, ys = self.transform * (cols, rows)
-        if self.crs is None:
-            raise ValueError("CRS is not defined; cannot build pixel dataframe.")
-        if self.crs == output_crs:
-            lons = xs
-            lats = ys
-        else:
-            transformer = Transformer.from_crs(self.crs, output_crs, always_xy=True)
-            lons, lats = transformer.transform(xs, ys)
-        df = pd.DataFrame({
-            "row": rows.ravel(),
-            "col": cols.ravel(),
-            "lat": lats.ravel(),
-            "lon": lons.ravel(),
-            "elev_m": self.data.ravel(),
-        })
-        if remove_nodata:
-            df = df[np.isfinite(df["elev_m"])].reset_index(drop=True)
         return df
