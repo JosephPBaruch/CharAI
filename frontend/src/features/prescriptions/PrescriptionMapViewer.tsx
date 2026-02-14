@@ -666,7 +666,7 @@ export default function PrescriptionMapViewer() {
         >
           <div
             ref={mapContainerRef}
-            style={{ height: "600px", width: "300px" }}
+            style={{ height: "100%", width: "100%" }}
           />
 
           {/* Info overlay */}

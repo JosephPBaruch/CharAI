@@ -221,7 +221,6 @@ class PrescriptionMapView(APIView):
         )
         
         # Call geotiff generator
-        """
         if coords:
             coords_str = [f"{lat},{lon}" for lat, lon in coords]
             call_command(
@@ -275,18 +274,7 @@ class PrescriptionMapView(APIView):
         
         # send predicton1 and prediction2 to prescription map genreator
         # prescription_map_data = generate_prescription_map(prediction1, prediction2)
-
-
-        import random
-
         json_points = []
-
-        for lat, lon in coords[::5]:  # sample some boundary points
-          json_points.append({
-            "lat": lat,
-            "lng": lon,
-            "paybackPeriod": random.uniform(0, 5)
-          })
 
         prescription_data = {
             "application_rate": 20.0, # placeholder rate
