@@ -148,10 +148,10 @@ class FieldDataView(APIView):
             global_max = validated_data.get('globalMax', '')
             
             # Create or update the field record
-            field, created = Field.objects.update_or_create(
+            field, created = Field.objects.get_or_create(
                 user=request.user,
-                field_id=field_info.get('id'),
                 defaults={
+                    'field_id': 'main-field',
                     'crop_type': field_info.get('cropType'),
                     'custom_crop': field_info.get('customCrop', ''),
                     'price': field_info.get('price'),
@@ -160,6 +160,16 @@ class FieldDataView(APIView):
                     'geojson_data': geojson_data,
                 }
             )
+
+            if not created:
+                # Update the existing field
+                field.crop_type = field_info.get('cropType')
+                field.custom_crop = field_info.get('customCrop', '')
+                field.price = field_info.get('price')
+                field.unit = field_info.get('unit')
+                field.global_max = global_max
+                field.geojson_data = geojson_data
+                field.save()
             
             response_data = {
                 'message': 'Field data received successfully',
@@ -211,6 +221,7 @@ class PrescriptionMapView(APIView):
         )
         
         # Call geotiff generator
+        """
         if coords:
             coords_str = [f"{lat},{lon}" for lat, lon in coords]
             call_command(
@@ -264,6 +275,8 @@ class PrescriptionMapView(APIView):
         
         # send predicton1 and prediction2 to prescription map genreator
         # prescription_map_data = generate_prescription_map(prediction1, prediction2)
+
+
         import random
 
         json_points = []
@@ -282,13 +295,15 @@ class PrescriptionMapView(APIView):
             "cell_diameter_in_meters": 25.0 # placeholder value, will come from Braydyn's parser?
         }
 
-        # Get or create prescription map
-        prescription_map, _ = PrescriptionMap.objects.get_or_create(
+        prescription_map, created = PrescriptionMap.objects.get_or_create(
             field=field,
-            defaults={
-                'prescription_data': prescription_data,
-            }
+            defaults={'prescription_data': prescription_data}
         )
-        
+
+        if not created:
+            # If map already exists, overwrite it with new data
+            prescription_map.prescription_data = prescription_data
+            prescription_map.save()
+
         serializer = PrescriptionMapSerializer(prescription_map)
         return Response(serializer.data, status=status.HTTP_200_OK)
