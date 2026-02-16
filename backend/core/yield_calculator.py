@@ -1,7 +1,7 @@
 """
 Yield Calculator
 
-Location: yieldcalculator/services/yield_calculator.py
+Location: backend/core/yield_calculator.py
 
 This calculates crop yield predictions for grid cells based on terrain
 and soil characteristics, with and without biochar application.
