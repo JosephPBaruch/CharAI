@@ -8,9 +8,13 @@ from django.core.management import call_command
 from django.conf import settings
 from datetime import datetime
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer, FieldModelSerializer, PrescriptionMapSerializer
 from .models import Field, PrescriptionMap
 from modules.GeoParser import GeoParser
+from .yield_calculator import YieldCalculator
 
 #api calls & endpoints
 class RegisterView(APIView):
@@ -216,6 +220,8 @@ class PrescriptionMapView(APIView):
                 '--resolution', '5.0'
             )
         
+        logger.info("Finished generating tiff")
+        
         # Parse GeoTIFF and extract terrain data
         try:
             parser = GeoParser(tiff_file_path)
@@ -229,21 +235,31 @@ class PrescriptionMapView(APIView):
                 'error': f'Failed to parse GeoTIFF: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+        logger.info("Finished parsing tiff")
+        
         # TODO: Fetch additional data here
         # field_data = fetch_additional_data(field_data)
         
-        # TODO: Duplicate the data set (set1, set2)
-        # field_data_set1 = field_data
-        # field_data_set1 = field_data
+        terrain_df_copy = terrain_df.copy()
         
-        # TODO: Modify the data set2 with effect of biochar
-        # field_data_set2 = apply_biochar_effect(field_data)
+        try:
+            calculator = YieldCalculator()
+            
+            # Make yield prediction with biochar added
+            yield_results_df_biochar = calculator.calculate(terrain_df_copy, use_biochar=True)
+            
+            # Make yield prediction without biochar added
+            yield_results_result_df = calculator.calculate(terrain_df, use_biochar=False)
+        except Exception as e:
+            return Response({
+                'error': f'Failed to make yield predictions: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        # TODO: Send set1 to yield predictor/calculator
-        # prediction1 = yield_predictor(field_data_set1)
-        
-        # TODO: Send set2 (biochar) to yield predictor
-        # prediction2 = yield_predictor(field_data_set2)
+        logger.info("Finished predicting yield")
+        logger.info(f"yield_results_df_biochar shape: {yield_results_df_biochar.shape}")
+        logger.info(f"yield_results_df_biochar head:\n{yield_results_df_biochar.head()}")
+        logger.info(f"yield_results_result_df shape: {yield_results_result_df.shape}")
+        logger.info(f"yield_results_result_df head:\n{yield_results_result_df.head()}")
         
         # TODO: send predicton1 and prediction2 to prescription map genreator
         # prescription_map_data = generate_prescription_map(prediction1, prediction2)
