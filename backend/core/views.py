@@ -10,6 +10,7 @@ from datetime import datetime
 import os
 from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer, FieldModelSerializer, PrescriptionMapSerializer
 from .models import Field, PrescriptionMap
+from modules.GeoParser import GeoParser
 
 #api calls & endpoints
 class RegisterView(APIView):
@@ -215,8 +216,18 @@ class PrescriptionMapView(APIView):
                 '--resolution', '5.0'
             )
         
-        # TODO: Geotiff parsers here
-        # field_data = parse_geotiff(tiff_file_path)
+        # Parse GeoTIFF and extract terrain data
+        try:
+            parser = GeoParser(tiff_file_path)
+            geotiff_data = parser.parse()
+            
+            # Convert to cell-based dataframe with terrain metrics
+            terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
+
+        except Exception as e: #VERY IMPORTANT TO HAVE THESE EVERYWHERE! This helps catch errors at any point in the process
+            return Response({
+                'error': f'Failed to parse GeoTIFF: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         # TODO: Fetch additional data here
         # field_data = fetch_additional_data(field_data)

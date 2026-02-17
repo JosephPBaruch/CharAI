@@ -12,6 +12,8 @@ from pyproj import Transformer
 from rasterio.coords import BoundingBox
 from rasterio.transform import Affine
 
+from .terrain_analysis import fill_nans_neighbor_based, calculate_terrain_metrics
+
 try:
     import pandas as pd
     HAS_PANDAS = True
@@ -41,12 +43,6 @@ class GeoTIFFData:
     @classmethod
     def from_file(cls, path: str | Path, band: int = 1) -> "GeoTIFFData":
         file_path = Path(path).expanduser().resolve()
-        if not file_path.exists():
-            raise FileNotFoundError(f"GeoTIFF not found at '{file_path}'.")
-        
-        if not file_path.is_file():
-            raise ValueError(f"Path is not a file: '{file_path}'")
-
         try:
             with rasterio.open(file_path) as src:
                 if band < 1 or band > src.count:
@@ -181,27 +177,10 @@ class GeoTIFFData:
             pixel_size_y_meters = pixel_size_y
         pixel_size_meters = (pixel_size_x_meters + pixel_size_y_meters) / 2
 
-        # Iterative NaN fill using nearest 4-neighbors
-        elev_for_grad = self.data.copy()
-        for _ in range(5):
-            if not np.any(np.isnan(elev_for_grad)):
-                break
-            filled = elev_for_grad.copy()
-            for i in range(elev_for_grad.shape[0]):
-                for j in range(elev_for_grad.shape[1]):
-                    if np.isnan(elev_for_grad[i, j]):
-                        neighbors = []
-                        for (di, dj) in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-                            ni, nj = i + di, j + dj
-                            if 0 <= ni < elev_for_grad.shape[0] and 0 <= nj < elev_for_grad.shape[1]:
-                                if np.isfinite(elev_for_grad[ni, nj]):
-                                    neighbors.append(elev_for_grad[ni, nj])
-                        if neighbors:
-                            filled[i, j] = np.mean(neighbors)
-            elev_for_grad = filled
+        # Fill NaNs using neighbor-based approach for terrain metric calculation
+        elev_for_grad = fill_nans_neighbor_based(self.data)
 
         # Compute terrain metrics from filled elevation
-        from .terrain_analysis import calculate_terrain_metrics
         slope, aspect = calculate_terrain_metrics(
             elev_for_grad,
             pixel_size_x_meters,
@@ -267,7 +246,7 @@ class GeoTIFFData:
                     aspect_northness = float(np.cos(np.radians(aspect_mean)))
                     aspect_eastness = float(np.sin(np.radians(aspect_mean)))
                 else:
-                    aspect_mean = np.nan
+                    aspect_mean = 0.0
                     aspect_northness = 0.0
                     aspect_eastness = 0.0
                 cell = {
