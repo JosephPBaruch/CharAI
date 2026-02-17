@@ -274,23 +274,29 @@ class PrescriptionMapView(APIView):
         
         # send predicton1 and prediction2 to prescription map genreator
         # prescription_map_data = generate_prescription_map(prediction1, prediction2)
-        json_points = []
+        yield_control_df, yield_biochar_df = pd.DataFrame(columns=["Index", "Lat", "Long", "Yield"])
 
-        prescription_data = {
-            "application_rate": 20.0, # placeholder rate
-            "boundary_coordinates": coords,
-            "points": json_points,
-            "cell_diameter_in_meters": 25.0 # placeholder value, will come from Braydyn's parser?
-        }
+        payback_period_df = compute_payback_period_grid(
+            yield_control_df=yield_control_df,
+            yield_biochar_df=yield_biochar_df,
+            crop_sales_price=field.price,
+            biochar_application_rate=10.0,
+            biochar_price=20.0)
+        
+        prescription_data_geojson = convert_df_to_geojson_polygons(
+            payback_period_df=payback_period_df,
+            cell_size_meters=25.0,
+            biochar_application_rate=10.0
+        )
 
         prescription_map, created = PrescriptionMap.objects.get_or_create(
             field=field,
-            defaults={'prescription_data': prescription_data}
+            defaults={'prescription_data': prescription_data_geojson}
         )
 
         if not created:
             # If map already exists, overwrite it with new data
-            prescription_map.prescription_data = prescription_data
+            prescription_map.prescription_data = prescription_data_geojson
             prescription_map.save()
 
         serializer = PrescriptionMapSerializer(prescription_map)

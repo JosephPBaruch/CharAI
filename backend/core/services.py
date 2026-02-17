@@ -1,12 +1,14 @@
+from decimal import Decimal
 import numpy as np
 import pandas as pd
+import math
 from typing import Dict, Any, List
 
 # Compute payback period (years) for each grid cell, giving the prescription map its main data
 def compute_payback_period_grid(
     yield_control_df: pd.DataFrame,
     yield_biochar_df: pd.DataFrame,
-    crop_sales_price: float,
+    crop_sales_price: Decimal,
     biochar_application_rate: float,
     biochar_price: float,
 ) -> pd.DataFrame:
@@ -43,30 +45,64 @@ def compute_payback_period_grid(
     )
     return result
 
-def convert_df_to_points_json(payback_period_df: pd.DataFrame) -> List[Dict]:
+def convert_df_to_geojson_polygons(
+    payback_period_df: pd.DataFrame,
+    cell_size_meters: float,
+    biochar_application_rate: float,
+) -> Dict[str, Any]:
     """
-    Convert a DataFrame with Index, Lat, Long, Payback_Period
-    into a JSON-friendly list of points for the frontend.
+    Convert DataFrame into polygon-based GeoJSON FeatureCollection.
 
-    Subject to change. Currently, simplicity and output is prioritized over optimization.
+    Each row becomes a square polygon centered at (Lat, Long).
 
-    Example output:
-    [
-        {"lat": 46.72, "lng": -117.18, "paybackPeriod": 3},
-        {"lat": 46.73, "lng": -117.18, "paybackPeriod": 5},
-        ...
-    ]
+    Returns:
+    GeoJSON FeatureCollection
     """
+
     required_columns = {"Index", "Lat", "Long", "Payback_Period"}
     if not required_columns.issubset(payback_period_df.columns):
         raise ValueError(f"DataFrame must contain columns {required_columns}")
 
-    points = []
-    for _, row in payback_period_df.iterrows():
-        points.append({
-            "lat": float(row["Lat"]),
-            "lng": float(row["Long"]),
-            "paybackPeriod": float(row["Payback_Period"]),
-        })
+    features = []
 
-    return points
+    cell_radius = cell_size_meters / 2.0
+
+    for _, row in payback_period_df.iterrows():
+        lat = float(row["Lat"])
+        lon = float(row["Long"])
+        payback = float(row["Payback_Period"])
+
+        # Convert meters to degrees
+        lat_offset = cell_radius / 111320.0
+        lon_offset = cell_radius / (111320.0 * math.cos(math.radians(lat)))
+
+        polygon = [
+            [lon - lon_offset, lat - lat_offset],
+            [lon + lon_offset, lat - lat_offset],
+            [lon + lon_offset, lat + lat_offset],
+            [lon - lon_offset, lat + lat_offset],
+            [lon - lon_offset, lat - lat_offset],
+        ]
+
+        feature = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [polygon],
+            },
+            "properties": {
+                "index": int(row["Index"]),
+                "paybackPeriod": payback,
+                "applicationRate": biochar_application_rate,
+                "cellSize": cell_size_meters,
+            },
+        }
+
+        features.append(feature)
+
+    geojson = {
+        "type": "FeatureCollection",
+        "features": features,
+    }
+
+    return geojson
