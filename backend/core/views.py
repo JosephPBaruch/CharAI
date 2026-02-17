@@ -11,11 +11,13 @@ import os
 import logging
 
 logger = logging.getLogger(__name__)
+import logging
+
+logger = logging.getLogger(__name__)
 from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer, FieldModelSerializer, PrescriptionMapSerializer
 from .models import Field, PrescriptionMap
 from modules.GeoParser import GeoParser
 from .yield_calculator import YieldCalculator
-from .services import compute_payback_period_grid, format_grid_as_geojson
 
 #api calls & endpoints
 class RegisterView(APIView):
@@ -230,6 +232,23 @@ class PrescriptionMapView(APIView):
                 '--dem-type', 'SRTMGL3',
                 '--resolution', '5.0'
             )
+        
+        logger.info("Finished generating tiff")
+        
+        # Parse GeoTIFF and extract terrain data
+        try:
+            parser = GeoParser(tiff_file_path)
+            geotiff_data = parser.parse()
+            
+            # Convert to cell-based dataframe with terrain metrics
+            terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
+
+        except Exception as e: #VERY IMPORTANT TO HAVE THESE EVERYWHERE! This helps catch errors at any point in the process
+            return Response({
+                'error': f'Failed to parse GeoTIFF: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        logger.info("Finished parsing tiff")
         
         logger.info("Finished generating tiff")
         
