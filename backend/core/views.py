@@ -1,3 +1,4 @@
+from .services import compute_payback_period_grid, convert_df_to_geojson_polygons
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -293,18 +294,15 @@ class PrescriptionMapView(APIView):
         
         # send predicton1 and prediction2 to prescription map genreator
         # prescription_map_data = generate_prescription_map(prediction1, prediction2)
-        yield_control_df, yield_biochar_df = pd.DataFrame(columns=["Index", "Lat", "Long", "Yield"])
-
         payback_period_df = compute_payback_period_grid(
-            yield_control_df=yield_control_df,
-            yield_biochar_df=yield_biochar_df,
+            yield_prediction_df=yield_results_df_biochar,
             crop_sales_price=field.price,
             biochar_application_rate=10.0,
             biochar_price=20.0)
         
         prescription_data_geojson = convert_df_to_geojson_polygons(
             payback_period_df=payback_period_df,
-            cell_size_meters=25.0,
+            cell_size_meters=10.0,
             biochar_application_rate=10.0
         )
 
