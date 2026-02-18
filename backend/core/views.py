@@ -1,4 +1,4 @@
-from .services import compute_payback_period_grid, convert_df_to_geojson_polygons
+from .services import compute_payback_period_grid, convert_df_to_geojson_polygons, parse_and_append_boundary_coordinates
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -304,6 +304,11 @@ class PrescriptionMapView(APIView):
             payback_period_df=payback_period_df,
             cell_size_meters=10.0,
             biochar_application_rate=10.0
+        )
+
+        prescription_data_geojson = parse_and_append_boundary_coordinates(
+            prescription_data_geojson,
+            field.geojson_data,
         )
 
         prescription_map, created = PrescriptionMap.objects.get_or_create(

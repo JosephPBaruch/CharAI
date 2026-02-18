@@ -87,6 +87,7 @@ def convert_df_to_geojson_polygons(
                 "coordinates": [polygon],
             },
             "properties": {
+                "featureType": "gridCell",
                 "index": int(row["cell_id"]),
                 "paybackPeriod": payback,
                 "applicationRate": biochar_application_rate,
@@ -102,3 +103,30 @@ def convert_df_to_geojson_polygons(
     }
 
     return geojson
+
+def parse_and_append_boundary_coordinates(
+    grid_geojson_data: Dict[str, Any],
+    field_geojson_data: Dict[str, Any],
+) -> Dict[str, Any]:
+    boundary_geometry = None
+    
+    for feature in field_geojson_data.get("features", []):
+        geometry = feature.get("geometry")
+        if geometry and geometry.get("type") == "Polygon":
+            boundary_geometry = geometry
+            break
+        
+    if not boundary_geometry:
+        return grid_geojson_data
+    
+    boundary_feature = {
+        "type": "Feature",
+        "geometry": boundary_geometry,
+        "properties": {
+            "featureType": "boundary0"
+        }
+    }
+
+    grid_geojson_data["features"].insert(0, boundary_feature)
+
+    return grid_geojson_data
