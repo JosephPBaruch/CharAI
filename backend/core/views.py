@@ -1,3 +1,4 @@
+from .services import compute_payback_period_grid, convert_df_to_geojson_polygons, parse_and_append_boundary_coordinates
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -8,6 +9,9 @@ from django.core.management import call_command
 from django.conf import settings
 from datetime import datetime
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -147,10 +151,10 @@ class FieldDataView(APIView):
             global_max = validated_data.get('globalMax', '')
             
             # Create or update the field record
-            field, created = Field.objects.update_or_create(
+            field, created = Field.objects.get_or_create(
                 user=request.user,
-                field_id=field_info.get('id'),
                 defaults={
+                    'field_id': 'main-field',
                     'crop_type': field_info.get('cropType'),
                     'custom_crop': field_info.get('customCrop', ''),
                     'price': field_info.get('price'),
@@ -159,6 +163,16 @@ class FieldDataView(APIView):
                     'geojson_data': geojson_data,
                 }
             )
+
+            if not created:
+                # Update the existing field
+                field.crop_type = field_info.get('cropType')
+                field.custom_crop = field_info.get('customCrop', '')
+                field.price = field_info.get('price')
+                field.unit = field_info.get('unit')
+                field.global_max = global_max
+                field.geojson_data = geojson_data
+                field.save()
             
             response_data = {
                 'message': 'Field data received successfully',
@@ -258,59 +272,47 @@ class PrescriptionMapView(APIView):
         logger.info("Finished predicting yield")
         logger.info(f"yield_results_df_biochar shape: {yield_results_df_biochar.shape}")
         logger.info(f"yield_results_df_biochar head:\n{yield_results_df_biochar.head()}")
+        # Log full column labels explicitly (avoid pandas truncation) so we can see all ~20 columns
+        try:
+            logger.info("yield_results_df_biochar columns: %s", list(yield_results_df_biochar.columns))
+        except Exception:
+            # Fallback to repr in case of unusual Index types
+            logger.info("yield_results_df_biochar columns (repr): %s", repr(yield_results_df_biochar.columns))
         logger.info(f"yield_results_result_df shape: {yield_results_result_df.shape}")
         logger.info(f"yield_results_result_df head:\n{yield_results_result_df.head()}")
+        try:
+            logger.info("yield_results_result_df columns: %s", list(yield_results_result_df.columns))
+        except Exception:
+            logger.info("yield_results_result_df columns (repr): %s", repr(yield_results_result_df.columns))
         
-        # TODO: send predicton1 and prediction2 to prescription map genreator
+        # send predicton1 and prediction2 to prescription map genreator
         # prescription_map_data = generate_prescription_map(prediction1, prediction2)
+        payback_period_df = compute_payback_period_grid(
+            yield_prediction_df=yield_results_df_biochar,
+            crop_sales_price=field.price,
+            biochar_application_rate=10.0,
+            biochar_price=20.0)
         
-        # TODO: Format and send prescirption map data (continue this below)
-        
-        # Get or create prescription map
-        prescription_map, _ = PrescriptionMap.objects.get_or_create(
-            field=field,
-            defaults={
-                'prescription_data': {
-                    'type': 'FeatureCollection',
-                    'features': [
-                        {
-                            'type': 'Feature',
-                            'properties': {
-                                'applicationRate': 5.5,
-                                'paybackPeriod': 3,
-                                'type': 'boundary'
-                            },
-                            'geometry': {
-                                'type': 'Polygon',
-                                'coordinates': [[
-                                    [-117.12799072265626, 47.410866618794536],
-                                    [-117.06481933593751, 47.379713888843426],
-                                    [-117.15545654296876, 47.33597602644443],
-                                    [-117.12799072265626, 47.410866618794536]
-                                ]]
-                            }
-                        },
-                        {
-                            'type': 'Feature',
-                            'properties': {
-                                'applicationRate': 3.2,
-                                'paybackPeriod': 2,
-                                'type': 'zone'
-                            },
-                            'geometry': {
-                                'type': 'Polygon',
-                                'coordinates': [[
-                                    [-117.06481933593751, 47.379713888843426],
-                                    [-117.00164794921876, 47.348561159292175],
-                                    [-117.09228515625, 47.30482329634525],
-                                    [-117.06481933593751, 47.379713888843426]
-                                ]]
-                            }
-                        }
-                    ]
-                }
-            }
+        prescription_data_geojson = convert_df_to_geojson_polygons(
+            payback_period_df=payback_period_df,
+            cell_size_meters=10.0,
+            biochar_application_rate=10.0
         )
-        
+
+        prescription_data_geojson = parse_and_append_boundary_coordinates(
+            prescription_data_geojson,
+            field.geojson_data,
+        )
+
+        prescription_map, created = PrescriptionMap.objects.get_or_create(
+            field=field,
+            defaults={'prescription_data': prescription_data_geojson}
+        )
+
+        if not created:
+            # If map already exists, overwrite it with new data
+            prescription_map.prescription_data = prescription_data_geojson
+            prescription_map.save()
+
         serializer = PrescriptionMapSerializer(prescription_map)
         return Response(serializer.data, status=status.HTTP_200_OK)
