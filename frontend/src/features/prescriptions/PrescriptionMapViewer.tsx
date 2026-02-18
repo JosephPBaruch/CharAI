@@ -22,38 +22,51 @@ interface GridCell {
   paybackPeriod: number;
 }
 
-interface BackendPoint {
-  lat: number;
-  lng: number;
-  paybackPeriod: number;
+interface GeoJSONFeature {
+  type: "Feature";
+  geometry: {
+    type: "Polygon";
+    coordinates: number[][][];
+  };
+  properties: {
+    featureType: "gridCell" | "boundary";
+    index?: number;
+    paybackPeriod?: number;
+    applicationRate?: number;
+    cellSize?: number;
+  };
 }
 
-interface PrescriptionMapResponse {
-  application_rate: number;
-  boundary_coordinates: [number, number][];
-  points: BackendPoint[];
-  cell_diameter_in_meters: number;
+interface GeoJSONFeatureCollection {
+  type: "FeatureCollection";
+  features: GeoJSONFeature[];
 }
 
-const buildCellsFromBackendPoints = (
-  points: BackendPoint[],
-  cellDiameterInMeters = 25,
-): GridCell[] => {
-  return points.map((p) => {
-    const latitudinalRadius = metersToDegreesLat(cellDiameterInMeters) / 2;
-    const longitudinalRadius =
-      metersToDegreesLng(cellDiameterInMeters, p.lat) / 2;
+const getBoundaryLatLngs = (geojson: GeoJSONFeatureCollection): L.LatLng[] => {
+  const boundaryFeature = geojson.features.find(
+    (f) => f.properties.featureType === "boundary",
+  );
 
-    const bounds = L.latLngBounds(
-      [p.lat - latitudinalRadius, p.lng - longitudinalRadius],
-      [p.lat + latitudinalRadius, p.lng + longitudinalRadius],
-    );
+  if (!boundaryFeature) return [];
 
-    return {
-      bounds,
-      paybackPeriod: p.paybackPeriod,
-    };
-  });
+  const coords = boundaryFeature.geometry.coordinates[0];
+
+  return coords.map(([lng, lat]) => L.latLng(lat, lng));
+};
+
+const getGridCellLatLngs = (geojson: GeoJSONFeatureCollection): GridCell[] => {
+  return geojson.features
+    .filter((f) => f.properties.featureType === "gridCell")
+    .map((feature) => {
+      const coords = feature.geometry.coordinates[0];
+      const latLngs = coords.map(([lng, lat]) => L.latLng(lat, lng));
+      const bounds = L.latLngBounds(latLngs);
+
+      return {
+        bounds,
+        paybackPeriod: feature.properties.paybackPeriod ?? 0,
+      };
+    });
 };
 
 // Color scale for payback period (1-10)
@@ -64,11 +77,6 @@ const getColorForPayback = (paybackPeriod: number): string => {
   if (paybackPeriod <= 8) return COLORS.dataOrange; // orange
   return COLORS.dataRed; // red
 };
-
-// Convert meters to degrees (approximate)
-const metersToDegreesLat = (meters: number): number => meters / 111320;
-const metersToDegreesLng = (meters: number, lat: number): number =>
-  meters / (111320 * Math.cos((lat * Math.PI) / 180));
 
 class GridCanvasLayer extends L.Layer {
   private _canvas: HTMLCanvasElement | null = null;
@@ -388,13 +396,8 @@ export default function PrescriptionMapViewer() {
 
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
   const [prescriptionData, setPrescriptionData] =
-    React.useState<PrescriptionMapResponse | null>(null);
+    React.useState<GeoJSONFeatureCollection | null>(null);
   const [cells, setCells] = React.useState<GridCell[]>([]);
-
-  const boundaryCoords = React.useMemo<[number, number][]>(() => {
-    if (!prescriptionData) return [];
-    return prescriptionData.boundary_coordinates;
-  }, [prescriptionData]);
 
   // Fetch backend data
   React.useEffect(() => {
@@ -411,14 +414,11 @@ export default function PrescriptionMapViewer() {
         .then((data) => {
           console.log("Prescription map data from backend:", data);
 
-          const prescriptionData = data.prescription_data;
-          setPrescriptionData(prescriptionData);
+          const geojson = data.prescription_data as GeoJSONFeatureCollection;
+          setPrescriptionData(geojson);
 
-          const newCells = buildCellsFromBackendPoints(
-            prescriptionData.points,
-            prescriptionData.cell_diameter_in_meters,
-          );
-          setCells(newCells);
+          const cells = getGridCellLatLngs(geojson);
+          setCells(cells);
         })
         .catch(() => setPrescriptionData(null))
         .finally(() => setIsLoading(false));
@@ -461,15 +461,15 @@ export default function PrescriptionMapViewer() {
   React.useEffect(() => {
     if (!mapRef.current || !prescriptionData) return;
 
-    const coords = prescriptionData.boundary_coordinates as [number, number][];
+    const latLngs = getBoundaryLatLngs(prescriptionData);
 
-    if (coords.length < 3) return;
+    if (latLngs.length < 3) return;
 
     if (boundaryLayerRef.current) {
       mapRef.current.removeLayer(boundaryLayerRef.current);
     }
 
-    boundaryLayerRef.current = L.polygon(coords, {
+    boundaryLayerRef.current = L.polygon(latLngs, {
       color: "#00ffcc",
       weight: 2,
       fill: false,
@@ -541,13 +541,13 @@ export default function PrescriptionMapViewer() {
         mapRef.current = null;
       }
     };
-  }, [isLoading]);
+  }, []);
 
   // Loading state
   if (isLoading) return <CircularProgress />;
 
   // Empty state
-  if (!prescriptionData || boundaryCoords.length < 3) {
+  if (!prescriptionData) {
     return (
       <Container maxWidth="sm">
         <Box
