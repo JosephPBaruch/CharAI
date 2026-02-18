@@ -251,23 +251,6 @@ class PrescriptionMapView(APIView):
         
         logger.info("Finished parsing tiff")
         
-        logger.info("Finished generating tiff")
-        
-        # Parse GeoTIFF and extract terrain data
-        try:
-            parser = GeoParser(tiff_file_path)
-            geotiff_data = parser.parse()
-            
-            # Convert to cell-based dataframe with terrain metrics
-            terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
-
-        except Exception as e: #VERY IMPORTANT TO HAVE THESE EVERYWHERE! This helps catch errors at any point in the process
-            return Response({
-                'error': f'Failed to parse GeoTIFF: {str(e)}'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        logger.info("Finished parsing tiff")
-        
         # TODO: Fetch additional data here
         # field_data = fetch_additional_data(field_data)
         
