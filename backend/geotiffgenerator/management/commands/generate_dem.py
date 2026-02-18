@@ -24,6 +24,7 @@ import os
 from scipy.ndimage import zoom
 from shapely.geometry import Point, Polygon, box
 from shapely.ops import unary_union
+from django.conf import settings
 
 
 class Command(BaseCommand):
@@ -162,6 +163,20 @@ class Command(BaseCommand):
 
         # Initialize Topography
         self.stdout.write("Fetching elevation data...")
+
+        # If an API key is configured in Django settings, ensure it's set in
+        # the environment so bmi_topography will use it instead of the demo key.
+        try:
+            api_key = getattr(settings, 'OPEN_TOPOGRAPHY_API_KEY', None)
+        except Exception:
+            api_key = None
+
+        if api_key:
+            os.environ['OPEN_TOPOGRAPHY_API_KEY'] = api_key
+            os.environ['OPENTOPOGRAPHY_API_KEY'] = api_key
+            os.environ['API_Key'] = api_key
+            self.stdout.write("Using OpenTopography API key from settings")
+
         topo = Topography(
             dem_type=dem_type,
             south=south,

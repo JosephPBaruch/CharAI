@@ -289,8 +289,18 @@ class PrescriptionMapView(APIView):
         logger.info("Finished predicting yield")
         logger.info(f"yield_results_df_biochar shape: {yield_results_df_biochar.shape}")
         logger.info(f"yield_results_df_biochar head:\n{yield_results_df_biochar.head()}")
+        # Log full column labels explicitly (avoid pandas truncation) so we can see all ~20 columns
+        try:
+            logger.info("yield_results_df_biochar columns: %s", list(yield_results_df_biochar.columns))
+        except Exception:
+            # Fallback to repr in case of unusual Index types
+            logger.info("yield_results_df_biochar columns (repr): %s", repr(yield_results_df_biochar.columns))
         logger.info(f"yield_results_result_df shape: {yield_results_result_df.shape}")
         logger.info(f"yield_results_result_df head:\n{yield_results_result_df.head()}")
+        try:
+            logger.info("yield_results_result_df columns: %s", list(yield_results_result_df.columns))
+        except Exception:
+            logger.info("yield_results_result_df columns (repr): %s", repr(yield_results_result_df.columns))
         
         # send predicton1 and prediction2 to prescription map genreator
         # prescription_map_data = generate_prescription_map(prediction1, prediction2)

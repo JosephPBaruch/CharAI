@@ -423,7 +423,7 @@ export default function PrescriptionMapViewer() {
         .catch(() => setPrescriptionData(null))
         .finally(() => setIsLoading(false));
     });
-  }, []);
+  }, [isLoading]);
 
   // Initialize grid layer
   React.useEffect(() => {
@@ -480,10 +480,10 @@ export default function PrescriptionMapViewer() {
 
   // Initialize map
   React.useEffect(() => {
-    console.log("Map effect running", mapContainerRef.current);
-    // TODO: Use the prescription map which is retrieve from the backend
-    // Currently, the prescription map is generated
+    // Only initialize the map after loading is finished and the container exists
+    if (isLoading) return;
     if (!mapContainerRef.current || mapRef.current) return;
+    console.log("Map effect running", mapContainerRef.current);
 
     const map = L.map(mapContainerRef.current, {
       center: [46.7, -116.96],
@@ -541,7 +541,7 @@ export default function PrescriptionMapViewer() {
         mapRef.current = null;
       }
     };
-  }, []);
+  }, [isLoading]);
 
   // Loading state
   if (isLoading) return <CircularProgress />;

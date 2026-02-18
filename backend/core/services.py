@@ -12,20 +12,34 @@ def compute_payback_period_grid(
     biochar_price: float,
 ) -> pd.DataFrame:
     # Merge yield prediction data frames by index
-    required_columns = {"cell_id", "lat", "lng", "yield_without_biochar, yield_with_biochar"}
-    if not required_columns.issubset(yield_prediction_df.columns):
-        raise ValueError(f"DataFrame must contain columns {required_columns}")
+    # required columns must include separate entries for yield_without_biochar and yield_with_biochar
+    required_columns = {
+        "cell_id",
+        "centroid_lat",
+        "centroid_lon",
+        "yield_without_biochar",
+        "yield_with_biochar",
+    }
+    if not required_columns.issubset(set(yield_prediction_df.columns)):
+        raise ValueError(
+            f"DataFrame must contain columns {required_columns}. Got: {list(yield_prediction_df.columns)}"
+        )
 
-    # Calculate yield differences
-    yield_prediction_df["yield_delta"] = (
-        yield_prediction_df["yield_with_biochar"] - yield_prediction_df["yield_without_biochar"]
-    )
+    # Ensure numeric types: convert Decimal inputs to floats and DataFrame yield columns to numeric
+    crop_sales_price_float = float(crop_sales_price)
+    biochar_price_float = float(biochar_price)
+    biochar_application_rate_float = float(biochar_application_rate)
 
-    # Find marginal revenue based on yield differences
-    yield_prediction_df["marginal_revenue"] = yield_prediction_df["yield_delta"] * crop_sales_price
+    # Calculate yield differences (force numeric conversion to avoid dtype surprises)
+    yield_with = pd.to_numeric(yield_prediction_df["yield_with_biochar"], errors="coerce")
+    yield_without = pd.to_numeric(yield_prediction_df["yield_without_biochar"], errors="coerce")
+    yield_prediction_df["yield_delta"] = yield_with - yield_without
+
+    # Find marginal revenue based on yield differences (use float price)
+    yield_prediction_df["marginal_revenue"] = yield_prediction_df["yield_delta"] * crop_sales_price_float
 
     # Calculate biochar cost per cell (one time as application rate is constant across field)
-    biochar_cost = biochar_application_rate * biochar_price
+    biochar_cost = biochar_application_rate_float * biochar_price_float
 
     # Add payback period with mask in case of negative ROI
     yield_prediction_df["payback_period"] = np.inf
@@ -37,7 +51,7 @@ def compute_payback_period_grid(
 
     # Return DataFrame in expected Format ["cell_id", "lat", "lng", "payback_period"]
     result = pd.DataFrame(
-        yield_prediction_df.loc[:, ["cell_id", "lat", "lng", "payback_period"]]
+        yield_prediction_df.loc[:, ["cell_id", "centroid_lat", "centroid_lon", "payback_period"]]
     )
     return result
 
@@ -55,7 +69,7 @@ def convert_df_to_geojson_polygons(
     GeoJSON FeatureCollection
     """
 
-    required_columns = {"cell_id", "lat", "lng", "payback_period"}
+    required_columns = {"cell_id", "centroid_lat", "centroid_lon", "payback_period"}
     if not required_columns.issubset(payback_period_df.columns):
         raise ValueError(f"DataFrame must contain columns {required_columns}")
 
@@ -64,8 +78,8 @@ def convert_df_to_geojson_polygons(
     cell_radius = cell_size_meters / 2.0
 
     for _, row in payback_period_df.iterrows():
-        lat = float(row["lat"])
-        lon = float(row["lng"])
+        lat = float(row["centroid_lat"])
+        lon = float(row["centroid_lon"])
         payback = float(row["payback_period"])
 
         # Convert meters to degrees
