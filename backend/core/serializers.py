@@ -69,7 +69,7 @@ class FieldSerializer(serializers.Serializer):
     id = serializers.CharField(required=True)
     cropType = serializers.CharField(required=True)
     customCrop = serializers.CharField(required=False, allow_blank=True)
-    price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True)
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True, min_value=0)
     unit = serializers.CharField(required=True)
 
 
