@@ -17,6 +17,7 @@ import FileUploadSection from "./FileUploadSection";
 import SubmitSection from "./SubmitSection";
 import { useCoordinates } from "../../contexts/CoordinateContext";
 import { POSTFieldData } from "../../api/fetch";
+import { Navigate, useNavigate } from "react-router";
 
 const DEFAULT_FIELD = (): FieldEntry => ({
   id: "main-field",
@@ -31,6 +32,8 @@ export default function FarmBiocharForm() {
   const [field, setField] = React.useState<FieldEntry>(DEFAULT_FIELD());
   const [globalMax, setGlobalMax] = React.useState<number | "">("");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  const navigate = useNavigate();
 
   const updateField = (patch: Partial<FieldEntry>) => {
     setField((prev) => ({ ...prev, ...patch }));
@@ -149,6 +152,7 @@ export default function FarmBiocharForm() {
                 POSTFieldData(payload);
                 setFormSubmitted(true);
                 closeModal();
+                navigate("/output");
               }}
             />
           </Box>
