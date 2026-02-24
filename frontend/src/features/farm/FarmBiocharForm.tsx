@@ -17,7 +17,7 @@ import FileUploadSection from "./FileUploadSection";
 import SubmitSection from "./SubmitSection";
 import { useCoordinates } from "../../contexts/CoordinateContext";
 import { POSTFieldData } from "../../api/fetch";
-import { Navigate, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 
 const DEFAULT_FIELD = (): FieldEntry => ({
   id: "main-field",
