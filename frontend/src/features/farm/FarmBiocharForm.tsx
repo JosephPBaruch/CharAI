@@ -27,13 +27,7 @@ const DEFAULT_FIELD = (): FieldEntry => ({
 });
 
 export default function FarmBiocharForm() {
-  const {
-    data,
-    hasCoordinates,
-    hasPendingCoordinates,
-    setFormSubmitted,
-    commitPendingCoordinates,
-  } = useCoordinates();
+  const { data, hasCoordinates, setFormSubmitted } = useCoordinates();
   const [field, setField] = React.useState<FieldEntry>(DEFAULT_FIELD());
   const [globalMax, setGlobalMax] = React.useState<number | "">("");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -47,10 +41,10 @@ export default function FarmBiocharForm() {
 
   // If coordinates already exist in context (from upload or manual draw), mark as ready
   React.useEffect(() => {
-    if (hasCoordinates || hasPendingCoordinates) {
+    if (hasCoordinates) {
       setCoordUploaded(true);
     }
-  }, [hasCoordinates, hasPendingCoordinates]);
+  }, [hasCoordinates]);
 
   const handleCoordSelect = (file: File | null) => {
     setCoordUploaded(!!file);
@@ -71,7 +65,7 @@ export default function FarmBiocharForm() {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  const coordsReady = coordUploaded || hasPendingCoordinates || hasCoordinates;
+  const coordsReady = coordUploaded || hasCoordinates;
   const isPriceValid = field.price !== "" && field.price > 0;
 
   return (
@@ -148,8 +142,10 @@ export default function FarmBiocharForm() {
                   alert("Please enter a valid crop selling price.");
                   return;
                 }
-                commitPendingCoordinates();
                 const payload = { globalMax, field, data };
+                console.log(
+                  `Sending the following field payload to the backend: ${JSON.stringify(payload)}`,
+                );
                 POSTFieldData(payload);
                 setFormSubmitted(true);
                 closeModal();

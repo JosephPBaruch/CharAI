@@ -20,7 +20,7 @@ import { useCoordinates } from "../../contexts/CoordinateContext";
 import type { FeatureCollection, Feature, Polygon } from "geojson";
 
 export default function ManualCoordinateUpload() {
-  const { data, pendingData, setCoordinateData } = useCoordinates();
+  const { data, setCoordinateData } = useCoordinates();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [markers, setMarkers] = React.useState<LatLngLiteral[]>([]);
 
@@ -28,7 +28,7 @@ export default function ManualCoordinateUpload() {
   // Check pendingData first, fall back to data (committed coords)
   React.useEffect(() => {
     if (isModalOpen) {
-      const coordSource = pendingData || data;
+      const coordSource = data;
       if (coordSource) {
         const boundaryFeature = coordSource.features.find(
           (f) => f.geometry.type === "Polygon",
@@ -46,7 +46,7 @@ export default function ManualCoordinateUpload() {
         }
       }
     }
-  }, [isModalOpen, data, pendingData]);
+  }, [isModalOpen, data]);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {
@@ -93,9 +93,7 @@ export default function ManualCoordinateUpload() {
   };
 
   // Check if coordinates have already been submitted or are pending
-  const hasCoordinatesReady =
-    (pendingData && pendingData.features.length > 0) ||
-    (data && data.features.length > 0);
+  const hasCoordinatesReady = data && data.features.length > 0;
 
   return (
     <>
