@@ -29,7 +29,7 @@ interface GeoJSONFeature {
     coordinates: number[][][];
   };
   properties: {
-    featureType: "gridCell" | "boundary0";
+    featureType: "gridCell" | "boundary";
     index?: number;
     paybackPeriod?: number;
     applicationRate?: number;
@@ -44,7 +44,7 @@ interface GeoJSONFeatureCollection {
 
 const getBoundaryLatLngs = (geojson: GeoJSONFeatureCollection): L.LatLng[] => {
   const boundaryFeature = geojson.features.find(
-    (f) => f.properties.featureType === "boundary0",
+    (f) => f.properties.featureType === "boundary",
   );
 
   if (!boundaryFeature) return [];
