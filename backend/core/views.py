@@ -288,13 +288,13 @@ class PrescriptionMapView(APIView):
             biochar_cost_per_cell=100
         )
 
-        filtered_prescription_data_geojson = filter_cells_inside_boundary(
+        filtered_data_df = filter_cells_inside_boundary(
             df=payback_period_df,
             field_geojson=field.geojson_data,
         )
 
         prescription_data_geojson = convert_df_to_geojson_polygons(
-            payback_period_df=payback_period_df,
+            payback_period_df=filtered_data_df,
             cell_size_meters=10.0,
             biochar_application_rate=10.0
         )
