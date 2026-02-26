@@ -226,9 +226,8 @@ class PrescriptionMapView(APIView):
         
         # Call geotiff generator
         if coords:
-            coords_str = [f"{lat},{lon}" for lat, lon in coords]
             geotiff_generator = DEMGeneratorService()
-            geotiff_generator.generate_from_coordinates(coords_str, tiff_file_path)
+            geotiff_generator.generate_from_coordinates(coords, tiff_file_path)
         
         logger.info("Finished generating tiff")
         
