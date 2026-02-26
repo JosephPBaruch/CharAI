@@ -5,7 +5,6 @@ import {
   Container,
   Paper,
   Stack,
-  CircularProgress,
 } from "@mui/material";
 import { COLORS } from "../../styles/colors";
 import React from "react";
@@ -16,6 +15,7 @@ import MapIcon from "@mui/icons-material/Map";
 import GridOnIcon from "@mui/icons-material/GridOn";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { GETFields, GETPrescriptionMap } from "../../api/fetch";
+import LoadingProgress from "../../components/LoadingProgress";
 
 interface GridCell {
   bounds: L.LatLngBounds;
@@ -557,7 +557,7 @@ export default function PrescriptionMapViewer() {
   }, [isLoading]);
 
   // Loading state
-  if (isLoading) return <CircularProgress />;
+  if (isLoading) return <LoadingProgress />;
 
   // Empty state
   if (!prescriptionData) {
