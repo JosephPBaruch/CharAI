@@ -41,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (err: any) {
       console.debug("No active session or token invalid");
+      authService.removeAuthToken();
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(response.user);
       }
     } catch (err: any) {
+      authService.removeAuthToken();
       setUser(null);
       throw err;
     } finally {

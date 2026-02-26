@@ -64,11 +64,6 @@ async function handleResponse(response: Response) {
 export const register = async (
   data: RegisterRequest,
 ): Promise<AuthResponse> => {
-  // Prevent already-authenticated users from registering
-  if (getToken()) {
-    throw { detail: "You are already logged in" };
-  }
-
   const response = await fetch(`${AUTH_URL}/register/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -88,11 +83,6 @@ export const register = async (
 export const login = async (
   credentials: LoginRequest,
 ): Promise<AuthResponse> => {
-  // Prevent already-authenticated users from logging in
-  if (getToken()) {
-    throw { detail: "You are already logged in" };
-  }
-
   const response = await fetch(`${AUTH_URL}/login/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -129,34 +119,28 @@ export const getUser = async (): Promise<UserResponse> => {
 };
 
 export const logout = async (): Promise<LogoutResponse> => {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  const token = getToken();
-  if (token) {
-    headers["Authorization"] = `Token ${token}`;
+  try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    const token = getToken();
+    if (token) {
+      headers["Authorization"] = `Token ${token}`;
+    }
+
+    const response = await fetch(`${AUTH_URL}/logout/`, {
+      method: "POST",
+      headers,
+      credentials: "include",
+    });
+
+    const result = await handleResponse(response);
+    return result as LogoutResponse;
+  } finally {
+    clearToken();
   }
-
-  const response = await fetch(`${AUTH_URL}/logout/`, {
-    method: "POST",
-    headers,
-    credentials: "include",
-  });
-
-  const result = await handleResponse(response);
-  clearToken();
-  return result as LogoutResponse;
 };
 
 export const getAuthToken = getToken;
 export const removeAuthToken = clearToken;
 export const getApiUrlForApi = getApiUrl;
-
-// Notes:
-// - Token-based authentication: Each user gets a unique token on register/login
-// - Token stored in localStorage and included in Authorization header for API requests
-// - Session cookies set by backend for session-based authentication (credentials: 'include')
-// - Passwords hashed by Django using PBKDF2
-// - Field-specific validation errors from Django are included in error responses
-// - Ensure CORS is configured on backend to allow requests from frontend origin
-// - CORS_ALLOW_CREDENTIALS = True allows credentials/cookies to be sent
