@@ -44,12 +44,12 @@ def compute_payback_period_grid(
 
     df.loc[valid_mask, "payback_period"] = (
         float(biochar_cost_per_cell)
-        / df.loc[valid_mask, "marginal_revenue"]
+        / pd.to_numeric(df.loc[valid_mask, "marginal_revenue"], errors="coerce")
     )
 
-    result = df.loc[
+    result = cast(pd.DataFrame, df.loc[
         :, ["cell_id", "centroid_lat", "centroid_lon", "payback_period"]
-    ].reset_index(drop=True)
+    ]).reset_index(drop=True)
 
     return result
 

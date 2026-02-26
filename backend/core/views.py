@@ -1,4 +1,4 @@
-from .services import compute_payback_period_grid, convert_df_to_geojson_polygons, parse_and_append_boundary_coordinates
+from .services import compute_payback_period_grid, convert_df_to_geojson_polygons, filter_cells_inside_boundary, parse_and_append_boundary_coordinates
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -284,29 +284,34 @@ class PrescriptionMapView(APIView):
         # prescription_map_data = generate_prescription_map(prediction1, prediction2)
         payback_period_df = compute_payback_period_grid(
             yield_prediction_df=yield_results_df_biochar,
-            crop_sales_price=field.price,
-            biochar_application_rate=10.0,
-            biochar_price=20.0)
-        
+            crop_sales_price=float(field.price),
+            biochar_cost_per_cell=100
+        )
+
+        filtered_prescription_data_geojson = filter_cells_inside_boundary(
+            df=payback_period_df,
+            field_geojson=field.geojson_data,
+        )
+
         prescription_data_geojson = convert_df_to_geojson_polygons(
             payback_period_df=payback_period_df,
             cell_size_meters=10.0,
             biochar_application_rate=10.0
         )
 
-        prescription_data_geojson = parse_and_append_boundary_coordinates(
-            prescription_data_geojson,
-            field.geojson_data,
+        prescription_data_geojson_with_boundary = parse_and_append_boundary_coordinates(
+            grid_geojson_data=prescription_data_geojson,
+            field_geojson_data=field.geojson_data,
         )
 
         prescription_map, created = PrescriptionMap.objects.get_or_create(
             field=field,
-            defaults={'prescription_data': prescription_data_geojson}
+            defaults={'prescription_data': prescription_data_geojson_with_boundary}
         )
 
         if not created:
             # If map already exists, overwrite it with new data
-            prescription_map.prescription_data = prescription_data_geojson
+            prescription_map.prescription_data = prescription_data_geojson_with_boundary
             prescription_map.save()
 
         serializer = PrescriptionMapSerializer(prescription_map)
