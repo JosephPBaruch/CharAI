@@ -71,11 +71,11 @@ const getGridCellLatLngs = (geojson: GeoJSONFeatureCollection): GridCell[] => {
 
 // Color scale for payback period (1-10)
 const getColorForPayback = (paybackPeriod: number): string => {
-  if (paybackPeriod <= 2) return COLORS.dataRed; // green
-  if (paybackPeriod <= 4) return COLORS.dataOrange; // light green
-  if (paybackPeriod <= 6) return COLORS.dataYellow; // yellow
-  if (paybackPeriod <= 8) return COLORS.dataLightGreen; // orange
-  return COLORS.dataGreen; // red
+  if (paybackPeriod <= 2) return COLORS.dataGreen;
+  if (paybackPeriod <= 4) return COLORS.dataLightGreen;
+  if (paybackPeriod <= 6) return COLORS.dataYellow;
+  if (paybackPeriod <= 8) return COLORS.dataOrange;
+  return COLORS.dataRed;
 };
 
 class GridCanvasLayer extends L.Layer {
