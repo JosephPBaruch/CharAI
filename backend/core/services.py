@@ -1,3 +1,10 @@
+import json
+import logging
+import math
+import os
+from threading import Thread
+from datetime import datetime
+from typing import Any, Dict
 from decimal import Decimal
 import numpy as np
 import pandas as pd
@@ -6,175 +13,118 @@ from typing import Dict, Any, List, cast
 from shapely.geometry import shape, Point, Polygon, mapping
 from shapely.prepared import prep
 
-def compute_payback_period_grid(
-    yield_prediction_df: pd.DataFrame,
-    crop_sales_price: float,
-    biochar_cost_per_cell: float,
-) -> pd.DataFrame:
+from django.conf import settings
+from django.db import close_old_connections
+from .models import Field, PrescriptionMap
+from modules.GeoParser import GeoParser
+from modules.Geotiffgenerator import DEMGeneratorService
+from modules.Calculator import YieldCalculator
+from modules.PrescriptionMapGenerator import PrescriptionMapGenerator
 
-    required_columns = {
-        "cell_id",
-        "centroid_lat",
-        "centroid_lon",
-        "yield_without_biochar",
-        "yield_with_biochar",
-    }
+def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> Dict[str, Any]:
+    field.prescription_map_status = Field.STATUS_STARTED
+    field.save(update_fields=["prescription_map_status", "updated_at"])
 
-    if not required_columns.issubset(set(yield_prediction_df.columns)):
-        raise ValueError(
-            f"DataFrame must contain columns {required_columns}. "
-            f"Got: {list(yield_prediction_df.columns)}"
+    try:
+        coords = []
+        for feature in field.geojson_data.get("features", []):
+            geometry = feature.get("geometry", {})
+            if geometry.get("type") != "Polygon":
+                continue
+
+            ring = geometry.get("coordinates", [[]])[0]
+            coords.extend([(lat, lon) for lon, lat in ring])
+
+        if not coords:
+            raise ValueError("No polygon coordinates found in field GeoJSON")
+
+        dem_dir = os.path.join(settings.BASE_DIR, "dems")
+        os.makedirs(dem_dir, exist_ok=True)
+
+        tiff_file_path = os.path.join(
+            dem_dir,
+            f"field_{field.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.tif",
         )
 
-    df = yield_prediction_df.copy()
+        logger.info("Generating GeoTif")
+        DEMGeneratorService(logger=logger).generate_from_coordinates(coords, tiff_file_path)
 
-    # Ensure numeric
-    yield_with = pd.to_numeric(df["yield_with_biochar"], errors="coerce")
-    yield_without = pd.to_numeric(df["yield_without_biochar"], errors="coerce")
+        logger.info("Parsing GeoTif")
+        geotiff_data = GeoParser(logger=logger, path=tiff_file_path).parse()
+        terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
 
-    df["yield_delta"] = yield_with - yield_without
+        logger.info("Calculating Yield")
+        calculator = YieldCalculator(logger=logger)
+        yield_results_df = calculator.calculate(terrain_df.copy())
 
-    # Revenue per cell
-    df["marginal_revenue"] = df["yield_delta"] * float(crop_sales_price)
+        logger.info("Generating Presciption Map")
+        pmg = PrescriptionMapGenerator(logger=logger)
 
-    # Initialize payback
-    df["payback_period"] = np.inf
+        payback_period_df = pmg.compute_payback_period_grid(
+            yield_prediction_df=yield_results_df,
+            crop_sales_price=float(field.price),
+            biochar_cost_per_cell=100,
+        )
 
-    valid_mask = df["marginal_revenue"] > 0
+        filtered_data_df = pmg.filter_cells_inside_boundary(
+            df=payback_period_df,
+            field_geojson=field.geojson_data,
+        )
 
-    df.loc[valid_mask, "payback_period"] = (
-        float(biochar_cost_per_cell)
-        / pd.to_numeric(df.loc[valid_mask, "marginal_revenue"], errors="coerce")
-    )
+        prescription_data_geojson = pmg.convert_df_to_geojson_polygons(
+            payback_period_df=filtered_data_df,
+            cell_size_meters=10.0,
+            biochar_application_rate=10.0,
+        )
 
-    result = cast(pd.DataFrame, df.loc[
-        :, ["cell_id", "centroid_lat", "centroid_lon", "payback_period"]
-    ]).reset_index(drop=True)
+        prescription_data_geojson_with_boundary = pmg.parse_and_append_boundary_coordinates(
+            grid_geojson_data=prescription_data_geojson,
+            field_geojson_data=field.geojson_data,
+        )
 
-    return result
+        prescription_map, created = PrescriptionMap.objects.get_or_create(
+            field=field,
+            defaults={"prescription_data": prescription_data_geojson_with_boundary},
+        )
+        if not created:
+            prescription_map.prescription_data = prescription_data_geojson_with_boundary
+            prescription_map.save(update_fields=["prescription_data", "updated_at"])
 
+        relative_file_path = pmg._write_prescription_json_file(
+            field=field,
+            geojson_data=prescription_data_geojson_with_boundary,
+        )
 
-def filter_cells_inside_boundary(df: pd.DataFrame, field_geojson: dict) -> pd.DataFrame: 
-    """
-    This function removes grid cells whose centers fall outside the field boundary.
-    Uses shapely, which is a Python wrapper around a GEOS, a computational geometry engine.
-    Performs a point-in-polygon test for every cell against the field boundary.
-    """
+        field.prescription_map_file = relative_file_path
+        field.prescription_map_status = Field.STATUS_COMPLETE
+        field.save(
+            update_fields=[
+                "prescription_map_file",
+                "prescription_map_status",
+                "updated_at",
+            ]
+        )
 
-    # Get farm's coordinates to use as boundary condition
-    field_polygon = get_field_polygon(field_geojson)
+        logger.info("Prescription map generated for field_id=%s", field.field_id)
+        return prescription_data_geojson_with_boundary
 
-    """
-    - prep() creates a PreparedGeometry object.
-    - PreparedGeometry object builds a spatial index over all polygon edges.
-    - So now, using the ray-casting algorithm, we only check nearby edges instead of every polygon edge, reducing the number of comparisons we make.
-    - Much more efficient to create an object when performing many point-in-polygon tests (aka if thousands of grid cells are within the field boundary).
-    """
-    prepared_polygon = prep(field_polygon)
+    except Exception:
+        field.prescription_map_status = Field.STATUS_FAILED
+        field.save(update_fields=["prescription_map_status", "updated_at"])
+        logger.exception("Failed to generate prescription map for field_id=%s", field.field_id)
+        raise
 
-    cell_mask = [
-        prepared_polygon.contains(Point(lon, lat))
-        for lon, lat in zip(df["centroid_lon"].values, df["centroid_lat"].values)
-    ]
+def _run_prescription_job(logger: logging.Logger, field_pk: int) -> None:
+    close_old_connections()
+    try:
+        field = Field.objects.get(pk=field_pk)
+        create_prescription_map_for_field(logger, field)
+    except Field.DoesNotExist:
+        logger.error("Prescription job failed: field pk=%s not found", field_pk)
+    except Exception:
+        logger.exception("Unhandled error in prescription background job for field pk=%s", field_pk)
+    finally:
+        close_old_connections()
 
-    return cast(pd.DataFrame, df.loc[cell_mask].reset_index(drop=True))
-
-def get_field_polygon(field_geojson: dict) -> Polygon:
-    """
-    Helper function to get a field's boundary coordinates as a polygon.
-    """
-
-    for feature in field_geojson.get("features", []):
-        geometry = feature.get("geometry")
-        if geometry and geometry.get("type") == "Polygon":
-            return cast(Polygon, shape(geometry))
-        
-    raise ValueError("No Polygon found in field GeoJSON")
-    
-
-def convert_df_to_geojson_polygons(
-    payback_period_df: pd.DataFrame,
-    cell_size_meters: float,
-    biochar_application_rate: float,
-) -> Dict[str, Any]:
-    """
-    Convert DataFrame into polygon-based GeoJSON FeatureCollection.
-
-    Each row becomes a square polygon centered at (Lat, Long).
-
-    Returns:
-    GeoJSON FeatureCollection
-    """
-
-    required_columns = {"cell_id", "centroid_lat", "centroid_lon", "payback_period"}
-    if not required_columns.issubset(payback_period_df.columns):
-        raise ValueError(f"DataFrame must contain columns {required_columns}")
-
-    features = []
-
-    cell_radius = cell_size_meters / 2.0
-
-    for _, row in payback_period_df.iterrows():
-        lat = float(row["centroid_lat"])
-        lon = float(row["centroid_lon"])
-        payback = float(row["payback_period"])
-
-        # Convert meters to degrees
-        lat_offset = cell_radius / 111320.0
-        lon_offset = cell_radius / (111320.0 * math.cos(math.radians(lat)))
-
-        polygon = [
-            [lon - lon_offset, lat - lat_offset],
-            [lon + lon_offset, lat - lat_offset],
-            [lon + lon_offset, lat + lat_offset],
-            [lon - lon_offset, lat + lat_offset],
-            [lon - lon_offset, lat - lat_offset],
-        ]
-
-        feature = {
-            "type": "Feature",
-            "geometry": {
-                "type": "Polygon",
-                "coordinates": [polygon],
-            },
-            "properties": {
-                "featureType": "gridCell",
-                "index": int(row["cell_id"]),
-                "paybackPeriod": payback,
-                "applicationRate": biochar_application_rate,
-                "cellSize": cell_size_meters,
-            },
-        }
-
-        features.append(feature)
-
-    geojson = {
-        "type": "FeatureCollection",
-        "features": features,
-    }
-
-    return geojson
-
-def parse_and_append_boundary_coordinates(
-    grid_geojson_data: Dict[str, Any],
-    field_geojson_data: Dict[str, Any],
-) -> Dict[str, Any]:
-    """
-    This service function takes an existing GeoJSON object that contains all prescription map data
-    and adds the boundary for front-end rendering.
-
-    Returns: a complete GeoJSONCollection ready for front-end rendering.
-    """
-    field_polygon = get_field_polygon(field_geojson_data)
-    
-    boundary_feature = {
-        "type": "Feature",
-        "geometry": mapping(field_polygon),
-        "properties": {
-            "featureType": "boundary"
-        }
-    }
-
-    grid_geojson_data["features"].insert(0, boundary_feature)
-
-    return grid_geojson_data
+def enqueue_prescription_map_job(logger: logging.Logger, field: Field) -> None:
+    Thread(target=_run_prescription_job, args=(logger, field.pk,), daemon=True).start()

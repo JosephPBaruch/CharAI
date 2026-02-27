@@ -13,11 +13,8 @@ Usage:
     result_df = calculator.calculate(grid_df, use_biochar=True)
 """
 
-import pandas as pd
 import numpy as np
 import logging
-
-logger = logging.getLogger(__name__)
 
 
 class YieldCalculator:
@@ -40,18 +37,18 @@ class YieldCalculator:
     SLOPE_PENALTY_FACTOR = 0.015 
     EAST_FACING_BONUS = 0.05 
     
-    def __init__(self):
+    def __init__(self, logger: logging.Logger ):
         """Initialize Yield Calculator """
-        logger.info("YieldCalculator initialized")
+        self.logger = logger
+        self.logger.info("YieldCalculator initialized")
     
-    def calculate(self, grid_df, use_biochar=False):
+    def calculate(self, grid_df):
         """
         Calculate yield predictions for each grid cell
         
         Args:
             grid_df (pd.DataFrame): Grid dataframe with terrain characteristics
                 Required columns: elev_mean_m, slope_mean_deg, aspect_eastness, aspect_northness
-            use_biochar (bool): Whether to calculate biochar column (default: False)
             
         Returns:
             pd.DataFrame: Input dataframe with added yield columns:
@@ -68,7 +65,7 @@ class YieldCalculator:
             if missing_cols:
                 raise ValueError(f"Missing required columns: {missing_cols}")
             
-            logger.info(f"Calculating yield for {len(grid_df)} grid cells")
+            self.logger.debug(f"Calculating yield for {len(grid_df)} grid cells")
             
             # Create a copy to avoid modifying original
             result_df = grid_df.copy()
@@ -76,23 +73,22 @@ class YieldCalculator:
             # Calculate yield without biochar
             result_df['yield_without_biochar'] = self._calculate_base_yield(result_df)
             
-            # Calculate yield with biochar if requested
-            if use_biochar:
-                result_df['yield_with_biochar'] = self._calculate_biochar_yield(result_df)
-                
-                # Calculate improvement percentage
-                result_df['biochar_improvement_pct'] = (
-                    (result_df['yield_with_biochar'] - result_df['yield_without_biochar']) / 
-                    result_df['yield_without_biochar'] * 100
-                )
+            # Calculate yield with biochar
+            result_df['yield_with_biochar'] = self._calculate_biochar_yield(result_df)
+            
+            # Calculate improvement percentage
+            result_df['biochar_improvement_pct'] = (
+                (result_df['yield_with_biochar'] - result_df['yield_without_biochar']) / 
+                result_df['yield_without_biochar'] * 100
+            )
             
             # Log summary statistics
-            self._log_statistics(result_df, use_biochar)
+            self._log_statistics(result_df)
             
             return result_df
             
         except Exception as e:
-            logger.error(f"Yield calculation failed: {str(e)}")
+            self.logger.error(f"Yield calculation failed: {str(e)}")
             raise
     
     def _calculate_base_yield(self, df):
@@ -149,7 +145,7 @@ class YieldCalculator:
         
         return yield_values
     
-    def _log_statistics(self, df, use_biochar):
+    def _log_statistics(self, df):
         """
         Log summary statistics for yield calculations for testing
         
@@ -157,26 +153,16 @@ class YieldCalculator:
             df (pd.DataFrame): Result dataframe with yield columns
             use_biochar (bool): Whether biochar yields were calculated
         """
-        logger.info("\n=== Yield Calculation Summary ===")
-        logger.info(f"Total grid cells: {len(df)}")
+        self.logger.debug("\n=== Yield Calculation Summary ===")
+        self.logger.debug(f"Total grid cells: {len(df)}")
         
         # Base yield stats
-        logger.info("\nYield WITHOUT biochar:")
-        logger.info(f"  Mean: {df['yield_without_biochar'].mean():.2f}")
-        logger.info(f"  Min:  {df['yield_without_biochar'].min():.2f}")
-        logger.info(f"  Max:  {df['yield_without_biochar'].max():.2f}")
-        logger.info(f"  Std:  {df['yield_without_biochar'].std():.2f}")
+        self.logger.debug("\nYield WITHOUT biochar:")
+        self.logger.debug(f"  Mean: {df['yield_without_biochar'].mean():.2f}")
         
-        if use_biochar:
-            logger.info("\nYield WITH biochar:")
-            logger.info(f"  Mean: {df['yield_with_biochar'].mean():.2f}")
-            logger.info(f"  Min:  {df['yield_with_biochar'].min():.2f}")
-            logger.info(f"  Max:  {df['yield_with_biochar'].max():.2f}")
-            logger.info(f"  Std:  {df['yield_with_biochar'].std():.2f}")
-            
-            logger.info("\nBiochar improvement:")
-            logger.info(f"  Mean improvement: {df['biochar_improvement_pct'].mean():.2f}%")
-            logger.info(f"  Min improvement:  {df['biochar_improvement_pct'].min():.2f}%")
-            logger.info(f"  Max improvement:  {df['biochar_improvement_pct'].max():.2f}%")
+        self.logger.debug("\nYield WITH biochar:")
+        self.logger.debug(f"  Mean: {df['yield_with_biochar'].mean():.2f}")
         
-        logger.info("=" * 35)
+        self.logger.debug("\nBiochar improvement:")
+        self.logger.debug(f"  Mean improvement: {df['biochar_improvement_pct'].mean():.2f}%")
+        
