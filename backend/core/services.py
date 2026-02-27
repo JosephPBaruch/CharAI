@@ -57,10 +57,19 @@ def compute_payback_period_grid(
 def filter_cells_inside_boundary(df: pd.DataFrame, field_geojson: dict) -> pd.DataFrame: 
     """
     This function removes grid cells whose centers fall outside the field boundary.
-    Is relatively optimized for many cells, using shapely's "prep" and vectorization
+    Uses shapely, which is a Python wrapper around a GEOS, a computational geometry engine.
+    Performs a point-in-polygon test for every cell against the field boundary.
     """
 
+    # Get farm's coordinates to use as boundary condition
     field_polygon = get_field_polygon(field_geojson)
+
+    """
+    - prep() creates a PreparedGeometry object.
+    - PreparedGeometry object builds a spatial index over all polygon edges.
+    - So now, using the ray-casting algorithm, we only check nearby edges instead of every polygon edge, reducing the number of comparisons we make.
+    - Much more efficient to create an object when performing many point-in-polygon tests (aka if thousands of grid cells are within the field boundary).
+    """
     prepared_polygon = prep(field_polygon)
 
     cell_mask = [
@@ -72,7 +81,7 @@ def filter_cells_inside_boundary(df: pd.DataFrame, field_geojson: dict) -> pd.Da
 
 def get_field_polygon(field_geojson: dict) -> Polygon:
     """
-    Get a field's boundary coordinates as a polygon.
+    Helper function to get a field's boundary coordinates as a polygon.
     """
 
     for feature in field_geojson.get("features", []):
@@ -150,6 +159,12 @@ def parse_and_append_boundary_coordinates(
     grid_geojson_data: Dict[str, Any],
     field_geojson_data: Dict[str, Any],
 ) -> Dict[str, Any]:
+    """
+    This service function takes an existing GeoJSON object that contains all prescription map data
+    and adds the boundary for front-end rendering.
+
+    Returns: a complete GeoJSONCollection ready for front-end rendering.
+    """
     field_polygon = get_field_polygon(field_geojson_data)
     
     boundary_feature = {
