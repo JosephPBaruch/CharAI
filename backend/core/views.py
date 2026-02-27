@@ -19,8 +19,9 @@ from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer
 from .models import Field, PrescriptionMap
 from modules.GeoParser import GeoParser
 from .yield_calculator import YieldCalculator
+from modules.Geotiffgenerator import DEMGeneratorService
 
-#api calls & endpoints
+# api calls & endpoints
 class RegisterView(APIView):
     """API endpoint for user registration"""
     permission_classes = [permissions.AllowAny]
@@ -225,14 +226,8 @@ class PrescriptionMapView(APIView):
         
         # Call geotiff generator
         if coords:
-            coords_str = [f"{lat},{lon}" for lat, lon in coords]
-            call_command(
-                'generate_dem',
-                '--coords', *coords_str,
-                '--output', tiff_file_path,
-                '--dem-type', 'SRTMGL3',
-                '--resolution', '5.0'
-            )
+            geotiff_generator = DEMGeneratorService()
+            geotiff_generator.generate_from_coordinates(coords, tiff_file_path)
         
         logger.info("Finished generating tiff")
         
