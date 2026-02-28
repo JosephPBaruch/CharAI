@@ -5,7 +5,6 @@ import {
   Container,
   Paper,
   Stack,
-  CircularProgress,
 } from "@mui/material";
 import { COLORS } from "../../styles/colors";
 import React from "react";
@@ -16,6 +15,7 @@ import MapIcon from "@mui/icons-material/Map";
 import GridOnIcon from "@mui/icons-material/GridOn";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { GETFields, GETPrescriptionMap } from "../../api/fetch";
+import LoadingProgress from "../../components/LoadingProgress";
 
 interface GridCell {
   bounds: L.LatLngBounds;
@@ -71,11 +71,11 @@ const getGridCellLatLngs = (geojson: GeoJSONFeatureCollection): GridCell[] => {
 
 // Color scale for payback period (1-10)
 const getColorForPayback = (paybackPeriod: number): string => {
-  if (paybackPeriod <= 2) return COLORS.dataGreen; // green
-  if (paybackPeriod <= 4) return COLORS.dataLightGreen; // light green
-  if (paybackPeriod <= 6) return COLORS.dataYellow; // yellow
-  if (paybackPeriod <= 8) return COLORS.dataOrange; // orange
-  return COLORS.dataRed; // red
+  if (paybackPeriod <= 2) return COLORS.dataGreen;
+  if (paybackPeriod <= 4) return COLORS.dataLightGreen;
+  if (paybackPeriod <= 6) return COLORS.dataYellow;
+  if (paybackPeriod <= 8) return COLORS.dataOrange;
+  return COLORS.dataRed;
 };
 
 class GridCanvasLayer extends L.Layer {
@@ -240,11 +240,15 @@ class GridCanvasLayer extends L.Layer {
 // Legend component
 const PaybackLegend: React.FC = () => {
   const legendItems = [
-    { range: "1-2 years", color: COLORS.dataGreen, label: "Excellent" },
-    { range: "3-4 years", color: COLORS.dataLightGreen, label: "Good" },
-    { range: "5-6 years", color: COLORS.dataYellow, label: "Moderate" },
-    { range: "7-8 years", color: COLORS.dataOrange, label: "Fair" },
-    { range: "9-10 years", color: COLORS.dataRed, label: "Poor" },
+    { range: "1-2 years", color: COLORS.dataRed, label: "Very High Priority" },
+    { range: "3-4 years", color: COLORS.dataOrange, label: "High Priority" },
+    { range: "5-6 years", color: COLORS.dataYellow, label: "Medium Priority" },
+    { range: "7-8 years", color: COLORS.dataLightGreen, label: "Low Priority" },
+    {
+      range: "9-10 years",
+      color: COLORS.dataGreen,
+      label: "Very Low Priority",
+    },
   ];
 
   return (
@@ -485,8 +489,17 @@ export default function PrescriptionMapViewer() {
     if (!mapContainerRef.current || mapRef.current) return;
     console.log("Map effect running", mapContainerRef.current);
 
+    if (prescriptionData === null) return;
+    console.log(`prescriptionData object: ${JSON.stringify(prescriptionData)}`);
+    const boundaryLatLngs = new L.LatLngBounds(
+      getBoundaryLatLngs(prescriptionData),
+    );
+
+    console.log(`boundaryLatLngs object: ${JSON.stringify(boundaryLatLngs)}`);
+    const center = boundaryLatLngs.getCenter();
+
     const map = L.map(mapContainerRef.current, {
-      center: [46.7, -116.96],
+      center: center,
       zoom: 14,
       zoomControl: false,
     });
@@ -544,7 +557,7 @@ export default function PrescriptionMapViewer() {
   }, [isLoading]);
 
   // Loading state
-  if (isLoading) return <CircularProgress />;
+  if (isLoading) return <LoadingProgress />;
 
   // Empty state
   if (!prescriptionData) {

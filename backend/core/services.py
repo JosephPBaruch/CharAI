@@ -2,17 +2,16 @@ from decimal import Decimal
 import numpy as np
 import pandas as pd
 import math
-from typing import Dict, Any, List
+from typing import Dict, Any, List, cast
+from shapely.geometry import shape, Point, Polygon, mapping
+from shapely.prepared import prep
 
-# Compute payback period (years) for each grid cell, giving the prescription map its main data
 def compute_payback_period_grid(
     yield_prediction_df: pd.DataFrame,
-    crop_sales_price: Decimal,
-    biochar_application_rate: float,
-    biochar_price: float,
+    crop_sales_price: float,
+    biochar_cost_per_cell: float,
 ) -> pd.DataFrame:
-    # Merge yield prediction data frames by index
-    # required columns must include separate entries for yield_without_biochar and yield_with_biochar
+
     required_columns = {
         "cell_id",
         "centroid_lat",
@@ -20,40 +19,78 @@ def compute_payback_period_grid(
         "yield_without_biochar",
         "yield_with_biochar",
     }
+
     if not required_columns.issubset(set(yield_prediction_df.columns)):
         raise ValueError(
-            f"DataFrame must contain columns {required_columns}. Got: {list(yield_prediction_df.columns)}"
+            f"DataFrame must contain columns {required_columns}. "
+            f"Got: {list(yield_prediction_df.columns)}"
         )
 
-    # Ensure numeric types: convert Decimal inputs to floats and DataFrame yield columns to numeric
-    crop_sales_price_float = float(crop_sales_price)
-    biochar_price_float = float(biochar_price)
-    biochar_application_rate_float = float(biochar_application_rate)
+    df = yield_prediction_df.copy()
 
-    # Calculate yield differences (force numeric conversion to avoid dtype surprises)
-    yield_with = pd.to_numeric(yield_prediction_df["yield_with_biochar"], errors="coerce")
-    yield_without = pd.to_numeric(yield_prediction_df["yield_without_biochar"], errors="coerce")
-    yield_prediction_df["yield_delta"] = yield_with - yield_without
+    # Ensure numeric
+    yield_with = pd.to_numeric(df["yield_with_biochar"], errors="coerce")
+    yield_without = pd.to_numeric(df["yield_without_biochar"], errors="coerce")
 
-    # Find marginal revenue based on yield differences (use float price)
-    yield_prediction_df["marginal_revenue"] = yield_prediction_df["yield_delta"] * crop_sales_price_float
+    df["yield_delta"] = yield_with - yield_without
 
-    # Calculate biochar cost per cell (one time as application rate is constant across field)
-    biochar_cost = biochar_application_rate_float * biochar_price_float
+    # Revenue per cell
+    df["marginal_revenue"] = df["yield_delta"] * float(crop_sales_price)
 
-    # Add payback period with mask in case of negative ROI
-    yield_prediction_df["payback_period"] = np.inf
-    valid_payback_mask = yield_prediction_df["marginal_revenue"] > 0
+    # Initialize payback
+    df["payback_period"] = np.inf
 
-    yield_prediction_df.loc[valid_payback_mask, "payback_period"] = (
-        biochar_cost / yield_prediction_df.loc[valid_payback_mask, "marginal_revenue"]
+    valid_mask = df["marginal_revenue"] > 0
+
+    df.loc[valid_mask, "payback_period"] = (
+        float(biochar_cost_per_cell)
+        / pd.to_numeric(df.loc[valid_mask, "marginal_revenue"], errors="coerce")
     )
 
-    # Return DataFrame in expected Format ["cell_id", "lat", "lng", "payback_period"]
-    result = pd.DataFrame(
-        yield_prediction_df.loc[:, ["cell_id", "centroid_lat", "centroid_lon", "payback_period"]]
-    )
+    result = cast(pd.DataFrame, df.loc[
+        :, ["cell_id", "centroid_lat", "centroid_lon", "payback_period"]
+    ]).reset_index(drop=True)
+
     return result
+
+
+def filter_cells_inside_boundary(df: pd.DataFrame, field_geojson: dict) -> pd.DataFrame: 
+    """
+    This function removes grid cells whose centers fall outside the field boundary.
+    Uses shapely, which is a Python wrapper around a GEOS, a computational geometry engine.
+    Performs a point-in-polygon test for every cell against the field boundary.
+    """
+
+    # Get farm's coordinates to use as boundary condition
+    field_polygon = get_field_polygon(field_geojson)
+
+    """
+    - prep() creates a PreparedGeometry object.
+    - PreparedGeometry object builds a spatial index over all polygon edges.
+    - So now, using the ray-casting algorithm, we only check nearby edges instead of every polygon edge, reducing the number of comparisons we make.
+    - Much more efficient to create an object when performing many point-in-polygon tests (aka if thousands of grid cells are within the field boundary).
+    """
+    prepared_polygon = prep(field_polygon)
+
+    cell_mask = [
+        prepared_polygon.contains(Point(lon, lat))
+        for lon, lat in zip(df["centroid_lon"].values, df["centroid_lat"].values)
+    ]
+
+    return cast(pd.DataFrame, df.loc[cell_mask].reset_index(drop=True))
+
+def get_field_polygon(field_geojson: dict) -> Polygon:
+    """
+    Helper function to get a field's boundary coordinates as a polygon.
+    """
+
+    for feature in field_geojson.get("features", []):
+        geometry = feature.get("geometry")
+        if geometry and geometry.get("type") == "Polygon":
+            return cast(Polygon, shape(geometry))
+        
+    raise ValueError("No Polygon found in field GeoJSON")
+    
 
 def convert_df_to_geojson_polygons(
     payback_period_df: pd.DataFrame,
@@ -122,22 +159,19 @@ def parse_and_append_boundary_coordinates(
     grid_geojson_data: Dict[str, Any],
     field_geojson_data: Dict[str, Any],
 ) -> Dict[str, Any]:
-    boundary_geometry = None
-    
-    for feature in field_geojson_data.get("features", []):
-        geometry = feature.get("geometry")
-        if geometry and geometry.get("type") == "Polygon":
-            boundary_geometry = geometry
-            break
-        
-    if not boundary_geometry:
-        return grid_geojson_data
+    """
+    This service function takes an existing GeoJSON object that contains all prescription map data
+    and adds the boundary for front-end rendering.
+
+    Returns: a complete GeoJSONCollection ready for front-end rendering.
+    """
+    field_polygon = get_field_polygon(field_geojson_data)
     
     boundary_feature = {
         "type": "Feature",
-        "geometry": boundary_geometry,
+        "geometry": mapping(field_polygon),
         "properties": {
-            "featureType": "boundary0"
+            "featureType": "boundary"
         }
     }
 
