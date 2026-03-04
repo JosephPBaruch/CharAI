@@ -12,6 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { GETFields } from "../../api/fetch";
+import FieldDialog from "./Dialog";
 
 type FieldRecord = {
   id: number;
@@ -35,6 +36,13 @@ export default function FieldTable() {
   const [fields, setFields] = React.useState<FieldRecord[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [selectedField, setSelectedField] = React.useState("");
+  const [open, setOpen] = React.useState(false);
+
+  const handleGetMap = (field: FieldRecord) => {
+    setSelectedField(field.field_id);
+    setOpen(true);
+  };
 
   React.useEffect(() => {
     let isMounted = true;
@@ -67,57 +75,67 @@ export default function FieldTable() {
   }
 
   return (
-    <TableContainer component={Paper}>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>ID</TableCell>
-            <TableCell>Field ID</TableCell>
-            <TableCell>Crop</TableCell>
-            <TableCell>Price</TableCell>
-            <TableCell>Unit</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Prescription File</TableCell>
-            <TableCell>Created</TableCell>
-            <TableCell>Updated</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {fields.map((field) => (
-            <TableRow key={field.id}>
-              <TableCell>{field.id}</TableCell>
-              <TableCell>{field.field_id}</TableCell>
-              <TableCell>{field.crop_type}</TableCell>
-              <TableCell>{field.price}</TableCell>
-              <TableCell>{field.unit}</TableCell>
-              <TableCell>{field.prescription_map_status}</TableCell>
-              <TableCell>{field.prescription_map_file || "-"}</TableCell>
-              <TableCell>
-                {new Date(field.created_at).toLocaleString()}
-              </TableCell>
-              <TableCell>
-                {new Date(field.updated_at).toLocaleString()}
-              </TableCell>
-              <TableCell>
-                <Button
-                  variant="contained"
-                  size="small"
-                  // onClick={() => handleGetMap(field)}
-                  disabled={field.prescription_map_status !== "complete"}
-                >
-                  Get Map
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-          {fields.length === 0 && (
+    <>
+      <TableContainer component={Paper}>
+        <Table size="small">
+          <TableHead>
             <TableRow>
-              <TableCell colSpan={10}>No fields found.</TableCell>
+              <TableCell>ID</TableCell>
+              <TableCell>Field ID</TableCell>
+              <TableCell>Crop</TableCell>
+              <TableCell>Price</TableCell>
+              <TableCell>Unit</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Prescription File</TableCell>
+              <TableCell>Created</TableCell>
+              <TableCell>Updated</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {fields.map((field) => (
+              <TableRow key={field.id}>
+                <TableCell>{field.id}</TableCell>
+                <TableCell>{field.field_id}</TableCell>
+                <TableCell>{field.crop_type}</TableCell>
+                <TableCell>{field.price}</TableCell>
+                <TableCell>{field.unit}</TableCell>
+                <TableCell>{field.prescription_map_status}</TableCell>
+                <TableCell>{field.prescription_map_file || "-"}</TableCell>
+                <TableCell>
+                  {new Date(field.created_at).toLocaleString()}
+                </TableCell>
+                <TableCell>
+                  {new Date(field.updated_at).toLocaleString()}
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => handleGetMap(field)}
+                    disabled={field.prescription_map_status !== "complete"}
+                  >
+                    Get Map
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+            {fields.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={10}>No fields found.</TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <FieldDialog
+        open={open}
+        id={selectedField}
+        onClose={() => {
+          setOpen(false);
+          setSelectedField("");
+        }}
+      />
+    </>
   );
 }
