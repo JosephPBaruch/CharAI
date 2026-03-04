@@ -26,7 +26,7 @@ const POSTFieldData = async (data: {
 };
 
 const GETPrescriptionMap = async (fieldId: string) => {
-  const response = await fetch(`${API_URL}/prescription/${fieldId}/`, {
+  const response = await fetch(`${API_URL}/field/${fieldId}/`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

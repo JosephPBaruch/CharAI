@@ -1,6 +1,7 @@
 import React from "react";
 import {
   Alert,
+  Button,
   Paper,
   Table,
   TableBody,
@@ -79,6 +80,7 @@ export default function FieldTable() {
             <TableCell>Prescription File</TableCell>
             <TableCell>Created</TableCell>
             <TableCell>Updated</TableCell>
+            <TableCell>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -97,11 +99,21 @@ export default function FieldTable() {
               <TableCell>
                 {new Date(field.updated_at).toLocaleString()}
               </TableCell>
+              <TableCell>
+                <Button
+                  variant="contained"
+                  size="small"
+                  // onClick={() => handleGetMap(field)}
+                  disabled={field.prescription_map_status !== "complete"}
+                >
+                  Get Map
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
           {fields.length === 0 && (
             <TableRow>
-              <TableCell colSpan={9}>No fields found.</TableCell>
+              <TableCell colSpan={10}>No fields found.</TableCell>
             </TableRow>
           )}
         </TableBody>
