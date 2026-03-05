@@ -195,7 +195,7 @@ export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
   }
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
       <DialogTitle>Field Dialog</DialogTitle>
       <DialogContent>
         <Box
