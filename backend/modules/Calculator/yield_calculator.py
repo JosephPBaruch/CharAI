@@ -153,16 +153,8 @@ class YieldCalculator:
             df (pd.DataFrame): Result dataframe with yield columns
             use_biochar (bool): Whether biochar yields were calculated
         """
-        self.logger.debug("\n=== Yield Calculation Summary ===")
-        self.logger.debug(f"Total grid cells: {len(df)}")
-        
-        # Base yield stats
-        self.logger.debug("\nYield WITHOUT biochar:")
-        self.logger.debug(f"  Mean: {df['yield_without_biochar'].mean():.2f}")
-        
-        self.logger.debug("\nYield WITH biochar:")
-        self.logger.debug(f"  Mean: {df['yield_with_biochar'].mean():.2f}")
-        
-        self.logger.debug("\nBiochar improvement:")
-        self.logger.debug(f"  Mean improvement: {df['biochar_improvement_pct'].mean():.2f}%")
+        self.logger.debug(f"Yield Calculation: Total grid cells: {len(df)}")
+        self.logger.debug(f"Yield WITHOUT biochar:  Mean: {df['yield_without_biochar'].mean():.2f}")
+        self.logger.debug(f"Yield WITH biochar:  Mean: {df['yield_with_biochar'].mean():.2f}")
+        self.logger.debug(f"Biochar improvement:  Mean improvement: {df['biochar_improvement_pct'].mean():.2f}%")
         
