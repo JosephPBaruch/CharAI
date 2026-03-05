@@ -418,7 +418,7 @@ export default function PrescriptionMapViewer() {
         .then((data) => {
           console.log("Prescription map data from backend:", data);
 
-          const geojson = data.prescription_data as GeoJSONFeatureCollection;
+          const geojson = data.prescription_map as GeoJSONFeatureCollection;
           setPrescriptionData(geojson);
 
           const cells = getGridCellLatLngs(geojson);
