@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { GETFields } from "../../api/fetch";
-import FieldDialog from "./Dialog";
+import FieldDialog from "../prescriptions/Dialog";
 
 type FieldRecord = {
   id: number;
