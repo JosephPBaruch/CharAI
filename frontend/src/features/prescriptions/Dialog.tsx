@@ -33,33 +33,54 @@ export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
   const tooltipRef = React.useRef<HTMLDivElement | null>(null);
 
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
+  const [isMapReady, setIsMapReady] = React.useState<boolean>(false);
   const [prescriptionData, setPrescriptionData] =
     React.useState<GeoJSONFeatureCollection | null>(null);
   const [cells, setCells] = React.useState<GridCell[]>([]);
 
   // Fetch backend data
   React.useEffect(() => {
+    let cancelled = false;
+
+    setIsLoading(true);
+
     if (!id) {
+      setPrescriptionData(null);
+      setCells([]);
       setIsLoading(false);
       return;
     }
+
     GETPrescriptionMap(id)
       .then((data) => {
-        console.log("Prescription map data from backend:", data);
+        if (cancelled) return;
 
         const geojson = data.prescription_map as GeoJSONFeatureCollection;
+
         setPrescriptionData(geojson);
 
         const cells = getGridCellLatLngs(geojson);
+
         setCells(cells);
       })
-      .catch(() => setPrescriptionData(null))
-      .finally(() => setIsLoading(false));
-  }, [isLoading, id]);
+      .catch(() => {
+        if (cancelled) return;
+
+        setPrescriptionData(null);
+        setCells([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   // Initialize grid layer
   React.useEffect(() => {
-    if (!mapRef.current || cells.length === 0) return;
+    if (!isMapReady || !mapRef.current || cells.length === 0) return;
 
     if (!gridLayerRef.current) {
       gridLayerRef.current = new GridCanvasLayer(cells, (cell, e) => {
@@ -87,15 +108,19 @@ export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
     } else {
       gridLayerRef.current.setCells(cells);
     }
-  }, [cells]);
+  }, [cells, isMapReady]);
 
   // Initialize and add boundary layer
   React.useEffect(() => {
-    if (!mapRef.current || !prescriptionData) return;
+    if (!isMapReady || !mapRef.current || !prescriptionData) {
+      return;
+    }
 
     const latLngs = getBoundaryLatLngs(prescriptionData);
 
-    if (latLngs.length < 3) return;
+    if (latLngs.length < 3) {
+      return;
+    }
 
     if (boundaryLayerRef.current) {
       mapRef.current.removeLayer(boundaryLayerRef.current);
@@ -108,22 +133,19 @@ export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
     }).addTo(mapRef.current);
 
     mapRef.current.fitBounds(boundaryLayerRef.current.getBounds());
-  }, [prescriptionData]);
+  }, [prescriptionData, isMapReady]);
 
   // Initialize map
   React.useEffect(() => {
     // Only initialize the map after loading is finished and the container exists
     if (isLoading) return;
     if (!mapContainerRefs.current || mapRef.current) return;
-    console.log("Map effect running", mapContainerRefs.current);
 
     if (prescriptionData === null) return;
-    console.log(`prescriptionData object: ${JSON.stringify(prescriptionData)}`);
     const boundaryLatLngs = new L.LatLngBounds(
       getBoundaryLatLngs(prescriptionData),
     );
 
-    console.log(`boundaryLatLngs object: ${JSON.stringify(boundaryLatLngs)}`);
     const center = boundaryLatLngs.getCenter();
 
     const map = L.map(mapContainerRefs.current, {
@@ -136,6 +158,7 @@ export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
     mapRef.current = map;
+    setIsMapReady(true);
 
     // Add ESRI satellite imagery
     L.tileLayer(
@@ -173,16 +196,22 @@ export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
     tooltipRef.current = tooltip;
 
     return () => {
+      setIsMapReady(false);
+
       if (tooltipRef.current) {
         document.body.removeChild(tooltipRef.current);
         tooltipRef.current = null;
       }
+
+      gridLayerRef.current = null;
+      boundaryLayerRef.current = null;
+
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
       }
     };
-  }, [isLoading]);
+  }, [isLoading, prescriptionData]);
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
