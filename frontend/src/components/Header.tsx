@@ -64,7 +64,7 @@ const Header = () => {
               >
                 Home
               </Button>
-              <Button
+              {/* <Button
                 component={RouterLink}
                 to="/output"
                 sx={{
@@ -74,7 +74,7 @@ const Header = () => {
                 }}
               >
                 Maps
-              </Button>
+              </Button> */}
               <Button
                 component={RouterLink}
                 to="/fields"

@@ -14,21 +14,19 @@ import "leaflet/dist/leaflet.css";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { GETPrescriptionMap } from "../../api/fetch";
 import LoadingProgress from "../../components/LoadingProgress";
-import type { GeoJSONFeatureCollection, GridCell } from "./types";
+import type {
+  FieldDialogProps,
+  GeoJSONFeatureCollection,
+  GridCell,
+} from "./types";
 import { getBoundaryLatLngs, getGridCellLatLngs } from "./helpers";
 import { StatsPanel } from "./StatsPanel";
 import { PaybackLegend } from "./PaybackLegend";
 import { GridCanvasLayer } from "./GridCanvasLayer";
 import EmptyPrescriptionState from "./EmptyPrescriptionData";
 
-type FieldDialogProps = {
-  open: boolean;
-  onClose: () => void;
-  id: string;
-};
-
 export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
-  const mapContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const mapContainerRefs = React.useRef<HTMLDivElement | null>(null);
   const mapRef = React.useRef<L.Map | null>(null);
   const gridLayerRef = React.useRef<GridCanvasLayer | null>(null);
   const boundaryLayerRef = React.useRef<L.Polygon | null>(null);
@@ -116,8 +114,8 @@ export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
   React.useEffect(() => {
     // Only initialize the map after loading is finished and the container exists
     if (isLoading) return;
-    if (!mapContainerRef.current || mapRef.current) return;
-    console.log("Map effect running", mapContainerRef.current);
+    if (!mapContainerRefs.current || mapRef.current) return;
+    console.log("Map effect running", mapContainerRefs.current);
 
     if (prescriptionData === null) return;
     console.log(`prescriptionData object: ${JSON.stringify(prescriptionData)}`);
@@ -128,7 +126,7 @@ export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
     console.log(`boundaryLatLngs object: ${JSON.stringify(boundaryLatLngs)}`);
     const center = boundaryLatLngs.getCenter();
 
-    const map = L.map(mapContainerRef.current, {
+    const map = L.map(mapContainerRefs.current, {
       center: center,
       zoom: 14,
       zoomControl: false,
@@ -253,7 +251,7 @@ export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
                     }}
                   >
                     <div
-                      ref={mapContainerRef}
+                      ref={mapContainerRefs}
                       style={{ height: "100%", width: "100%" }}
                     />
 

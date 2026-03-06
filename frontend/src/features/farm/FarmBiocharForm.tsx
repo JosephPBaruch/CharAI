@@ -152,7 +152,7 @@ export default function FarmBiocharForm() {
                 POSTFieldData(payload);
                 setFormSubmitted(true);
                 closeModal();
-                navigate("/output");
+                navigate("/fields");
               }}
             />
           </Box>

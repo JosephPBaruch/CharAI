@@ -26,3 +26,9 @@ export interface GeoJSONFeatureCollection {
 export interface StatsPanelProps {
   cells: GridCell[];
 }
+
+export type FieldDialogProps = {
+  open: boolean;
+  onClose: () => void;
+  id: string;
+};

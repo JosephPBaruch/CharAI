@@ -11,7 +11,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { GETFields } from "../../api/fetch";
+import { DeleteField, GETFields } from "../../api/fetch";
 import FieldDialog from "../prescriptions/Dialog";
 
 type FieldRecord = {
@@ -42,6 +42,17 @@ export default function FieldTable() {
   const handleGetMap = (field: FieldRecord) => {
     setSelectedField(field.field_id);
     setOpen(true);
+  };
+
+  const handleDeleteMap = async (field: FieldRecord) => {
+    try {
+      const status = await DeleteField(field.field_id);
+      if (status == 200) {
+        console.log("Successful delete of field: ", field.field_id);
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   React.useEffect(() => {
@@ -109,6 +120,14 @@ export default function FieldTable() {
                   {new Date(field.updated_at).toLocaleString()}
                 </TableCell>
                 <TableCell>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => handleDeleteMap(field)}
+                    disabled={field.prescription_map_status !== "complete"}
+                  >
+                    Delete
+                  </Button>
                   <Button
                     variant="contained"
                     size="small"
