@@ -186,121 +186,124 @@ export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
     };
   }, [isLoading]);
 
-  // Loading state
-  if (isLoading) return <LoadingProgress />;
-
-  // Empty state
-  if (!prescriptionData) {
-    return <EmptyPrescriptionState />;
-  }
-
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
       <DialogTitle>Field Dialog</DialogTitle>
       <DialogContent>
-        <Box
-          sx={{
-            height: "calc(100vh - 100px)",
-            display: "flex",
-            flexDirection: "column",
-            p: 2,
-          }}
-        >
-          {/* Header */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              mb: 2,
-              pb: 2,
-              borderBottom: `1px solid ${COLORS.whiteVeryLow}`,
-            }}
-          >
-            <Box>
-              <Typography
-                variant="h4"
-                sx={{
-                  color: COLORS.whiteHigh,
-                  fontWeight: 700,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.5,
-                }}
-              >
-                Prescription Map
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ color: COLORS.whiteMedium, mt: 0.5 }}
-              >
-                Biochar application recommendations based on your field analysis
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Main content */}
-          <Box sx={{ flex: 1, display: "flex", gap: 2, minHeight: 0 }}>
-            {/* Map container */}
-            <Box
-              sx={{
-                flex: 1,
-                position: "relative",
-                borderRadius: 2,
-                overflow: "hidden",
-                border: `1px solid ${COLORS.whiteVeryLow}`,
-                boxShadow: `0 4px 20px ${COLORS.blackLow}`,
-              }}
-            >
-              <div
-                ref={mapContainerRef}
-                style={{ height: "100%", width: "100%" }}
-              />
-
-              {/* Info overlay */}
+        {isLoading ? (
+          <LoadingProgress />
+        ) : (
+          <>
+            {!prescriptionData ? (
+              <EmptyPrescriptionState />
+            ) : (
               <Box
                 sx={{
-                  position: "absolute",
-                  top: 12,
-                  left: 12,
-                  zIndex: 1000,
+                  height: "calc(100vh - 100px)",
                   display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  backgroundColor: COLORS.blackOverlay,
-                  backdropFilter: "blur(4px)",
-                  borderRadius: 1,
-                  px: 1.5,
-                  py: 0.75,
+                  flexDirection: "column",
+                  p: 2,
                 }}
               >
-                <InfoOutlinedIcon
-                  sx={{ fontSize: 16, color: COLORS.whiteMedium }}
-                />
-                <Typography
-                  variant="caption"
-                  sx={{ color: COLORS.whiteMedium }}
+                {/* Header */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    mb: 2,
+                    pb: 2,
+                    borderBottom: `1px solid ${COLORS.whiteVeryLow}`,
+                  }}
                 >
-                  Hover over cells to see details
-                </Typography>
-              </Box>
-            </Box>
+                  <Box>
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        color: COLORS.whiteHigh,
+                        fontWeight: 700,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.5,
+                      }}
+                    >
+                      Prescription Map
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: COLORS.whiteMedium, mt: 0.5 }}
+                    >
+                      Biochar application recommendations based on your field
+                      analysis
+                    </Typography>
+                  </Box>
+                </Box>
 
-            {/* Sidebar */}
-            <Box
-              sx={{
-                width: 280,
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-                flexShrink: 0,
-              }}
-            >
-              <StatsPanel cells={cells} />
-              <PaybackLegend />
-            </Box>
-          </Box>
-        </Box>
+                {/* Main content */}
+                <Box sx={{ flex: 1, display: "flex", gap: 2, minHeight: 0 }}>
+                  {/* Map container */}
+                  <Box
+                    sx={{
+                      flex: 1,
+                      position: "relative",
+                      borderRadius: 2,
+                      overflow: "hidden",
+                      border: `1px solid ${COLORS.whiteVeryLow}`,
+                      boxShadow: `0 4px 20px ${COLORS.blackLow}`,
+                    }}
+                  >
+                    <div
+                      ref={mapContainerRef}
+                      style={{ height: "100%", width: "100%" }}
+                    />
+
+                    {/* Info overlay */}
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 12,
+                        left: 12,
+                        zIndex: 1000,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        backgroundColor: COLORS.blackOverlay,
+                        backdropFilter: "blur(4px)",
+                        borderRadius: 1,
+                        px: 1.5,
+                        py: 0.75,
+                      }}
+                    >
+                      <InfoOutlinedIcon
+                        sx={{ fontSize: 16, color: COLORS.whiteMedium }}
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{ color: COLORS.whiteMedium }}
+                      >
+                        Hover over cells to see details
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Sidebar */}
+                  <Box
+                    sx={{
+                      width: 280,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <StatsPanel cells={cells} />
+                    <PaybackLegend />
+                  </Box>
+                </Box>
+              </Box>
+            )}
+          </>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Close</Button>
