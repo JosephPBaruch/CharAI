@@ -47,7 +47,22 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
         )
 
         logger.info("Generating GeoTif")
-        DEMGeneratorService(logger=logger).generate_from_coordinates(coords, tiff_file_path)
+        result = DEMGeneratorService(logger=logger).generate_from_coordinates(coords, tiff_file_path)
+        if result.get("success") is False:
+            error_message = result.get("error", "Unknown DEM generation error")
+            field.prescription_map_status = Field.STATUS_FAILED
+            field.save(update_fields=["prescription_map_status", "updated_at"])
+            logger.error(
+                "Handled prescription failure during DEM generation for field_id=%s: %s",
+                field.field_id,
+                error_message,
+            )
+            return {
+                "success": False,
+                "stage": "dem_generation",
+                "error": error_message,
+            }
+
 
         logger.info("Parsing GeoTif")
         geotiff_data = GeoParser(logger=logger, path=tiff_file_path).parse()
@@ -106,19 +121,34 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
         )
 
         logger.info("Prescription map generated for field_id=%s", field.field_id)
-        return prescription_data_geojson_with_boundary
+        return {
+            "success": True,
+            "stage": "complete",
+            "prescription_data": prescription_data_geojson_with_boundary,
+        }
 
-    except Exception:
+    except Exception as e:
         field.prescription_map_status = Field.STATUS_FAILED
         field.save(update_fields=["prescription_map_status", "updated_at"])
         logger.exception("Failed to generate prescription map for field_id=%s", field.field_id)
-        raise
+        return {
+            "success": False,
+            "stage": "unexpected_exception",
+            "error": str(e),
+        }
 
 def _run_prescription_job(logger: logging.Logger, field_pk: int) -> None:
     close_old_connections()
     try:
         field = Field.objects.get(pk=field_pk)
-        create_prescription_map_for_field(logger, field)
+        result = create_prescription_map_for_field(logger, field)
+        if not result.get("success", False):
+            logger.warning(
+                "Prescription background job completed with handled failure for field pk=%s (stage=%s, error=%s)",
+                field_pk,
+                result.get("stage", "unknown"),
+                result.get("error", "unknown error"),
+            )
     except Field.DoesNotExist:
         logger.error("Prescription job failed: field pk=%s not found", field_pk)
     except Exception:

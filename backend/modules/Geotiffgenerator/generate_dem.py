@@ -56,6 +56,7 @@ import os
 from scipy.ndimage import zoom
 from shapely.geometry import Polygon
 import logging
+import re
 
 class DEMGeneratorService:
     """Service for generating DEM raster files from coordinates"""
@@ -70,6 +71,12 @@ class DEMGeneratorService:
         self.cache_dir = cache_dir
         os.makedirs(cache_dir, exist_ok=True)
         self.logger = logger
+
+    def _sanitize_error_message(self, message: str) -> str:
+        """Remove sensitive tokens from upstream error text before logging."""
+        if not message:
+            return message
+        return re.sub(r"(?i)(API_Key=)[^&\s]+", r"\1REDACTED", message)
     
     def generate_from_coordinates(self, coords, output_file, resolution=5.0, dem_type='SRTMGL3'):
         """
@@ -172,10 +179,11 @@ class DEMGeneratorService:
             return result
             
         except Exception as e:
-            self.logger.error(f"DEM generation failed: {str(e)}")
+            sanitized_error = self._sanitize_error_message(str(e))
+            self.logger.error(f"DEM generation failed: {sanitized_error}")
             return {
                 'success': False,
-                'error': str(e)
+                'error': sanitized_error
             }
     
     def _calculate_bounds(self, coords):
@@ -272,9 +280,63 @@ class DEMGeneratorService:
             cache_dir=self.cache_dir
         )
         
-        # Fetch and load data
-        topo.fetch()
-        topo.load()
+        # Fetch and load data with explicit error handling so failures are logged clearly.
+        try:
+            result = topo.fetch()
+        except Exception as exc:
+            status_code = getattr(getattr(exc, "response", None), "status_code", None)
+            sanitized_error = self._sanitize_error_message(str(exc))
+
+            # 4xx from provider is an expected external failure mode: log cleanly without traceback noise.
+            if status_code is not None and 400 <= status_code < 500:
+                self.logger.warning(
+                    "DEM fetch request rejected by provider (status=%s, dem_type=%s, south=%s, north=%s, west=%s, east=%s): %s",
+                    status_code,
+                    dem_type,
+                    south,
+                    north,
+                    west,
+                    east,
+                    sanitized_error,
+                )
+            else:
+                self.logger.exception(
+                    "DEM fetch raised an exception (dem_type=%s, south=%s, north=%s, west=%s, east=%s)",
+                    dem_type,
+                    south,
+                    north,
+                    west,
+                    east,
+                )
+
+            raise RuntimeError(f"Topography fetch failed: {sanitized_error}") from exc
+
+        fetch_error = getattr(result, "error", None)
+        if fetch_error:
+            sanitized_error = self._sanitize_error_message(str(fetch_error))
+            self.logger.error(
+                "DEM fetch returned an error (dem_type=%s, south=%s, north=%s, west=%s, east=%s): %s",
+                dem_type,
+                south,
+                north,
+                west,
+                east,
+                sanitized_error,
+            )
+            raise RuntimeError(f"Topography fetch failed: {sanitized_error}")
+
+        try:
+            topo.load()
+        except Exception:
+            self.logger.exception(
+                "DEM load failed after fetch (dem_type=%s, south=%s, north=%s, west=%s, east=%s)",
+                dem_type,
+                south,
+                north,
+                west,
+                east,
+            )
+            raise
         
         # Get elevation data
         elev = topo.da.values

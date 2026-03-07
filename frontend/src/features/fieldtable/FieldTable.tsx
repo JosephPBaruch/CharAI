@@ -1,6 +1,7 @@
 import React from "react";
 import {
   Alert,
+  Box,
   Button,
   Paper,
   Table,
@@ -13,6 +14,7 @@ import {
 } from "@mui/material";
 import { DeleteField, GETFields } from "../../api/fetch";
 import FieldDialog from "../prescriptions/Dialog";
+import { FarmBiocharForm } from "..";
 
 type FieldRecord = {
   id: number;
@@ -87,6 +89,10 @@ export default function FieldTable() {
 
   return (
     <>
+      {/* Farm configuration form placed below the intro */}
+      <Box>
+        <FarmBiocharForm />
+      </Box>
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>
@@ -124,7 +130,6 @@ export default function FieldTable() {
                     variant="contained"
                     size="small"
                     onClick={() => handleDeleteMap(field)}
-                    disabled={field.prescription_map_status !== "complete"}
                   >
                     Delete
                   </Button>
@@ -147,6 +152,7 @@ export default function FieldTable() {
           </TableBody>
         </Table>
       </TableContainer>
+
       <FieldDialog
         open={open}
         id={selectedField}

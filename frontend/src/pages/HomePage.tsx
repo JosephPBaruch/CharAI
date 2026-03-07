@@ -1,6 +1,5 @@
 import { Box, Typography, Container } from "@mui/material";
 import { useAuth } from "../contexts/AuthContext";
-import { FarmBiocharForm } from "../features/farm";
 import { COLORS } from "../styles/colors";
 
 const HomePage = () => {
@@ -59,11 +58,6 @@ const HomePage = () => {
             yield data, you can submit a request to estimate potential impacts
             and budget allocation for biochar application.
           </Typography>
-        </Box>
-
-        {/* Farm configuration form placed below the intro */}
-        <Box>
-          <FarmBiocharForm />
         </Box>
       </Box>
     </Container>
