@@ -92,8 +92,8 @@ export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
         }
 
         tooltipRef.current.style.display = "block";
-        tooltipRef.current.style.left = `${e.pageX + 12}px`;
-        tooltipRef.current.style.top = `${e.pageY + 12}px`;
+        tooltipRef.current.style.left = `${e.clientX + 12}px`;
+        tooltipRef.current.style.top = `${e.clientY + 12}px`;
 
         const center = cell.bounds.getCenter();
 
@@ -180,14 +180,14 @@ export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
     // Create tooltip element
     const tooltip = document.createElement("div");
     tooltip.style.cssText = `
-        position: absolute;
+        position: fixed;
         background: rgba(0,0,0,0.85);
         padding: 8px 12px;
         border-radius: 6px;
         font-size: 12px;
         color: #fff;
         pointer-events: none;
-        z-index: 1000;
+        z-index: 1700;
         box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         display: none;
         border: 1px solid rgba(255,255,255,0.1);
