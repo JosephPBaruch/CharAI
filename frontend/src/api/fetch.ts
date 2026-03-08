@@ -37,7 +37,8 @@ const GETPrescriptionMap = async (fieldId: string) => {
     throw new Error(`Error fetching prescription map: ${response.statusText}`);
   }
 
-  // Stream the (decompressed) response body in chunks
+  // Stream the (decompressed) response body in chunks.
+  // Fallback to response.json() for environments without ReadableStream support.
   if (!response.body) {
     return response.json();
   }

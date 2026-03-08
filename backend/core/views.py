@@ -10,6 +10,7 @@ from django.conf import settings
 from django.http import StreamingHttpResponse
 from datetime import datetime
 import gzip
+import io
 import json
 import os
 import logging
@@ -320,16 +321,28 @@ class PrescriptionMapView(APIView):
         serializer = PrescriptionMapSerializer(prescription_map)
 
         # Compress and stream the response to avoid rate-limiting on large payloads
-        json_bytes = json.dumps(serializer.data).encode('utf-8')
-        compressed = gzip.compress(json_bytes)
-
-        def stream_chunks():
+        def stream_compressed_json(data):
+            json_bytes = json.dumps(data).encode('utf-8')
+            buf = io.BytesIO()
             chunk_size = 8192
-            for i in range(0, len(compressed), chunk_size):
-                yield compressed[i:i + chunk_size]
+            with gzip.GzipFile(fileobj=buf, mode='wb') as gz:
+                for i in range(0, len(json_bytes), chunk_size):
+                    gz.write(json_bytes[i:i + chunk_size])
+                    gz.flush()
+                    buf.seek(0)
+                    chunk = buf.read()
+                    if chunk:
+                        yield chunk
+                    buf.seek(0)
+                    buf.truncate()
+            # Yield remaining data (gzip footer)
+            buf.seek(0)
+            remaining = buf.read()
+            if remaining:
+                yield remaining
 
         response = StreamingHttpResponse(
-            streaming_content=stream_chunks(),
+            streaming_content=stream_compressed_json(serializer.data),
             content_type='application/json',
             status=200,
         )
