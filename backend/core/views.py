@@ -8,8 +8,8 @@ from django.conf import settings
 from django.http import StreamingHttpResponse
 import gzip
 import io
-import json
 import logging
+import json
 import os
 from .models import Field
 from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer, FieldModelSerializer
