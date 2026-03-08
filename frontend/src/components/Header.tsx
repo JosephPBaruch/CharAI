@@ -11,7 +11,7 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       await logout();
-    } catch (error) {
+    } catch {
       showToast({
         message: "Logout failed. Please try again.",
         severity: "error",
@@ -64,7 +64,7 @@ const Header = () => {
               >
                 Home
               </Button>
-              <Button
+              {/* <Button
                 component={RouterLink}
                 to="/output"
                 sx={{
@@ -74,6 +74,17 @@ const Header = () => {
                 }}
               >
                 Maps
+              </Button> */}
+              <Button
+                component={RouterLink}
+                to="/fields"
+                sx={{
+                  color: COLORS.whiteHigh,
+                  textTransform: "none",
+                  fontSize: "1rem",
+                }}
+              >
+                Fields
               </Button>
               <Button
                 onClick={handleLogout}

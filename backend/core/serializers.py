@@ -84,7 +84,19 @@ class FieldModelSerializer(serializers.ModelSerializer):
     """Serializer for Field model"""
     class Meta:
         model = Field
-        fields = ('id', 'field_id', 'crop_type', 'custom_crop', 'price', 'unit', 'global_max', 'created_at', 'updated_at')
+        fields = (
+            'id',
+            'field_id',
+            'crop_type',
+            'custom_crop',
+            'price',
+            'unit',
+            'global_max',
+            'prescription_map_status',
+            'prescription_map_file',
+            'created_at',
+            'updated_at',
+        )
         read_only_fields = ('id', 'created_at', 'updated_at')
 
 

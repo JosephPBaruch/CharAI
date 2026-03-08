@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 
 try:
-    from yield_calculator import YieldCalculator
+    from modules.Calculator import YieldCalculator
     
     print("=" * 70)
     print("YIELD CALCULATOR TEST")

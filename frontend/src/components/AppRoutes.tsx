@@ -4,7 +4,8 @@ import LoginPage from "../pages/LoginPage";
 import SignupPage from "../pages/SignupPage";
 import HomePage from "../pages/HomePage";
 import { ProtectedRoute, PublicRoute } from "../features/auth";
-import PrescriptionsPage from "../pages/PrescriptionsPage";
+// import PrescriptionsPage from "../pages/PrescriptionsPage";
+import FieldPage from "../pages/FieldPage";
 
 export default function AppRoutes() {
   return (
@@ -22,10 +23,15 @@ export default function AppRoutes() {
         element={<PublicRoute element={<SignupPage />} />}
       />
 
-      {/* Prescriptions page - requires authentication */}
+      {/* Prescriptions page - requires authentication
       <Route
         path="/output"
         element={<ProtectedRoute element={<PrescriptionsPage />} />}
+      /> */}
+
+      <Route
+        path="/fields"
+        element={<ProtectedRoute element={<FieldPage />} />}
       />
 
       {/* Catch-all for unmatched routes */}
