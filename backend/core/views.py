@@ -7,7 +7,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.conf import settings
+from django.http import StreamingHttpResponse
 from datetime import datetime
+import gzip
+import json
 import os
 import logging
 
@@ -315,4 +318,20 @@ class PrescriptionMapView(APIView):
             prescription_map.save()
 
         serializer = PrescriptionMapSerializer(prescription_map)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # Compress and stream the response to avoid rate-limiting on large payloads
+        json_bytes = json.dumps(serializer.data).encode('utf-8')
+        compressed = gzip.compress(json_bytes)
+
+        def stream_chunks():
+            chunk_size = 8192
+            for i in range(0, len(compressed), chunk_size):
+                yield compressed[i:i + chunk_size]
+
+        response = StreamingHttpResponse(
+            streaming_content=stream_chunks(),
+            content_type='application/json',
+            status=200,
+        )
+        response['Content-Encoding'] = 'gzip'
+        return response
