@@ -51,20 +51,17 @@ from bmi_topography import Topography
 import numpy as np
 import rasterio
 from rasterio.transform import from_bounds
-from rasterio.features import geometry_mask
 from datetime import datetime
 import os
 from scipy.ndimage import zoom
 from shapely.geometry import Polygon
 import logging
-
-logger = logging.getLogger(__name__)
-
+import re
 
 class DEMGeneratorService:
     """Service for generating DEM raster files from coordinates"""
     
-    def __init__(self, cache_dir='./dem_cache'):
+    def __init__(self, logger: logging.Logger, cache_dir='./dem_cache'):
         """
         Initialize DEM Generator Service
         
@@ -73,6 +70,13 @@ class DEMGeneratorService:
         """
         self.cache_dir = cache_dir
         os.makedirs(cache_dir, exist_ok=True)
+        self.logger = logger
+
+    def _sanitize_error_message(self, message: str) -> str:
+        """Remove sensitive tokens from upstream error text before logging."""
+        if not message:
+            return message
+        return re.sub(r"(?i)(API_Key=)[^&\s]+", r"\1REDACTED", message)
     
     def generate_from_coordinates(self, coords, output_file, resolution=5.0, dem_type='SRTMGL3'):
         """
@@ -108,7 +112,7 @@ class DEMGeneratorService:
             if not all(isinstance(c, (tuple, list)) and len(c) == 2 for c in coords):
                 raise ValueError("Coordinates must be (lat, lon) tuples")
             
-            logger.info(f"Generating DEM from {len(coords)} coordinates")
+            self.logger.debug(f"Generating DEM from {len(coords)} coordinates")
             
             # Calculate bounds
             bounds = self._calculate_bounds(coords)
@@ -122,9 +126,9 @@ class DEMGeneratorService:
             n_pixels_x = int(np.ceil(width_m / resolution))
             n_pixels_y = int(np.ceil(height_m / resolution))
             
-            logger.info(f"Bounding box: ({south:.6f}, {west:.6f}) to ({north:.6f}, {east:.6f})")
-            logger.info(f"Dimensions: {width_m:.1f}m x {height_m:.1f}m")
-            logger.info(f"Grid size: {n_pixels_x} x {n_pixels_y} pixels")
+            self.logger.debug(f"Bounding box: ({south:.6f}, {west:.6f}) to ({north:.6f}, {east:.6f})")
+            self.logger.debug(f"Dimensions: {width_m:.1f}m x {height_m:.1f}m")
+            self.logger.debug(f"Grid size: {n_pixels_x} x {n_pixels_y} pixels")
             
             # Create polygon if 3+ coordinates
             polygon = None
@@ -134,8 +138,8 @@ class DEMGeneratorService:
                 polygon_coords = [(lon, lat) for lat, lon in coords]
                 polygon = Polygon(polygon_coords)
                 polygon_area = self._calculate_polygon_area(coords)
-                logger.info(f"Created polygon with {len(coords)} vertices")
-                logger.info(f"Polygon area: {polygon_area:.2f} m²")
+                self.logger.debug(f"Created polygon with {len(coords)} vertices")
+                self.logger.debug(f"Polygon area: {polygon_area:.2f} m²")
             
             # Generate DEM
             stats = self._generate_dem(
@@ -145,7 +149,7 @@ class DEMGeneratorService:
                 polygon=polygon
             )
             
-            logger.info(f"Successfully created {output_file}")
+            self.logger.debug(f"Successfully created {output_file}")
             
             result = {
                 'success': True,
@@ -175,10 +179,11 @@ class DEMGeneratorService:
             return result
             
         except Exception as e:
-            logger.error(f"DEM generation failed: {str(e)}")
+            sanitized_error = self._sanitize_error_message(str(e))
+            self.logger.error(f"DEM generation failed: {sanitized_error}")
             return {
                 'success': False,
-                'error': str(e)
+                'error': sanitized_error
             }
     
     def _calculate_bounds(self, coords):
@@ -262,7 +267,7 @@ class DEMGeneratorService:
         Returns:
             dict: Statistics about the generated DEM
         """
-        logger.info("Fetching elevation data...")
+        self.logger.debug("Fetching elevation data...")
         
         # Initialize Topography
         topo = Topography(
@@ -275,9 +280,63 @@ class DEMGeneratorService:
             cache_dir=self.cache_dir
         )
         
-        # Fetch and load data
-        topo.fetch()
-        topo.load()
+        # Fetch and load data with explicit error handling so failures are logged clearly.
+        try:
+            result = topo.fetch()
+        except Exception as exc:
+            status_code = getattr(getattr(exc, "response", None), "status_code", None)
+            sanitized_error = self._sanitize_error_message(str(exc))
+
+            # 4xx from provider is an expected external failure mode: log cleanly without traceback noise.
+            if status_code is not None and 400 <= status_code < 500:
+                self.logger.warning(
+                    "DEM fetch request rejected by provider (status=%s, dem_type=%s, south=%s, north=%s, west=%s, east=%s): %s",
+                    status_code,
+                    dem_type,
+                    south,
+                    north,
+                    west,
+                    east,
+                    sanitized_error,
+                )
+            else:
+                self.logger.exception(
+                    "DEM fetch raised an exception (dem_type=%s, south=%s, north=%s, west=%s, east=%s)",
+                    dem_type,
+                    south,
+                    north,
+                    west,
+                    east,
+                )
+
+            raise RuntimeError(f"Topography fetch failed: {sanitized_error}") from exc
+
+        fetch_error = getattr(result, "error", None)
+        if fetch_error:
+            sanitized_error = self._sanitize_error_message(str(fetch_error))
+            self.logger.error(
+                "DEM fetch returned an error (dem_type=%s, south=%s, north=%s, west=%s, east=%s): %s",
+                dem_type,
+                south,
+                north,
+                west,
+                east,
+                sanitized_error,
+            )
+            raise RuntimeError(f"Topography fetch failed: {sanitized_error}")
+
+        try:
+            topo.load()
+        except Exception:
+            self.logger.exception(
+                "DEM load failed after fetch (dem_type=%s, south=%s, north=%s, west=%s, east=%s)",
+                dem_type,
+                south,
+                north,
+                west,
+                east,
+            )
+            raise
         
         # Get elevation data
         elev = topo.da.values
@@ -290,14 +349,14 @@ class DEMGeneratorService:
         if topo.da.y[0] < topo.da.y[-1]:
             elev = np.flipud(elev)
         
-        logger.info(f"Original data shape: {elev.shape}")
+        self.logger.debug(f"Original data shape: {elev.shape}")
         
         # Resample to desired resolution
         zoom_y = n_pixels_y / elev.shape[0]
         zoom_x = n_pixels_x / elev.shape[1]
         
         if zoom_y != 1.0 or zoom_x != 1.0:
-            logger.info(f"Resampling to {n_pixels_y}x{n_pixels_x}...")
+            self.logger.debug(f"Resampling to {n_pixels_y}x{n_pixels_x}...")
             elev = zoom(elev, (zoom_y, zoom_x), order=1)
         
         # Create output directory if needed
@@ -306,7 +365,7 @@ class DEMGeneratorService:
             os.makedirs(output_dir, exist_ok=True)
         
         # Write output
-        logger.info(f"Writing to {output_file}...")
+        self.logger.debug(f"Writing to {output_file}...")
         
         transform = from_bounds(west, south, east, north, n_pixels_x, n_pixels_y)
         
@@ -334,7 +393,7 @@ class DEMGeneratorService:
                 'mean_elevation': float(valid_elev.mean()),
                 'total_relief': float(valid_elev.max() - valid_elev.min())
             }
-            logger.info(f"Statistics: {stats}")
+            self.logger.debug(f"Statistics: {stats}")
         else:
             stats = {
                 'min_elevation': None,
@@ -343,6 +402,6 @@ class DEMGeneratorService:
                 'total_relief': None,
                 'warning': 'No valid elevation data found'
             }
-            logger.warning("No valid elevation data found")
+            self.logger.warning("No valid elevation data found")
         
         return stats

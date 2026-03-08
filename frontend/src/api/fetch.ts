@@ -25,8 +25,27 @@ const POSTFieldData = async (data: {
   return response.json();
 };
 
+const DeleteField = async (fieldId: string) => {
+  const response = await fetch(`${API_URL}/field/`, {
+    method: "Delete",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${getAuthToken()}`,
+    },
+    body: JSON.stringify({
+      field_id: fieldId,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error deleting field`);
+  }
+
+  return response.status;
+};
+
 const GETPrescriptionMap = async (fieldId: string) => {
-  const response = await fetch(`${API_URL}/prescription/${fieldId}/`, {
+  const response = await fetch(`${API_URL}/field/${fieldId}/`, {
     method: "GET",
     headers: {
       Authorization: `Token ${getAuthToken()}`,
@@ -73,4 +92,4 @@ const GETFields = async () => {
   return response.json();
 };
 
-export { GETPrescriptionMap, GETFields, POSTFieldData };
+export { DeleteField, GETPrescriptionMap, GETFields, POSTFieldData };

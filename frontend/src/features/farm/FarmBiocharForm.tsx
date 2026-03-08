@@ -20,7 +20,7 @@ import { POSTFieldData } from "../../api/fetch";
 import { useNavigate } from "react-router";
 
 const DEFAULT_FIELD = (): FieldEntry => ({
-  id: "main-field",
+  id: `main-field-${crypto.randomUUID()}`,
   cropType: "Wheat",
   customCrop: "",
   price: "",
@@ -152,7 +152,7 @@ export default function FarmBiocharForm() {
                 POSTFieldData(payload);
                 setFormSubmitted(true);
                 closeModal();
-                navigate("/output");
+                navigate("/fields");
               }}
             />
           </Box>
