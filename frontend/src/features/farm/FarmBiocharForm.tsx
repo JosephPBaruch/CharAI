@@ -50,21 +50,21 @@ export default function FarmBiocharForm() {
     }
   }, [hasCoordinates]);
 
-  const handleCoordSelect = (file: File | null) => {
-    setCoordUploaded(!!file);
-  };
+  // const handleCoordSelect = (file: File | null) => {
+  //   setCoordUploaded(!!file);
+  // };
 
-  const handleCoordUploaded = () => {
-    setCoordUploaded(true);
-  };
+  // const handleCoordUploaded = () => {
+  //   setCoordUploaded(true);
+  // };
 
-  const handleYieldSelect = () => {
-    // yield file is optional, no action needed on select
-  };
+  // const handleYieldSelect = () => {
+  //   // yield file is optional, no action needed on select
+  // };
 
-  const handleYieldUploaded = () => {
-    // yield file is optional, no action needed on upload completion
-  };
+  // const handleYieldUploaded = () => {
+  //   // yield file is optional, no action needed on upload completion
+  // };
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -131,12 +131,12 @@ export default function FarmBiocharForm() {
             <FieldsList field={field} onUpdateField={updateField} />
 
             {/* File Upload Section */}
-            <FileUploadSection
-              onCoordSelect={handleCoordSelect}
-              onCoordUploaded={handleCoordUploaded}
-              onYieldSelect={handleYieldSelect}
-              onYieldUploaded={handleYieldUploaded}
-            />
+            <FileUploadSection />
+            {/* // onCoordSelect={handleCoordSelect}
+              // onCoordUploaded={handleCoordUploaded}
+              // onYieldSelect={handleYieldSelect}
+              // onYieldUploaded={handleYieldUploaded}
+            // /> */}
 
             {/* Submit Section */}
             <SubmitSection

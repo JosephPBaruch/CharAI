@@ -1,22 +1,23 @@
 import { Box, Stack, Typography } from "@mui/material";
 import { COLORS } from "../../styles/colors";
-import CoordinateFileUpload from "./CoordinateFileUpload";
-import YieldFileUpload from "./YieldFileUpload";
+// import CoordinateFileUpload from "./CoordinateFileUpload";
+// import YieldFileUpload from "./YieldFileUpload";
 import ManualCoordinateUpload from "./ManualCoordinateUpload";
 
-interface FileUploadSectionProps {
-  onCoordSelect: (file: File | null) => void;
-  onCoordUploaded: () => void;
-  onYieldSelect: () => void;
-  onYieldUploaded: () => void;
-}
+// interface FileUploadSectionProps {
+// onCoordSelect: (file: File | null) => void;
+// onCoordUploaded: () => void;
+// onYieldSelect: () => void;
+// onYieldUploaded: () => void;
+// }
 
-export default function FileUploadSection({
-  onCoordSelect,
-  onCoordUploaded,
-  onYieldSelect,
-  onYieldUploaded,
-}: FileUploadSectionProps) {
+export default function FileUploadSection() {
+  // {
+  // onCoordSelect,
+  // onCoordUploaded,
+  // onYieldSelect,
+  // onYieldUploaded,
+  // }: FileUploadSectionProps) {
   return (
     <Box
       sx={{
@@ -30,14 +31,14 @@ export default function FileUploadSection({
         variant="h6"
         sx={{ color: COLORS.indigo, fontWeight: 600, mb: 1.5 }}
       >
-        Upload Farm Data
+        Set Farm Coordinates
       </Typography>
-      <Typography variant="body2" sx={{ color: COLORS.whiteMedium, mb: 2.5 }}>
+      {/* <Typography variant="body2" sx={{ color: COLORS.whiteMedium, mb: 2.5 }}>
         Upload geographic coordinate data (required) to define your farm
         boundaries. You can also optionally upload yield data to improve
         calculations. Supported formats: Shapefile, GeoJSON, CSV, KML, and other
         standard formats.
-      </Typography>
+      </Typography> */}
 
       <Stack direction="column" spacing={2.5}>
         {/* Coordinate File Box */}
@@ -49,7 +50,7 @@ export default function FileUploadSection({
             borderRadius: 1.5,
           }}
         >
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+          {/* <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
             <Typography
               variant="subtitle1"
               sx={{ color: COLORS.indigo, fontWeight: 700 }}
@@ -86,12 +87,12 @@ export default function FileUploadSection({
           >
             Accepted formats: Shapefile (.shp, .shx, .dbf), GeoJSON (.geojson),
             CSV (.csv), KML/KMZ (.kml, .kmz)
-          </Typography>
+          </Typography> */}
           <ManualCoordinateUpload />
         </Box>
 
         {/* Yield File Box */}
-        <Box
+        {/* <Box
           sx={{
             p: 2,
             backgroundColor: "transparent",
@@ -138,7 +139,7 @@ export default function FileUploadSection({
             Accepted formats: CSV (.csv), ISOXML (.xml), Shapefile (.shp), TXT
             (.txt)
           </Typography>
-        </Box>
+        </Box> */}
       </Stack>
     </Box>
   );
