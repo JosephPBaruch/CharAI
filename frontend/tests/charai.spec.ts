@@ -189,6 +189,16 @@ test.describe("CharAI.feature", () => {
     await expect(page.getByText("Prescription Map")).toBeVisible();
     await expect(page.locator(".leaflet-container")).toBeVisible();
 
+    // Verify Analysis Summary shows correct total grid cells
+    await expect(page.getByText("Analysis Summary")).toBeVisible();
+    await expect(page.getByText("Total Grid Cells")).toBeVisible();
+    const gridCellsValue = page
+      .locator("text=Total Grid Cells")
+      .locator("..")
+      .locator("p")
+      .last();
+    await expect(gridCellsValue).toHaveText("11,043");
+
     // Take a screenshot and save it to test-results
     await page.screenshot({
       path: "test-results/prescription-map.png",
