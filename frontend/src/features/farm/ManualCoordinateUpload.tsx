@@ -9,9 +9,11 @@ import {
   Divider,
   Paper,
   Stack,
+  TextField,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
+import AddIcon from "@mui/icons-material/Add";
 import { COLORS } from "../../styles/colors";
 import React from "react";
 import { InteractiveFarmMap } from "../map";
@@ -101,6 +103,7 @@ export default function ManualCoordinateUpload() {
         variant="contained"
         startIcon={hasCoordinatesReady ? <EditIcon /> : undefined}
         onClick={openModal}
+        data-testid="open-manual-coordinates"
         sx={{
           backgroundColor: COLORS.indigo,
           "&:hover": { backgroundColor: COLORS.indigoHover },
@@ -146,7 +149,11 @@ export default function ManualCoordinateUpload() {
               <ArrowBackIcon />
               <Typography sx={{ fontSize: "0.95rem" }}>Back</Typography>
             </IconButton>
-            <Typography variant="h5" sx={{ fontWeight: 600 }}>
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: 600 }}
+              data-testid="modal-title"
+            >
               Define Field Boundaries
             </Typography>
             <Box sx={{ width: 80 }} /> {/* Spacer for centering */}
@@ -168,7 +175,11 @@ export default function ManualCoordinateUpload() {
                 boxShadow: `0 4px 12px ${COLORS.blackMedium}`,
               }}
             >
-              <InteractiveFarmMap markers={markers} setMarkers={setMarkers} />
+              <InteractiveFarmMap
+                markers={markers}
+                setMarkers={setMarkers}
+                data-testid="interactive-farm-map"
+              />
             </Box>
 
             {/* Sidebar - Instructions and Controls */}
@@ -261,6 +272,147 @@ export default function ManualCoordinateUpload() {
                 </Stack>
               </Paper>
 
+              {/* Coordinate text fields for manual editing */}
+              <Paper
+                elevation={0}
+                data-testid="coordinates-panel"
+                sx={{
+                  backgroundColor: COLORS.bgDark,
+                  border: `1px solid ${COLORS.whiteVeryLow}`,
+                  borderRadius: 2,
+                  p: 2,
+                  maxHeight: "300px",
+                  overflowY: "auto",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    mb: 1,
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: "1rem",
+                      color: COLORS.whiteHigh,
+                    }}
+                  >
+                    Coordinates
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<AddIcon />}
+                    data-testid="add-marker-button"
+                    onClick={() =>
+                      setMarkers((prev) => [...prev, { lat: 0, lng: 0 }])
+                    }
+                    sx={{
+                      borderColor: COLORS.indigo,
+                      color: COLORS.indigo,
+                      textTransform: "none",
+                      fontSize: "0.8rem",
+                      "&:hover": {
+                        borderColor: COLORS.indigoHover,
+                        backgroundColor: COLORS.indigoLight,
+                      },
+                    }}
+                  >
+                    Add Marker
+                  </Button>
+                </Box>
+                {markers.length === 0 && (
+                  <Typography
+                    variant="body2"
+                    sx={{ color: COLORS.whiteMedium, fontSize: "0.85rem" }}
+                  >
+                    Click the map or press "Add Marker" to begin.
+                  </Typography>
+                )}
+                <Stack spacing={1.5}>
+                  {markers.map((mark, idx) => (
+                    <Box
+                      key={idx}
+                      data-testid={`marker-row-${idx}`}
+                      sx={{ display: "flex", gap: 1, alignItems: "center" }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{ color: COLORS.whiteMedium, minWidth: 24 }}
+                      >
+                        {idx + 1}.
+                      </Typography>
+                      <TextField
+                        label="Lat"
+                        size="small"
+                        type="number"
+                        value={mark.lat}
+                        inputProps={{ step: 0.001 }}
+                        data-testid={`marker-lat-${idx}`}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          if (!isNaN(val)) {
+                            setMarkers((prev) =>
+                              prev.map((m, i) =>
+                                i === idx ? { ...m, lat: val } : m,
+                              ),
+                            );
+                          }
+                        }}
+                        sx={{
+                          flex: 1,
+                          "& .MuiInputBase-input": {
+                            color: COLORS.whiteHigh,
+                            fontSize: "0.85rem",
+                          },
+                          "& .MuiInputLabel-root": {
+                            color: COLORS.whiteMedium,
+                          },
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: COLORS.whiteVeryLow,
+                          },
+                        }}
+                      />
+                      <TextField
+                        label="Lng"
+                        size="small"
+                        type="number"
+                        value={mark.lng}
+                        inputProps={{ step: 0.001 }}
+                        data-testid={`marker-lng-${idx}`}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          if (!isNaN(val)) {
+                            setMarkers((prev) =>
+                              prev.map((m, i) =>
+                                i === idx ? { ...m, lng: val } : m,
+                              ),
+                            );
+                          }
+                        }}
+                        sx={{
+                          flex: 1,
+                          "& .MuiInputBase-input": {
+                            color: COLORS.whiteHigh,
+                            fontSize: "0.85rem",
+                          },
+                          "& .MuiInputLabel-root": {
+                            color: COLORS.whiteMedium,
+                          },
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: COLORS.whiteVeryLow,
+                          },
+                        }}
+                      />
+                    </Box>
+                  ))}
+                </Stack>
+              </Paper>
+
               {/* Spacer to push buttons to bottom */}
               <Box sx={{ flex: 1 }} />
 
@@ -273,6 +425,7 @@ export default function ManualCoordinateUpload() {
                     onClick={handleUndoMarker}
                     disabled={markers.length === 0}
                     fullWidth
+                    data-testid="undo-marker-button"
                     sx={{
                       borderColor: COLORS.warningBorder,
                       color: COLORS.warning,
@@ -296,6 +449,7 @@ export default function ManualCoordinateUpload() {
                     onClick={handleClearMarkers}
                     disabled={markers.length === 0}
                     fullWidth
+                    data-testid="clear-markers-button"
                     sx={{
                       borderColor: COLORS.errorBorder,
                       color: COLORS.error,
@@ -320,6 +474,7 @@ export default function ManualCoordinateUpload() {
                   onClick={handleSubmit}
                   disabled={markers.length < 3}
                   fullWidth
+                  data-testid="save-boundaries-button"
                   sx={{
                     backgroundColor: COLORS.indigo,
                     textTransform: "none",
