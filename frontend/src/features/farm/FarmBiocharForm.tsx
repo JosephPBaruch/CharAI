@@ -18,9 +18,10 @@ import SubmitSection from "./SubmitSection";
 import { useCoordinates } from "../../contexts/CoordinateContext";
 import { POSTFieldData } from "../../api/fetch";
 import { useNavigate } from "react-router";
+import { v4 as uuidv4 } from "uuid";
 
 const DEFAULT_FIELD = (): FieldEntry => ({
-  id: `main-field-${crypto.randomUUID()}`,
+  id: `main-field-${uuidv4()}`,
   cropType: "Wheat",
   customCrop: "",
   price: "",
