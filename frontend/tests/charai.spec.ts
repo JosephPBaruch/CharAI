@@ -201,7 +201,7 @@ test.describe("CharAI.feature", () => {
 
     // Take a screenshot and save it to test-results
     await page.screenshot({
-      path: "test-results/prescription-map.png",
+      path: "playwright-report/prescription-map.png",
       fullPage: true,
     });
   });
