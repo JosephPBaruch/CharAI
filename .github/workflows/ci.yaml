@@ -32,7 +32,7 @@ jobs:
       - name: Run backend pipeline
         run: |
           cd backend
-          ./pipeline.sh
+          ./pipeline.sh --opentopokey=${{ secrets.OPENTOPOGRAPHY_API_KEY }}
 
       - name: Run database migrations
         run: |
