@@ -199,10 +199,12 @@ test.describe("CharAI.feature", () => {
       .last();
     await expect(gridCellsValue).toHaveText("11,043");
 
-    // Take a screenshot and save it to test-results
-    await page.screenshot({
-      path: "playwright-report/prescription-map.png",
-      fullPage: true,
+    // Wait for render then attach a screenshot to the HTML report
+    await page.waitForTimeout(1000);
+    const screenshot = await page.screenshot({ fullPage: true });
+    await test.info().attach("prescription-map", {
+      body: screenshot,
+      contentType: "image/png",
     });
   });
 });
