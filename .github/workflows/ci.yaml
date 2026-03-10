@@ -64,7 +64,6 @@ jobs:
           name: playwright-report
           path: |
             frontend/tests/playwright-report/
-            frontend/tests/test-results/
 
       - name: Show container logs on failure
         if: failure()
