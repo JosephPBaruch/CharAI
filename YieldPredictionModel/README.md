@@ -6,6 +6,15 @@
 
 [Crop Data Information](https://meta.cafltar.org/catalog/datasets/Production/CafPlantGridPointSurvey/CookEastHandHarvest_P3A3_V1)
 
+#### Farm Polygon Coordinates
+
+| Lat               | Long                |
+| ----------------- | ------------------- |
+| 46.77863200102642 | -117.0936964616513  |
+| 46.77863200102642 | -117.07662800000426 |
+| 46.78504435150698 | -117.07662800000426 |
+| 46.78504435150698 | -117.0936964616513  |
+
 #### Raw Dataset Metadata
 
 | Name                     | Description                                                                                                                                                                                                                                                                  | Units     |
