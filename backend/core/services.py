@@ -68,6 +68,12 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
         geotiff_data = GeoParser(logger=logger, path=tiff_file_path).parse()
         terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
 
+        # Save terrain_df to a .csv named CharAI_Cook.csv
+        data_dir = os.path.join(settings.BASE_DIR, "data")
+        os.makedirs(data_dir, exist_ok=True)
+        terrain_df.to_csv(os.path.join(data_dir, "CharAI_Cook.csv"), index=False)
+
+
         logger.info("Calculating Yield")
         calculator = YieldCalculator(logger=logger)
         yield_results_df = calculator.calculate(terrain_df.copy())

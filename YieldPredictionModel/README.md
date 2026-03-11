@@ -6,7 +6,9 @@
 
 [Crop Data Information](https://meta.cafltar.org/catalog/datasets/Production/CafPlantGridPointSurvey/CookEastHandHarvest_P3A3_V1)
 
-#### Farm Polygon Coordinates
+#### Cook Farm Metadata
+
+##### Cook Farm Polygon Coordinates
 
 | Lat               | Long                |
 | ----------------- | ------------------- |
@@ -14,6 +16,16 @@
 | 46.77863200102642 | -117.07662800000426 |
 | 46.78504435150698 | -117.07662800000426 |
 | 46.78504435150698 | -117.0936964616513  |
+
+##### Grid Cell resolution
+
+```py
+Latitude resolution (m): 1.1550531642327897
+Longitude resolution (m): 2.105384854636277
+Approx grid resolution (m): 1.6302190094345332
+```
+
+This means that since the finest resolution that we have is 5 x 5 meters, we will just need to pull the id locations of the data that is closest to our points.
 
 #### Raw Dataset Metadata
 
