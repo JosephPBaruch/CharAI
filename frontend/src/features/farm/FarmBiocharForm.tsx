@@ -18,9 +18,10 @@ import SubmitSection from "./SubmitSection";
 import { useCoordinates } from "../../contexts/CoordinateContext";
 import { POSTFieldData } from "../../api/fetch";
 import { useNavigate } from "react-router";
+import { v4 as uuidv4 } from "uuid";
 
 const DEFAULT_FIELD = (): FieldEntry => ({
-  id: `main-field-${crypto.randomUUID()}`,
+  id: `main-field-${uuidv4()}`,
   cropType: "Wheat",
   customCrop: "",
   price: "",
@@ -49,21 +50,21 @@ export default function FarmBiocharForm() {
     }
   }, [hasCoordinates]);
 
-  const handleCoordSelect = (file: File | null) => {
-    setCoordUploaded(!!file);
-  };
+  // const handleCoordSelect = (file: File | null) => {
+  //   setCoordUploaded(!!file);
+  // };
 
-  const handleCoordUploaded = () => {
-    setCoordUploaded(true);
-  };
+  // const handleCoordUploaded = () => {
+  //   setCoordUploaded(true);
+  // };
 
-  const handleYieldSelect = () => {
-    // yield file is optional, no action needed on select
-  };
+  // const handleYieldSelect = () => {
+  //   // yield file is optional, no action needed on select
+  // };
 
-  const handleYieldUploaded = () => {
-    // yield file is optional, no action needed on upload completion
-  };
+  // const handleYieldUploaded = () => {
+  //   // yield file is optional, no action needed on upload completion
+  // };
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -130,12 +131,12 @@ export default function FarmBiocharForm() {
             <FieldsList field={field} onUpdateField={updateField} />
 
             {/* File Upload Section */}
-            <FileUploadSection
-              onCoordSelect={handleCoordSelect}
-              onCoordUploaded={handleCoordUploaded}
-              onYieldSelect={handleYieldSelect}
-              onYieldUploaded={handleYieldUploaded}
-            />
+            <FileUploadSection />
+            {/* // onCoordSelect={handleCoordSelect}
+              // onCoordUploaded={handleCoordUploaded}
+              // onYieldSelect={handleYieldSelect}
+              // onYieldUploaded={handleYieldUploaded}
+            // /> */}
 
             {/* Submit Section */}
             <SubmitSection

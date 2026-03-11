@@ -32,7 +32,7 @@ jobs:
       - name: Run backend pipeline
         run: |
           cd backend
-          ./pipeline.sh
+          ./pipeline.sh --opentopokey=${{ secrets.OPENTOPOGRAPHY_API_KEY }}
 
       - name: Run database migrations
         run: |
@@ -62,7 +62,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: frontend/tests/playwright-report/
+          path: |
+            frontend/tests/playwright-report/
 
       - name: Show container logs on failure
         if: failure()

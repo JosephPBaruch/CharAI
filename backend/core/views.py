@@ -5,6 +5,9 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.http import StreamingHttpResponse
+import gzip
+import io
 import logging
 import json
 import os
@@ -243,8 +246,37 @@ class FieldPrescriptionView(APIView):
         with open(file_path, 'r', encoding='utf-8') as prescription_file:
             data = json.load(prescription_file)
 
-        return Response({
+        # Compress and stream the response to avoid rate-limiting on large payloads
+        response_data = {
             'field_id': field.field_id,
             'prescription_map_status': field.prescription_map_status,
             'prescription_map': data,
-        }, status=status.HTTP_200_OK)
+        }
+
+        def stream_compressed_json(payload):
+            json_bytes = json.dumps(payload).encode('utf-8')
+            buf = io.BytesIO()
+            chunk_size = 8192
+            with gzip.GzipFile(fileobj=buf, mode='wb') as gz:
+                for i in range(0, len(json_bytes), chunk_size):
+                    gz.write(json_bytes[i:i + chunk_size])
+                    gz.flush()
+                    buf.seek(0)
+                    chunk = buf.read()
+                    if chunk:
+                        yield chunk
+                    buf.seek(0)
+                    buf.truncate()
+            # Yield remaining data (gzip footer)
+            buf.seek(0)
+            remaining = buf.read()
+            if remaining:
+                yield remaining
+
+        response = StreamingHttpResponse(
+            streaming_content=stream_compressed_json(response_data),
+            content_type='application/json',
+            status=200,
+        )
+        response['Content-Encoding'] = 'gzip'
+        return response

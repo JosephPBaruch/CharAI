@@ -48,7 +48,6 @@ const GETPrescriptionMap = async (fieldId: string) => {
   const response = await fetch(`${API_URL}/field/${fieldId}/`, {
     method: "GET",
     headers: {
-      "Content-Type": "application/json",
       Authorization: `Token ${getAuthToken()}`,
     },
   });
@@ -57,7 +56,24 @@ const GETPrescriptionMap = async (fieldId: string) => {
     throw new Error(`Error fetching prescription map: ${response.statusText}`);
   }
 
-  return response.json();
+  // Stream the (decompressed) response body in chunks.
+  // Fallback to response.json() for environments without ReadableStream support.
+  if (!response.body) {
+    return response.json();
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let result = "";
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    result += decoder.decode(value, { stream: true });
+  }
+  result += decoder.decode();
+
+  return JSON.parse(result);
 };
 
 const GETFields = async () => {

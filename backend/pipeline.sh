@@ -35,6 +35,10 @@ while [[ $# -gt 0 ]]; do
       ALLOWED_HOSTS="${1#*=}"
       shift
       ;;
+    --opentopokey=*)
+      OPENTOPOGRAPHY_API_KEY="${1#*=}"
+      shift
+      ;;
     *)
       # ignore unknown args
       shift
