@@ -1,12 +1,40 @@
 import Dropzone from "react-dropzone";
 import { Box, Typography } from "@mui/material";
 import { useCallback } from "react";
+import { COLORS } from "../styles/colors";
 
 const acceptedFileTypeObject = {
   "text/csv": [".csv"],
   "application/vnd": [".shp", ".shx", ".dbf", ".kml"],
   "application/json": [".json"],
   "application/geo+json": [".geojson"],
+};
+
+const dropzoneStyles = {
+  base: {
+    borderWidth: 2,
+    borderStyle: "dashed",
+    borderRadius: 16,
+    borderColor: COLORS.whiteLow,
+    backgroundColor: COLORS.bgCard,
+    color: COLORS.whiteHigh,
+    transition: "border-color 0.24s ease, background-color 0.24s ease",
+    padding: "1.5rem",
+    minHeight: 160,
+    display: "flex",
+    flexDirection: "column" as const,
+    justifyContent: "center",
+    alignItems: "center",
+    cursor: "pointer",
+  },
+  active: {
+    borderColor: COLORS.indigo,
+    backgroundColor: COLORS.indigoLight,
+  },
+  reject: {
+    borderColor: COLORS.error,
+    backgroundColor: COLORS.errorLight,
+  },
 };
 
 const handleRejectedFile = () => {
@@ -50,8 +78,16 @@ export default function CoordinateFileUploadModal() {
   }, []);
 
   return (
-    <Box>
-      <Typography>This is the file upload modal:</Typography>
+    <Box
+      sx={{
+        borderRadius: 12,
+        padding: 2,
+        backgroundColor: COLORS.bgPage,
+      }}
+    >
+      <Typography variant="h6" sx={{ color: COLORS.whiteHigh, mb: 1 }}>
+        Upload a coordinate file
+      </Typography>
       <Dropzone
         accept={acceptedFileTypeObject}
         maxFiles={1}
@@ -60,17 +96,27 @@ export default function CoordinateFileUploadModal() {
         onDropAccepted={handleAcceptedFile}
         onError={handleError}
       >
-        {({ getRootProps, getInputProps }) => (
-          <section className="dropzone">
-            <Box {...getRootProps({ className: "dropzone" })}>
-              <input {...getInputProps()} />
-              <Typography>
-                Drag 'n' drop some files here, or click to select files
-              </Typography>
-            </Box>
-            <Typography>Files</Typography>
-          </section>
-        )}
+        {({ getRootProps, getInputProps, isDragActive, isDragReject }) => {
+          const dropzoneSx = {
+            ...dropzoneStyles.base,
+            ...(isDragActive ? dropzoneStyles.active : {}),
+            ...(isDragReject ? dropzoneStyles.reject : {}),
+          };
+
+          return (
+            <section>
+              <Box {...getRootProps({ style: dropzoneSx })}>
+                <input {...getInputProps()} />
+                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  Drag and drop a file here, or click to browse
+                </Typography>
+                <Typography variant="caption" sx={{ mt: 1, opacity: 0.8 }}>
+                  Supported: CSV / Shapefile / GeoJSON / JSON
+                </Typography>
+              </Box>
+            </section>
+          );
+        }}
       </Dropzone>
     </Box>
   );
