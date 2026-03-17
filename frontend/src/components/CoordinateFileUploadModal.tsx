@@ -1,5 +1,5 @@
 import Dropzone from "react-dropzone";
-import { Alert, Box, Typography } from "@mui/material";
+import { Alert, Box, Button, Modal, Typography } from "@mui/material";
 import { useCallback, useState } from "react";
 import { COLORS } from "../styles/colors";
 
@@ -42,6 +42,12 @@ const MAX_NUMBER_OF_BYTES = 1024 * 1024 * 5; // 5 MB
 export default function CoordinateFileUploadModal() {
   const [file, setFile] = useState<any>();
   const [errorMessage, setErrorMessage] = useState("");
+  const [open, setOpen] = useState<boolean>(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  // temporary
+  const [coordinates, setCoordinates] = useState({});
 
   const handleRejectedFile = () => {
     setErrorMessage(
@@ -67,72 +73,90 @@ export default function CoordinateFileUploadModal() {
       };
       reader.readAsText(file);
     });
-    console.log(acceptedFile);
+    setCoordinates(parseFile(acceptedFile[0]));
     setFile(acceptedFile[0]);
   }, []);
 
   return (
-    <Box
-      sx={{
-        borderRadius: 12,
-        padding: 2,
-        backgroundColor: COLORS.bgPage,
-      }}
-    >
-      <Typography variant="h6" sx={{ color: COLORS.whiteHigh, mb: 1 }}>
-        Upload a coordinate file
-      </Typography>
-      <Dropzone
-        accept={acceptedFileTypeObject}
-        maxFiles={1}
-        maxSize={MAX_NUMBER_OF_BYTES}
-        onDropRejected={handleRejectedFile}
-        onDropAccepted={handleAcceptedFile}
-        onError={handleError}
-      >
-        {({ getRootProps, getInputProps, isDragActive, isDragReject }) => {
-          const dropzoneSx = {
-            ...dropzoneStyles.base,
-            ...(isDragActive ? dropzoneStyles.active : {}),
-            ...(isDragReject ? dropzoneStyles.reject : {}),
-          };
-
-          return (
-            <section>
-              <Box {...getRootProps({ style: dropzoneSx })}>
-                <input {...getInputProps()} />
-                <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                  Drag and drop a file here, or click to browse
-                </Typography>
-                <Typography variant="caption" sx={{ mt: 1, opacity: 0.8 }}>
-                  Supported: CSV / Shapefile / GeoJSON / JSON
-                </Typography>
-              </Box>
-            </section>
-          );
+    <>
+      <Button
+        onClick={handleOpen}
+        sx={{
+          backgroundColor: COLORS.indigo,
+          "&:hover": { backgroundColor: COLORS.indigoHover },
+          textTransform: "none",
+          fontSize: "0.95rem",
         }}
-      </Dropzone>
-      {!!errorMessage && (
-        <Alert
-          severity="error"
-          sx={{
-            backgroundColor: `${COLORS.error}20`,
-            color: COLORS.error,
-            border: `1px solid ${COLORS.error}`,
-            "& .MuiAlert-icon": {
-              color: COLORS.error,
-            },
-          }}
-        >
-          {errorMessage}
-        </Alert>
-      )}
-      {!!file && (
+        variant="contained"
+      >
+        Upload farm boundary coordinates
+      </Button>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        sx={{
+          borderRadius: 12,
+          padding: 2,
+          backgroundColor: COLORS.bgPage,
+        }}
+      >
         <Box>
-          <Typography>Uploaded file:</Typography>
-          <Typography variant="subtitle2">{file.name}</Typography>
+          <Typography variant="h6" sx={{ color: COLORS.whiteHigh, mb: 1 }}>
+            Upload a coordinate file
+          </Typography>
+          <Dropzone
+            accept={acceptedFileTypeObject}
+            maxFiles={1}
+            maxSize={MAX_NUMBER_OF_BYTES}
+            onDropRejected={handleRejectedFile}
+            onDropAccepted={handleAcceptedFile}
+            onError={handleError}
+          >
+            {({ getRootProps, getInputProps, isDragActive, isDragReject }) => {
+              const dropzoneSx = {
+                ...dropzoneStyles.base,
+                ...(isDragActive ? dropzoneStyles.active : {}),
+                ...(isDragReject ? dropzoneStyles.reject : {}),
+              };
+
+              return (
+                <section>
+                  <Box {...getRootProps({ style: dropzoneSx })}>
+                    <input {...getInputProps()} />
+                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                      Drag and drop a file here, or click to browse
+                    </Typography>
+                    <Typography variant="caption" sx={{ mt: 1, opacity: 0.8 }}>
+                      Supported: CSV / Shapefile / GeoJSON / JSON
+                    </Typography>
+                  </Box>
+                </section>
+              );
+            }}
+          </Dropzone>
+          {!!errorMessage && (
+            <Alert
+              severity="error"
+              sx={{
+                backgroundColor: `${COLORS.error}20`,
+                color: COLORS.error,
+                border: `1px solid ${COLORS.error}`,
+                "& .MuiAlert-icon": {
+                  color: COLORS.error,
+                },
+              }}
+            >
+              {errorMessage}
+            </Alert>
+          )}
+          {!!file && (
+            <Box>
+              <Typography>Uploaded file:</Typography>
+              <Typography variant="subtitle2">{file.name}</Typography>
+            </Box>
+          )}
         </Box>
-      )}
-    </Box>
+      </Modal>
+    </>
   );
 }
