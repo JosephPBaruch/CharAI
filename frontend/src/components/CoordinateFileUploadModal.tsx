@@ -40,11 +40,12 @@ const dropzoneStyles = {
 const MAX_NUMBER_OF_BYTES = 1024 * 1024 * 5; // 5 MB
 
 export default function CoordinateFileUploadModal() {
+  const [file, setFile] = useState<any>();
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleRejectedFile = () => {
     setErrorMessage(
-      "File upload rejected! File is either too large (5MB maximum) or is of an unsupported type. Please try again.",
+      "File upload rejected! File is either too large (5MB maximum), is of an unsupported type, or multiple files are being uploaded. Please try again.",
     );
   };
 
@@ -53,6 +54,7 @@ export default function CoordinateFileUploadModal() {
   };
 
   const handleAcceptedFile = useCallback((acceptedFile: any) => {
+    setErrorMessage("");
     acceptedFile.forEach((file: any) => {
       const reader = new FileReader();
 
@@ -65,6 +67,8 @@ export default function CoordinateFileUploadModal() {
       };
       reader.readAsText(file);
     });
+    console.log(acceptedFile);
+    setFile(acceptedFile[0]);
   }, []);
 
   return (
@@ -122,6 +126,12 @@ export default function CoordinateFileUploadModal() {
         >
           {errorMessage}
         </Alert>
+      )}
+      {!!file && (
+        <Box>
+          <Typography>Uploaded file:</Typography>
+          <Typography variant="subtitle2">{file.name}</Typography>
+        </Box>
       )}
     </Box>
   );
