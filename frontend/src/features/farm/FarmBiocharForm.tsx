@@ -13,7 +13,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import BiocharSettings from "./BudgetSettings";
 import FieldsList from "./FieldsList";
 import type { FieldEntry } from "./FieldsList";
-import FileUploadSection from "./FileUploadSection";
+import FileUploadSection from "../coordinate_upload/FileUploadSection";
 import SubmitSection from "./SubmitSection";
 import { useCoordinates } from "../../contexts/CoordinateContext";
 import { POSTFieldData } from "../../api/fetch";
