@@ -1,6 +1,6 @@
 import Dropzone from "react-dropzone";
-import { Box, Typography } from "@mui/material";
-import { useCallback } from "react";
+import { Alert, Box, Typography } from "@mui/material";
+import { useCallback, useState } from "react";
 import { COLORS } from "../styles/colors";
 
 const acceptedFileTypeObject = {
@@ -37,31 +37,21 @@ const dropzoneStyles = {
   },
 };
 
-const handleRejectedFile = () => {
-  console.log("rejected!");
-};
-
-/*const handleAcceptedFile = (file: any) => {
-  console.log("accepted!");
-  const reader = new FileReader();
-
-  reader.onabort = () => console.log("file reading was aborted.");
-  reader.onerror = () =>
-    console.error("file reading has failed. please try again later.");
-  reader.onload = () => {
-    const binaryString = reader.result;
-    console.log(`here is our stream!: ${binaryString}`);
-  };
-  reader.readAsArrayBuffer(file);
-};*/
-
-const handleError = () => {
-  console.log("error!");
-};
-
 const MAX_NUMBER_OF_BYTES = 1024 * 1024 * 5; // 5 MB
 
 export default function CoordinateFileUploadModal() {
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleRejectedFile = () => {
+    setErrorMessage(
+      "File upload rejected! File is either too large (5MB maximum) or is of an unsupported type. Please try again.",
+    );
+  };
+
+  const handleError = () => {
+    setErrorMessage("Uh oh! An unexpected error occurred. Please try again.");
+  };
+
   const handleAcceptedFile = useCallback((acceptedFile: any) => {
     acceptedFile.forEach((file: any) => {
       const reader = new FileReader();
@@ -118,6 +108,21 @@ export default function CoordinateFileUploadModal() {
           );
         }}
       </Dropzone>
+      {!!errorMessage && (
+        <Alert
+          severity="error"
+          sx={{
+            backgroundColor: `${COLORS.error}20`,
+            color: COLORS.error,
+            border: `1px solid ${COLORS.error}`,
+            "& .MuiAlert-icon": {
+              color: COLORS.error,
+            },
+          }}
+        >
+          {errorMessage}
+        </Alert>
+      )}
     </Box>
   );
 }
