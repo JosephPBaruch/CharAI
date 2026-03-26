@@ -3,6 +3,7 @@ import Dropzone from "react-dropzone";
 import { COLORS } from "../../../styles/colors";
 import { useCallback, useState } from "react";
 import { parseFile } from "../helpers";
+import type { CoordinateFileUploadScreenProps } from "./types";
 
 const acceptedFileTypeObject = {
   "text/csv": [".csv"],
@@ -40,12 +41,12 @@ const dropzoneStyles = {
 
 const MAX_NUMBER_OF_BYTES = 1024 * 1024 * 5; // 5 MB
 
-export default function CoordinateFileUploadScreen() {
+export default function CoordinateFileUploadScreen({
+  coordinates,
+  setCoordinates,
+}: CoordinateFileUploadScreenProps) {
   const [file, setFile] = useState<any>();
   const [errorMessage, setErrorMessage] = useState("");
-
-  // temporary
-  const [coordinates, setCoordinates] = useState({});
 
   const handleRejectedFile = () => {
     setErrorMessage(

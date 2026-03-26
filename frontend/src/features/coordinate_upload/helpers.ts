@@ -49,8 +49,14 @@ const parseKMLFile = (file: string) => {
       },
       properties: row,
     })),
+    // TODO: turn this geojson formatting into a modular function.
   };
   console.log(`FINISHED KML PRODUCT AS GEOJSON: ${JSON.stringify(geojson)}`);
-
   return geojson;
 };
+
+// const parseSHPFile = (file: string) => {}
+
+// const parseJSONFile = (file: string) => {}
+
+// const parseGeoJSONFile = (file: string) => {}
