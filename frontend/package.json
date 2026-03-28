@@ -37,6 +37,7 @@
     "@types/papaparse": "^5.5.2",
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
+    "@types/shpjs": "^3.4.7",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^5.0.4",
     "eslint": "^10.1.0",
