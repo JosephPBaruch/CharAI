@@ -15,7 +15,7 @@ from modules.Geotiffgenerator import DEMGeneratorService
 from modules.Calculator import YieldCalculator
 from modules.PrescriptionMapGenerator import PrescriptionMapGenerator
 
-def create_charai_data(logger: logging.Logger, coords, tiff_file_path):
+def create_charai_data(logger: logging.Logger, coords, tiff_file_path, crop: str = "WW"):
     if not isinstance(coords, list):
         raise TypeError("coords must be a list of (lat, lon) tuples")
 
@@ -29,6 +29,9 @@ def create_charai_data(logger: logging.Logger, coords, tiff_file_path):
     logger.info("Parsing GeoTif")
     geotiff_data = GeoParser(logger=logger, path=tiff_file_path).parse()
     terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
+        
+    # Temporary fallback crop code until full crop pipeline is finalized.
+    terrain_df["Crop"] = crop or "WW"
         
     return terrain_df
 
@@ -57,7 +60,9 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
             f"field_{field.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.tif",
         )
         
-        terrain_df = create_charai_data(logger, coords, tiff_file_path)
+        # crop = field.custom_crop or field.crop_type or "WW"
+        crop = "WW"
+        terrain_df = create_charai_data(logger, coords, tiff_file_path, crop)
 
         logger.info("Calculating Yield")
         calculator = YieldCalculator(logger=logger)
