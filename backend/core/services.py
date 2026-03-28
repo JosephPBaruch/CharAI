@@ -5,14 +5,8 @@ import os
 from threading import Thread
 from datetime import datetime
 from typing import Any, Dict
-from decimal import Decimal
-import numpy as np
-import pandas as pd
 import math
-from typing import Dict, Any, List, cast
-from shapely.geometry import shape, Point, Polygon, mapping
-from shapely.prepared import prep
-
+from typing import Dict, Any
 from django.conf import settings
 from django.db import close_old_connections
 from .models import Field, PrescriptionMap
@@ -20,6 +14,23 @@ from modules.GeoParser import GeoParser
 from modules.Geotiffgenerator import DEMGeneratorService
 from modules.Calculator import YieldCalculator
 from modules.PrescriptionMapGenerator import PrescriptionMapGenerator
+
+def create_charai_data(logger: logging.Logger, coords, tiff_file_path):
+    if not isinstance(coords, list):
+        raise TypeError("coords must be a list of (lat, lon) tuples")
+
+    logger.info("Generating GeoTif")
+    logger.info(coords)
+    result = DEMGeneratorService(logger=logger).generate_from_coordinates(coords, tiff_file_path)
+    if result.get("success") is False:
+        error_message = result.get("error", "Unknown DEM generation error")
+        raise ValueError(error_message)
+
+    logger.info("Parsing GeoTif")
+    geotiff_data = GeoParser(logger=logger, path=tiff_file_path).parse()
+    terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
+        
+    return terrain_df
 
 def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> Dict[str, Any]:
     field.prescription_map_status = Field.STATUS_STARTED
@@ -45,34 +56,8 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
             dem_dir,
             f"field_{field.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.tif",
         )
-
-        logger.info("Generating GeoTif")
-        result = DEMGeneratorService(logger=logger).generate_from_coordinates(coords, tiff_file_path)
-        if result.get("success") is False:
-            error_message = result.get("error", "Unknown DEM generation error")
-            field.prescription_map_status = Field.STATUS_FAILED
-            field.save(update_fields=["prescription_map_status", "updated_at"])
-            logger.error(
-                "Handled prescription failure during DEM generation for field_id=%s: %s",
-                field.field_id,
-                error_message,
-            )
-            return {
-                "success": False,
-                "stage": "dem_generation",
-                "error": error_message,
-            }
-
-
-        logger.info("Parsing GeoTif")
-        geotiff_data = GeoParser(logger=logger, path=tiff_file_path).parse()
-        terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
-
-        # Save terrain_df to a .csv named CharAI_Cook.csv
-        # data_dir = os.path.join(settings.BASE_DIR, "data")
-        # os.makedirs(data_dir, exist_ok=True)
-        # terrain_df.to_csv(os.path.join(data_dir, "CharAI_Cook.csv"), index=False)
-
+        
+        terrain_df = create_charai_data(logger, coords, tiff_file_path)
 
         logger.info("Calculating Yield")
         calculator = YieldCalculator(logger=logger)

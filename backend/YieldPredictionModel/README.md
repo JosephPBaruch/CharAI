@@ -130,3 +130,11 @@ Target Column: "GrainYieldAirDry"
 TODO: Research the differences and similarities between the Cook Crop/Terrain Dataset and CropSyst Input set.
 
 Note: The CropSyst set is a biomass cumulation model, which is not what CharAI will be doing, but it could contain inputs that might lead to improving the model.
+
+## Model Creation Plan
+
+Run a script to get the CharAI data and to splice it into the Cook data
+
+Export to Colab and run a script to train the model.
+
+Import the model into repo
