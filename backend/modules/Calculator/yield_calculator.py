@@ -120,7 +120,7 @@ class YieldCalculator:
             result_df['biochar_improvement_pct'] = (
                 (result_df['yield_with_biochar'] - result_df['yield_without_biochar']) / 
                 result_df['yield_without_biochar'] * 100
-            )
+            ).abs()
             
             # Log summary statistics
             self._log_statistics(result_df)
