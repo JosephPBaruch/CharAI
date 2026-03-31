@@ -178,7 +178,7 @@ test.describe("CharAI.feature", () => {
         .filter({ hasText: "WW" })
         .locator("td")
         .nth(5);
-      await expect(statusCell).toHaveText("complete");
+      await expect(statusCell).toHaveText("Complete");
     }).toPass({ intervals: [3_000], timeout: 120_000 });
 
     // Click "Get Map" for that row
