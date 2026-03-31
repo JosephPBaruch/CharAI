@@ -122,7 +122,9 @@ export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
               >
                 {cropTypes.map((ct) => (
                   <MenuItem key={ct.code} value={ct.code}>
-                    {ct.label} ({ct.code})
+                    {ct.label === ct.code
+                      ? ct.code
+                      : `${ct.label} (${ct.code})`}
                   </MenuItem>
                 ))}
               </Select>

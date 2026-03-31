@@ -2,8 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from .models import Field, PrescriptionMap
-
-VALID_CROP_CODES = {code for code, _ in Field.CROP_TYPE_CHOICES}
+from .crop_types import VALID_CROP_CODES
 
 
 class UserSerializer(serializers.ModelSerializer):

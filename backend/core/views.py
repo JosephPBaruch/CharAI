@@ -12,6 +12,7 @@ import logging
 import json
 import os
 from .models import Field
+from .crop_types import CROP_TYPE_CHOICES
 from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer, FieldModelSerializer
 from .services import enqueue_prescription_map_job
 
@@ -20,13 +21,17 @@ logger = logging.getLogger("charai")
 # api calls & endpoints
 
 class CropTypesView(APIView):
-    """API endpoint to retrieve valid crop type codes"""
+    """API endpoint to retrieve valid crop type codes.
+
+    The set of codes is derived at startup from the yield-prediction
+    training CSV so it stays in sync with the ML model automatically.
+    """
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         crop_types = [
             {"code": code, "label": label}
-            for code, label in Field.CROP_TYPE_CHOICES
+            for code, label in CROP_TYPE_CHOICES
         ]
         return Response(crop_types, status=status.HTTP_200_OK)
     

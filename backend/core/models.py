@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from .crop_types import CROP_TYPE_CHOICES
+
 
 class Field(models.Model):
     """Model for storing user field data"""
@@ -16,21 +18,8 @@ class Field(models.Model):
         (STATUS_FAILED, 'Failed'),
     ]
 
-    # Crop types used in the training set.
-    CROP_TYPE_CHOICES = [
-        ('SW', 'Spring Wheat'),
-        ('SB', 'Spring Barley'),
-        ('SC', 'Spring Canola'),
-        ('SP', 'Spring Pea'),
-        ('WW', 'Winter Wheat'),
-        ('WB', 'Winter Barley'),
-        ('WP', 'Winter Pea'),
-        ('WC', 'Winter Canola'),
-        ('WL', 'Winter Lentil'),
-        ('AL', 'Alfalfa'),
-        ('WT', 'Winter Triticale'),
-        ('GB', 'Grain Buckwheat'),
-    ]
+    # Crop types extracted from the yield-prediction training CSV.
+    CROP_TYPE_CHOICES = CROP_TYPE_CHOICES
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fields')
     field_id = models.CharField(max_length=255)
