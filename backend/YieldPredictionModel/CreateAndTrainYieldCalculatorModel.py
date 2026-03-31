@@ -155,3 +155,41 @@ logger.info("Model saved to ./Models/yield_model.keras")
 
 # model.save("./Models/yield_model{date}_{time}.keras")
 
+# ---------- Feature Sensitivity Analysis ----------
+# For each feature, perturb it by a small delta and measure how predicted
+# yield changes.  This tells us the direction and magnitude of each
+# feature's influence, which informs the biochar feature adjustments in
+# _calculate_biochar_yield.
+
+logger.info("--- Feature Sensitivity Analysis ---")
+
+feature_columns = YieldCalculator.MODEL_FEATURE_COLUMNS
+baseline_features = X_test.to_numpy(dtype=np.float32)
+baseline_preds = model.predict(baseline_features, verbose=0).flatten()
+
+# Use 1 % of each feature's standard deviation as the perturbation step.
+# For features with zero std (constant), fall back to 1 % of the mean or 0.01.
+PERTURBATION_FRACTION = 0.01
+
+for i, col in enumerate(feature_columns):
+    std = X_test[col].std()
+    mean = X_test[col].mean()
+    delta = std * PERTURBATION_FRACTION if std > 0 else abs(mean) * PERTURBATION_FRACTION or 0.01
+
+    perturbed = baseline_features.copy()
+    perturbed[:, i] += delta
+
+    perturbed_preds = model.predict(perturbed, verbose=0).flatten()
+    mean_yield_change = (perturbed_preds - baseline_preds).mean()
+    sensitivity = mean_yield_change / delta  # yield change per unit feature change
+
+    direction = "INCREASE" if sensitivity > 0 else "DECREASE"
+
+    logger.info(
+        f"  {col:25s} | std={std:.4f} mean={mean:.4f} delta={delta:.6f} "
+        f"| avg yield Δ = {mean_yield_change:+.4f} | sensitivity = {sensitivity:+.4f}/unit "
+        f"| To boost yield: {direction} this feature"
+    )
+
+logger.info("--- End Sensitivity Analysis ---")
+

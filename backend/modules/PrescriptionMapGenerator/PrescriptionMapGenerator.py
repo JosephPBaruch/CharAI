@@ -40,8 +40,7 @@ class PrescriptionMapGenerator:
         yield_with = pd.to_numeric(df["yield_with_biochar"], errors="coerce")
         yield_without = pd.to_numeric(df["yield_without_biochar"], errors="coerce")
 
-        # Use absolute delta so payback reflects magnitude of change.
-        df["yield_delta"] = (yield_with - yield_without).abs()
+        df["yield_delta"] = yield_with - yield_without
         df["marginal_revenue"] = df["yield_delta"] * float(crop_sales_price)
         df["payback_period"] = np.nan
 
@@ -50,6 +49,9 @@ class PrescriptionMapGenerator:
             float(biochar_cost_per_cell)
             / pd.to_numeric(df.loc[valid_mask, "marginal_revenue"], errors="coerce")
         )
+
+        # Clamp negative payback periods to zero.
+        df["payback_period"] = df["payback_period"].clip(lower=0)
 
         # Keep only JSON-safe numeric payback values for downstream serialization.
         finite_mask = np.isfinite(df["payback_period"].to_numpy(dtype=float, copy=False))

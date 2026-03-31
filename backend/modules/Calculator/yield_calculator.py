@@ -138,9 +138,15 @@ class YieldCalculator:
         biochar_df = df.copy()
 
         # Simulate impact of biochar in feature-space before prediction.
-        biochar_df["slope_mean_deg"] = (biochar_df["slope_mean_deg"] * 0.85).clip(lower=0)
-        biochar_df["aspect_eastness"] = biochar_df["aspect_eastness"].clip(-1, 1) + 0.10
-        biochar_df["aspect_eastness"] = biochar_df["aspect_eastness"].clip(-1, 1)
+        # Directions informed by sensitivity analysis on the trained model:
+        #   elev_mean_m:     +0.47/unit  -> slight increase
+        #   slope_mean_deg:  +0.22/unit  -> slight increase
+        #   aspect_eastness: -0.24/unit  -> slight decrease
+        #   aspect_northness:-0.03/unit  -> slight decrease
+        biochar_df["elev_mean_m"] = biochar_df["elev_mean_m"] * 1.005
+        biochar_df["slope_mean_deg"] = (biochar_df["slope_mean_deg"] * 1.10).clip(lower=0)
+        biochar_df["aspect_eastness"] = (biochar_df["aspect_eastness"] - 0.10).clip(-1, 1)
+        biochar_df["aspect_northness"] = (biochar_df["aspect_northness"] - 0.05).clip(-1, 1)
 
         return self._calculate(biochar_df)
     

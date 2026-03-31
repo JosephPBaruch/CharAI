@@ -19,18 +19,19 @@ def create_charai_data(logger: logging.Logger, coords, tiff_file_path, crop: str
     if not isinstance(coords, list):
         raise TypeError("coords must be a list of (lat, lon) tuples")
 
-    logger.info("Generating GeoTif")
-    logger.info(coords)
+    logger.debug("Generating GeoTif")
+    logger.debug(coords)
     result = DEMGeneratorService(logger=logger).generate_from_coordinates(coords, tiff_file_path)
     if result.get("success") is False:
         error_message = result.get("error", "Unknown DEM generation error")
         raise ValueError(error_message)
 
-    logger.info("Parsing GeoTif")
+    logger.debug("Parsing GeoTif")
     geotiff_data = GeoParser(logger=logger, path=tiff_file_path).parse()
     terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
         
     # Temporary fallback crop code until full crop pipeline is finalized.
+    # TODO:  crop types #122
     terrain_df["Crop"] = crop or "WW"
         
     return terrain_df
@@ -62,13 +63,14 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
         
         # crop = field.custom_crop or field.crop_type or "WW"
         crop = "WW"
+        # TODO:  crop types #122
         terrain_df = create_charai_data(logger, coords, tiff_file_path, crop)
 
-        logger.info("Calculating Yield")
+        logger.debug("Calculating Yield")
         calculator = YieldCalculator(logger=logger)
         yield_results_df = calculator.calculate(terrain_df.copy())
 
-        logger.info("Generating Presciption Map")
+        logger.debug("Generating Presciption Map")
         pmg = PrescriptionMapGenerator(logger=logger)
 
         payback_period_df = pmg.compute_payback_period_grid(
