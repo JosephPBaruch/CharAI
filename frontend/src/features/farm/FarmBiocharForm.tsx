@@ -139,11 +139,11 @@ export default function FarmBiocharForm({
                   closeModal();
                   // Reset form for next creation
                   setField(DEFAULT_FIELD());
-                  navigate("/fields");
-                  // Reload field list after navigation
+                  // Reload field list before navigation to avoid race condition
                   if (onFieldCreated) {
                     onFieldCreated();
                   }
+                  navigate("/fields");
                 } catch (err) {
                   console.debug("Field submission failed:", err);
                   alert("Failed to submit field. Please try again.");
