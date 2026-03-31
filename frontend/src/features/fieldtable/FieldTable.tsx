@@ -20,7 +20,6 @@ type FieldRecord = {
   id: number;
   field_id: string;
   crop_type: string;
-  custom_crop: string;
   price: string;
   unit: string;
   global_max: string;

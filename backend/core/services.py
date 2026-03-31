@@ -61,9 +61,7 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
             f"field_{field.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.tif",
         )
         
-        # crop = field.custom_crop or field.crop_type or "WW"
-        crop = "WW"
-        # TODO:  crop types #122
+        crop = field.crop_type or "WW"
         terrain_df = create_charai_data(logger, coords, tiff_file_path, crop)
 
         logger.debug("Calculating Yield")

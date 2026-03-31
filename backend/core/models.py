@@ -16,12 +16,25 @@ class Field(models.Model):
         (STATUS_FAILED, 'Failed'),
     ]
 
+    # Crop types used in the training set.
+    CROP_TYPE_CHOICES = [
+        ('SW', 'Spring Wheat'),
+        ('SB', 'Spring Barley'),
+        ('SC', 'Spring Canola'),
+        ('SP', 'Spring Pea'),
+        ('WW', 'Winter Wheat'),
+        ('WB', 'Winter Barley'),
+        ('WP', 'Winter Pea'),
+        ('WC', 'Winter Canola'),
+        ('WL', 'Winter Lentil'),
+        ('AL', 'Alfalfa'),
+        ('WT', 'Winter Triticale'),
+        ('GB', 'Grain Buckwheat'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fields')
     field_id = models.CharField(max_length=255)
-    crop_type = models.CharField(max_length=255) 
-    # TODO: Only allow the set of crop types used in the training set
-    # ['SW' 'SB' 'SC' 'SP' nan 'WW' 'WB' 'WP' 'WC' 'WL' 'AL' 'WT' 'GB']
-    custom_crop = models.CharField(max_length=255, blank=True)
+    crop_type = models.CharField(max_length=2, choices=CROP_TYPE_CHOICES)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     unit = models.CharField(max_length=50)
     global_max = models.CharField(max_length=255, blank=True)

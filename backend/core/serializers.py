@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from .models import Field, PrescriptionMap
 
+VALID_CROP_CODES = {code for code, _ in Field.CROP_TYPE_CHOICES}
+
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for user data"""
@@ -67,8 +69,7 @@ class FieldPropertiesSerializer(serializers.Serializer):
 class FieldSerializer(serializers.Serializer):
     """Serializer for field metadata"""
     id = serializers.CharField(required=True)
-    cropType = serializers.CharField(required=True)
-    customCrop = serializers.CharField(required=False, allow_blank=True)
+    cropType = serializers.ChoiceField(choices=Field.CROP_TYPE_CHOICES, required=True)
     price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True, min_value=0)
     unit = serializers.CharField(required=True)
 
@@ -88,7 +89,6 @@ class FieldModelSerializer(serializers.ModelSerializer):
             'id',
             'field_id',
             'crop_type',
-            'custom_crop',
             'price',
             'unit',
             'global_max',
