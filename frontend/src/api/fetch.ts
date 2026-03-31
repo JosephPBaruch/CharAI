@@ -1,6 +1,7 @@
 import type { FeatureCollection } from "geojson";
 import type { FieldEntry } from "../features";
 import { getApiUrlForApi, getAuthToken } from "../services/authService";
+import type { CropType } from "../types/fetch";
 
 const API_URL = getApiUrlForApi();
 
@@ -92,4 +93,23 @@ const GETFields = async () => {
   return response.json();
 };
 
-export { DeleteField, GETPrescriptionMap, GETFields, POSTFieldData };
+const GETCropTypes = async (): Promise<CropType[]> => {
+  const response = await fetch(`${API_URL}/crop-types/`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error fetching crop types: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
+export {
+  DeleteField,
+  GETCropTypes,
+  GETPrescriptionMap,
+  GETFields,
+  POSTFieldData,
+};
