@@ -112,17 +112,22 @@ export default function FarmBiocharForm({ onFieldCreated }: FarmBiocharFormProps
                 console.debug(
                   `Sending the following field payload to the backend: ${JSON.stringify(payload)}`,
                 );
-                await POSTFieldData(payload);
-                setFormSubmitted(true);
-                closeModal();
-                // Reset form for next creation
-                setField(DEFAULT_FIELD());
-                setGlobalMax("");
-                // Reload field list immediately
-                if (onFieldCreated) {
-                  onFieldCreated();
+                try {
+                  await POSTFieldData(payload);
+                  setFormSubmitted(true);
+                  closeModal();
+                  // Reset form for next creation
+                  setField(DEFAULT_FIELD());
+                  setGlobalMax("");
+                  // Reload field list immediately
+                  if (onFieldCreated) {
+                    onFieldCreated();
+                  }
+                  navigate("/fields");
+                } catch (err) {
+                  console.debug("Field submission failed:", err);
+                  alert("Failed to submit field. Please try again.");
                 }
-                navigate("/fields");
               }}
             />
           </Box>

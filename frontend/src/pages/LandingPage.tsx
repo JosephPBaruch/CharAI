@@ -338,16 +338,21 @@ const LandingPage = () => {
             <FileUploadSection />
             <SubmitSection
               coordsReady={coordsReady && isPriceValid}
-              onSubmit={() => {
+              onSubmit={async () => {
                 if (!isPriceValid) {
                   alert("Please enter a valid crop selling price.");
                   return;
                 }
                 const payload = { globalMax, field, data };
-                POSTFieldData(payload);
-                setFormSubmitted(true);
-                setIsModalOpen(false);
-                navigate("/fields");
+                try {
+                  await POSTFieldData(payload);
+                  setFormSubmitted(true);
+                  setIsModalOpen(false);
+                  navigate("/fields");
+                } catch (err) {
+                  console.debug("Field submission failed:", err);
+                  alert("Failed to submit field. Please try again.");
+                }
               }}
             />
           </Box>
