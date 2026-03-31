@@ -114,7 +114,7 @@ export default function FarmBiocharForm({
             {/* Submit Section */}
             <SubmitSection
               coordsReady={canSubmit}
-              onSubmit={() => {
+              onSubmit={async () => {
                 if (!isPriceValid) {
                   alert("Please enter a valid crop selling price.");
                   return;
@@ -130,20 +130,20 @@ export default function FarmBiocharForm({
                   },
                   data,
                 };
-                console.log(
+                console.debug(
                   `Sending the following field payload to the backend: ${JSON.stringify(payload)}`,
                 );
                 try {
-                  POSTFieldData(payload);
+                  await POSTFieldData(payload);
                   setFormSubmitted(true);
                   closeModal();
                   // Reset form for next creation
                   setField(DEFAULT_FIELD());
-                  // Reload field list immediately
+                  navigate("/fields");
+                  // Reload field list after navigation
                   if (onFieldCreated) {
                     onFieldCreated();
                   }
-                  navigate("/fields");
                 } catch (err) {
                   console.debug("Field submission failed:", err);
                   alert("Failed to submit field. Please try again.");

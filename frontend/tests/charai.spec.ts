@@ -166,10 +166,9 @@ test.describe("CharAI.feature", () => {
     // Click "Submit request"
     await page.getByRole("button", { name: "Submit request" }).click();
 
-    // Refresh `/fields` and verify the new field appears in the table as "started"
-    await page.goto(`${baseUrl}/fields`);
-    await expect(page.locator("table")).toBeVisible();
-    await expect(page.locator("td", { hasText: "WW" })).toBeVisible();
+    // Verify the new field appears in the table automatically (no manual page reload)
+    await expect(page.locator("table")).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator("td", { hasText: "WW" })).toBeVisible({ timeout: 15_000 });
 
     // Poll for the status to become "complete" — check every 3 seconds for up to 2 minutes
     await expect(async () => {
@@ -269,5 +268,85 @@ test.describe("CharAI.feature", () => {
 
     // The select should now display "Spring Barley (SB)"
     await expect(cropSelect).toContainText("Spring Barley");
+  });
+
+  test("Field appears in table automatically after submission", async ({
+    page,
+  }) => {
+    test.setTimeout(60_000);
+
+    const timestamp = Date.now();
+    const uniqueUsername = `testuser${timestamp}`;
+    const password = "TestPassword123";
+
+    await registerUser(page, uniqueUsername, password);
+
+    // Navigate to /fields
+    await page.goto(`${baseUrl}/fields`);
+
+    // Verify the table starts empty
+    await expect(
+      page.locator("text=No fields found"),
+    ).toBeVisible({ timeout: 5_000 });
+
+    // Click "Create Farm"
+    await page.getByRole("button", { name: /Create Farm/ }).click();
+
+    // Enter biochar settings
+    await page.getByTestId("biochar-rate-input").locator("input").fill("20");
+    await page.getByTestId("biochar-cost-input").locator("input").fill("150");
+
+    // Set crop selling price
+    await page.getByLabel("Price").fill("10");
+
+    // Open coordinate modal and add markers
+    await page.getByTestId("open-manual-coordinates").click();
+
+    await page.getByTestId("add-marker-button").click();
+    await page
+      .getByTestId("marker-lat-0")
+      .locator("input")
+      .fill("46.75520514295208");
+    await page
+      .getByTestId("marker-lng-0")
+      .locator("input")
+      .fill("-116.97727203369142");
+
+    await page.getByTestId("add-marker-button").click();
+    await page
+      .getByTestId("marker-lat-1")
+      .locator("input")
+      .fill("46.75214798439814");
+    await page
+      .getByTestId("marker-lng-1")
+      .locator("input")
+      .fill("-116.94499969482423");
+
+    await page.getByTestId("add-marker-button").click();
+    await page
+      .getByTestId("marker-lat-2")
+      .locator("input")
+      .fill("46.74591554718295");
+    await page
+      .getByTestId("marker-lng-2")
+      .locator("input")
+      .fill("-116.96405410766603");
+
+    // Save boundaries
+    await page.getByTestId("save-boundaries-button").click();
+
+    // Submit the field
+    await page.getByRole("button", { name: "Submit request" }).click();
+
+    // Verify the field appears in the table automatically WITHOUT page.goto or page.reload
+    await expect(page.locator("table")).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator("td", { hasText: "WW" })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    // Verify the dialog is closed
+    await expect(
+      page.getByRole("heading", { name: "Create New Field" }),
+    ).not.toBeVisible();
   });
 });

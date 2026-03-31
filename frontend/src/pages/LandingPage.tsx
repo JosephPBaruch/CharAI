@@ -12,7 +12,7 @@ import MapIcon from "@mui/icons-material/Map";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CloseIcon from "@mui/icons-material/Close";
-import BudgetSettings from "../features/farm/BudgetSettings";
+import BiocharSettings from "../features/farm/BudgetSettings";
 import FieldsList from "../features/farm/FieldsList";
 import type { FieldEntry } from "../features/farm/FieldsList";
 import FileUploadSection from "../features/farm/FileUploadSection";
@@ -60,6 +60,8 @@ const DEFAULT_FIELD = (): FieldEntry => ({
   cropType: "WW",
   price: "",
   unit: "bushel",
+  biocharTonsPerHectare: 20,
+  biocharCostPerTon: "",
 });
 
 const LandingPage = () => {
@@ -70,7 +72,6 @@ const LandingPage = () => {
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [field, setField] = React.useState<FieldEntry>(DEFAULT_FIELD());
-  const [globalMax, setGlobalMax] = React.useState<number | "">("");
   const [coordUploaded, setCoordUploaded] = React.useState(false);
 
   React.useEffect(() => {
@@ -85,6 +86,9 @@ const LandingPage = () => {
 
   const coordsReady = coordUploaded || hasCoordinates;
   const isPriceValid = field.price !== "" && field.price > 0;
+  const isBiocharCostValid =
+    field.biocharCostPerTon !== "" && field.biocharCostPerTon > 0;
+  const canSubmit = coordsReady && isPriceValid && isBiocharCostValid;
 
   const gradientBg =
     theme.palette.mode === "dark"
@@ -333,17 +337,34 @@ const LandingPage = () => {
               Configure your field's crop and selling price, set your biochar
               budget, and upload boundary coordinates.
             </Typography>
-            <BudgetSettings globalMax={globalMax} onChange={setGlobalMax} />
+            <BiocharSettings
+              biocharTonsPerHectare={field.biocharTonsPerHectare}
+              biocharCostPerTon={field.biocharCostPerTon}
+              onChangeTonsPerHectare={(v) =>
+                updateField({ biocharTonsPerHectare: v })
+              }
+              onChangeCostPerTon={(v) => updateField({ biocharCostPerTon: v })}
+            />
             <FieldsList field={field} onUpdateField={updateField} />
             <FileUploadSection />
             <SubmitSection
-              coordsReady={coordsReady && isPriceValid}
+              coordsReady={canSubmit}
               onSubmit={async () => {
                 if (!isPriceValid) {
                   alert("Please enter a valid crop selling price.");
                   return;
                 }
-                const payload = { globalMax, field, data };
+                if (!isBiocharCostValid) {
+                  alert("Please enter a valid biochar cost per ton.");
+                  return;
+                }
+                const payload = {
+                  field: {
+                    ...field,
+                    biocharCostPerTon: field.biocharCostPerTon as number,
+                  },
+                  data,
+                };
                 try {
                   await POSTFieldData(payload);
                   setFormSubmitted(true);
