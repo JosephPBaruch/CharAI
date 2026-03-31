@@ -117,8 +117,9 @@ test.describe("CharAI.feature", () => {
       .getByRole("button", { name: /Configure Farm|Edit Farm Configuration/ })
       .click();
 
-    // Enter biochar budget settings = 12
-    await page.getByLabel("Global max biochar spend").fill("12");
+    // Enter biochar settings: application rate (t/ha) and cost per ton
+    await page.getByTestId("biochar-rate-input").locator("input").fill("20");
+    await page.getByTestId("biochar-cost-input").locator("input").fill("150");
 
     // Set crop selling price = 12
     await page.getByLabel("Price").fill("12");

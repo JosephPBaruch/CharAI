@@ -29,9 +29,7 @@ def create_charai_data(logger: logging.Logger, coords, tiff_file_path, crop: str
     logger.debug("Parsing GeoTif")
     geotiff_data = GeoParser(logger=logger, path=tiff_file_path).parse()
     terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
-        
-    # Temporary fallback crop code until full crop pipeline is finalized.
-    # TODO:  crop types #122
+
     terrain_df["Crop"] = crop or "WW"
         
     return terrain_df
@@ -71,10 +69,15 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
         logger.debug("Generating Presciption Map")
         pmg = PrescriptionMapGenerator(logger=logger)
 
+        cell_size_meters = 10.0
+        cell_area_ha = (cell_size_meters ** 2) / 10_000  # 0.0025 ha per 5m cell
+        biochar_tons_per_cell = float(field.biochar_tons_per_hectare) * cell_area_ha
+        biochar_cost_per_cell = biochar_tons_per_cell * float(field.biochar_cost_per_ton)
+
         payback_period_df = pmg.compute_payback_period_grid(
             yield_prediction_df=yield_results_df,
             crop_sales_price=float(field.price),
-            biochar_cost_per_cell=100,
+            biochar_cost_per_cell=biochar_cost_per_cell,
         )
 
         filtered_data_df = pmg.filter_cells_inside_boundary(
@@ -84,8 +87,8 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
 
         prescription_data_geojson = pmg.convert_df_to_geojson_polygons(
             payback_period_df=filtered_data_df,
-            cell_size_meters=10.0,
-            biochar_application_rate=10.0,
+            cell_size_meters=cell_size_meters,
+            biochar_application_rate=biochar_tons_per_cell,
         )
 
         prescription_data_geojson_with_boundary = pmg.parse_and_append_boundary_coordinates(

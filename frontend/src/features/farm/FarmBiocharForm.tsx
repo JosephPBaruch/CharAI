@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { COLORS } from "../../styles/colors";
-import BudgetSettings from "./BudgetSettings";
+import BiocharSettings from "./BudgetSettings";
 import FieldsList from "./FieldsList";
 import type { FieldEntry } from "./FieldsList";
 import FileUploadSection from "./FileUploadSection";
@@ -25,12 +25,13 @@ const DEFAULT_FIELD = (): FieldEntry => ({
   cropType: "WW",
   price: "",
   unit: "bushel",
+  biocharTonsPerHectare: 20,
+  biocharCostPerTon: "",
 });
 
 export default function FarmBiocharForm() {
   const { data, hasCoordinates, setFormSubmitted } = useCoordinates();
   const [field, setField] = React.useState<FieldEntry>(DEFAULT_FIELD());
-  const [globalMax, setGlobalMax] = React.useState<number | "">("");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   const navigate = useNavigate();
@@ -70,6 +71,9 @@ export default function FarmBiocharForm() {
 
   const coordsReady = coordUploaded || hasCoordinates;
   const isPriceValid = field.price !== "" && field.price > 0;
+  const isBiocharCostValid =
+    field.biocharCostPerTon !== "" && field.biocharCostPerTon > 0;
+  const canSubmit = coordsReady && isPriceValid && isBiocharCostValid;
 
   return (
     <>
@@ -123,8 +127,15 @@ export default function FarmBiocharForm() {
               </Typography>
             </Box>
 
-            {/* Budget Settings */}
-            <BudgetSettings globalMax={globalMax} onChange={setGlobalMax} />
+            {/* Biochar Settings */}
+            <BiocharSettings
+              biocharTonsPerHectare={field.biocharTonsPerHectare}
+              biocharCostPerTon={field.biocharCostPerTon}
+              onChangeTonsPerHectare={(v) =>
+                updateField({ biocharTonsPerHectare: v })
+              }
+              onChangeCostPerTon={(v) => updateField({ biocharCostPerTon: v })}
+            />
 
             {/* Field Configuration */}
             <FieldsList field={field} onUpdateField={updateField} />
@@ -139,13 +150,23 @@ export default function FarmBiocharForm() {
 
             {/* Submit Section */}
             <SubmitSection
-              coordsReady={coordsReady && isPriceValid}
+              coordsReady={canSubmit}
               onSubmit={() => {
                 if (!isPriceValid) {
                   alert("Please enter a valid crop selling price.");
                   return;
                 }
-                const payload = { globalMax, field, data };
+                if (!isBiocharCostValid) {
+                  alert("Please enter a valid biochar cost per ton.");
+                  return;
+                }
+                const payload = {
+                  field: {
+                    ...field,
+                    biocharCostPerTon: field.biocharCostPerTon as number,
+                  },
+                  data,
+                };
                 console.log(
                   `Sending the following field payload to the backend: ${JSON.stringify(payload)}`,
                 );

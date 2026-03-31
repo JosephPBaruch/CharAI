@@ -71,6 +71,7 @@ backend/
 - Tests use Django `TestCase` in `core/tests.py`.
 - Module tests live in each `backend/modules/<Module>/` directory (e.g., `test_calculator.py`).
 - Run with: `python manage.py test`
+- **Always update tests**: When changing model fields, serializer shapes, API request/response formats, or endpoint behavior, update both Django tests and Playwright E2E tests (in `frontend/tests/`) in the same changeset. Run `python manage.py test` and `cd frontend/tests && npx playwright test` to verify.
 
 ## Helpful Commands
 

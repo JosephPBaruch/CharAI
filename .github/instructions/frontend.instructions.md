@@ -80,6 +80,7 @@ frontend/src/
 - E2E tests use Playwright in `frontend/tests/`.
 - Selectors use `data-testid` attributes (e.g., `[data-testid="login-button"]`).
 - Run with: `cd frontend/tests && npx playwright test`
+- **Always update tests**: When changing form inputs, `data-testid` values, API payload shapes, routes, or UI flow, update the Playwright tests in the same changeset. Run `npx playwright test` to confirm they pass before finishing.
 
 ## Helpful Commands
 

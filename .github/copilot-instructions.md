@@ -33,6 +33,8 @@ Detailed conventions and context for each stack live in their own instruction fi
 - **Frontend E2E**: Playwright tests in `frontend/tests/`. Uses `data-testid` attributes for selectors. Run with `npx playwright test`.
 - **Module tests**: Individual test files in each `backend/modules/<Module>/` directory.
 
+**Critical rule**: Any change to API payloads, form inputs, UI selectors, routes, or model fields that could break existing Playwright or Django tests **must** include corresponding test updates in the same changeset. Run `cd frontend/tests && npx playwright test` to verify before considering a task complete.
+
 ---
 
 ## Deployment
