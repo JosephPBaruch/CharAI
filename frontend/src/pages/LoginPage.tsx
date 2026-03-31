@@ -31,9 +31,12 @@ const LoginPage = () => {
     try {
       await login(formData);
       navigate("/");
-    } catch (err: any) {
-      const safeErrorMessage = err?.error || "Login failed. Please try again.";
-      setErrorMessage(safeErrorMessage);
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "error" in err
+          ? String((err as Record<string, unknown>).error)
+          : "Login failed. Please try again.";
+      setErrorMessage(message);
     }
   };
 

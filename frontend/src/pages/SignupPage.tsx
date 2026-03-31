@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { Link as RouterLink } from "react-router";
 import { Box, Button, Typography, CircularProgress } from "@mui/material";
 import { useAuth } from "../contexts/AuthContext";
-import type { FieldErrors, RegisterRequest } from "../types/auth";
+import type { DjangoErrorResponse, FieldErrors, RegisterRequest } from "../types/auth";
 import { COLORS } from "../styles/colors";
 import { normalizeSignupErrors } from "../utils/errors";
 import { FormTextField } from "../components/FormTextField";
@@ -30,7 +30,8 @@ const SignupPage = () => {
     // Clear the error for this field
     setErrors((prev) => {
       if (!(name in prev)) return prev; // no error to clear
-      const { [name]: _, ...rest } = prev; // remove this field from errors
+      const rest = { ...prev };
+      delete rest[name];
       return rest;
     });
   };
@@ -40,8 +41,8 @@ const SignupPage = () => {
     try {
       await register(formData);
       navigate("/");
-    } catch (err: any) {
-      setErrors(normalizeSignupErrors(err));
+    } catch (err: unknown) {
+      setErrors(normalizeSignupErrors(err as DjangoErrorResponse));
     }
   };
 

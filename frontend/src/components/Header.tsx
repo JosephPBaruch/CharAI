@@ -4,6 +4,16 @@ import { useAuth } from "../contexts/AuthContext";
 import { COLORS } from "../styles/colors";
 import { useToast } from "../contexts/ToastContext";
 
+const navButtonSx = {
+  color: COLORS.whiteHigh,
+  textTransform: "none" as const,
+  fontSize: "0.9rem",
+  fontWeight: 500,
+  "&:hover": {
+    backgroundColor: COLORS.whiteHover,
+  },
+};
+
 const Header = () => {
   const { isAuthenticated, logout } = useAuth();
   const { showToast } = useToast();
@@ -22,9 +32,10 @@ const Header = () => {
   return (
     <AppBar
       position="static"
+      elevation={0}
       sx={{
-        backgroundColor: COLORS.bgPage,
-        boxShadow: `0 2px 8px ${COLORS.blackLow}`,
+        backgroundColor: COLORS.bgDark,
+        borderBottom: `1px solid ${COLORS.whiteVeryLow}`,
       }}
     >
       <Toolbar
@@ -39,7 +50,7 @@ const Header = () => {
         <Typography
           variant="h6"
           component="div"
-          sx={{ fontWeight: "bold", flexShrink: 0 }}
+          sx={{ fontWeight: 700, flexShrink: 0, letterSpacing: "-0.02em" }}
         >
           <RouterLink
             to="/"
@@ -49,51 +60,28 @@ const Header = () => {
           </RouterLink>
         </Typography>
         <Box
-          sx={{ display: "flex", gap: 1, flexShrink: 0, alignItems: "center" }}
+          sx={{ display: "flex", gap: 0.5, flexShrink: 0, alignItems: "center" }}
         >
           {isAuthenticated ? (
             <>
               <Button
                 component={RouterLink}
                 to="/"
-                sx={{
-                  color: COLORS.whiteHigh,
-                  textTransform: "none",
-                  fontSize: "1rem",
-                }}
+                sx={navButtonSx}
               >
                 Home
               </Button>
-              {/* <Button
-                component={RouterLink}
-                to="/output"
-                sx={{
-                  color: COLORS.whiteHigh,
-                  textTransform: "none",
-                  fontSize: "1rem",
-                }}
-              >
-                Maps
-              </Button> */}
               <Button
                 component={RouterLink}
                 to="/fields"
-                sx={{
-                  color: COLORS.whiteHigh,
-                  textTransform: "none",
-                  fontSize: "1rem",
-                }}
+                sx={navButtonSx}
               >
                 Fields
               </Button>
               <Button
                 onClick={handleLogout}
                 data-testid="logout-button"
-                sx={{
-                  color: COLORS.whiteHigh,
-                  textTransform: "none",
-                  fontSize: "1rem",
-                }}
+                sx={navButtonSx}
               >
                 Logout
               </Button>
@@ -103,11 +91,7 @@ const Header = () => {
               <Button
                 component={RouterLink}
                 to="/"
-                sx={{
-                  color: COLORS.whiteHigh,
-                  textTransform: "none",
-                  fontSize: "1rem",
-                }}
+                sx={navButtonSx}
               >
                 Home
               </Button>
@@ -115,11 +99,7 @@ const Header = () => {
                 component={RouterLink}
                 to="/login"
                 data-testid="login-button"
-                sx={{
-                  color: COLORS.whiteHigh,
-                  textTransform: "none",
-                  fontSize: "1rem",
-                }}
+                sx={navButtonSx}
               >
                 Log in
               </Button>
@@ -127,10 +107,10 @@ const Header = () => {
                 component={RouterLink}
                 data-testid="signup-button"
                 to="/signup"
+                variant="contained"
                 sx={{
-                  color: COLORS.whiteHigh,
-                  textTransform: "none",
-                  fontSize: "1rem",
+                  fontSize: "0.9rem",
+                  fontWeight: 500,
                 }}
               >
                 Sign up
