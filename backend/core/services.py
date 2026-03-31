@@ -5,14 +5,8 @@ import os
 from threading import Thread
 from datetime import datetime
 from typing import Any, Dict
-from decimal import Decimal
-import numpy as np
-import pandas as pd
 import math
-from typing import Dict, Any, List, cast
-from shapely.geometry import shape, Point, Polygon, mapping
-from shapely.prepared import prep
-
+from typing import Dict, Any
 from django.conf import settings
 from django.db import close_old_connections
 from .models import Field, PrescriptionMap
@@ -20,6 +14,27 @@ from modules.GeoParser import GeoParser
 from modules.Geotiffgenerator import DEMGeneratorService
 from modules.Calculator import YieldCalculator
 from modules.PrescriptionMapGenerator import PrescriptionMapGenerator
+
+def create_charai_data(logger: logging.Logger, coords, tiff_file_path, crop: str = "WW"):
+    if not isinstance(coords, list):
+        raise TypeError("coords must be a list of (lat, lon) tuples")
+
+    logger.debug("Generating GeoTif")
+    logger.debug(coords)
+    result = DEMGeneratorService(logger=logger).generate_from_coordinates(coords, tiff_file_path)
+    if result.get("success") is False:
+        error_message = result.get("error", "Unknown DEM generation error")
+        raise ValueError(error_message)
+
+    logger.debug("Parsing GeoTif")
+    geotiff_data = GeoParser(logger=logger, path=tiff_file_path).parse()
+    terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
+        
+    # Temporary fallback crop code until full crop pipeline is finalized.
+    # TODO:  crop types #122
+    terrain_df["Crop"] = crop or "WW"
+        
+    return terrain_df
 
 def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> Dict[str, Any]:
     field.prescription_map_status = Field.STATUS_STARTED
@@ -45,34 +60,17 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
             dem_dir,
             f"field_{field.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.tif",
         )
+        
+        # crop = field.custom_crop or field.crop_type or "WW"
+        crop = "WW"
+        # TODO:  crop types #122
+        terrain_df = create_charai_data(logger, coords, tiff_file_path, crop)
 
-        logger.info("Generating GeoTif")
-        result = DEMGeneratorService(logger=logger).generate_from_coordinates(coords, tiff_file_path)
-        if result.get("success") is False:
-            error_message = result.get("error", "Unknown DEM generation error")
-            field.prescription_map_status = Field.STATUS_FAILED
-            field.save(update_fields=["prescription_map_status", "updated_at"])
-            logger.error(
-                "Handled prescription failure during DEM generation for field_id=%s: %s",
-                field.field_id,
-                error_message,
-            )
-            return {
-                "success": False,
-                "stage": "dem_generation",
-                "error": error_message,
-            }
-
-
-        logger.info("Parsing GeoTif")
-        geotiff_data = GeoParser(logger=logger, path=tiff_file_path).parse()
-        terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
-
-        logger.info("Calculating Yield")
+        logger.debug("Calculating Yield")
         calculator = YieldCalculator(logger=logger)
         yield_results_df = calculator.calculate(terrain_df.copy())
 
-        logger.info("Generating Presciption Map")
+        logger.debug("Generating Presciption Map")
         pmg = PrescriptionMapGenerator(logger=logger)
 
         payback_period_df = pmg.compute_payback_period_grid(

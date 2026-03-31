@@ -18,7 +18,9 @@ class Field(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fields')
     field_id = models.CharField(max_length=255)
-    crop_type = models.CharField(max_length=255)
+    crop_type = models.CharField(max_length=255) 
+    # TODO: Only allow the set of crop types used in the training set
+    # ['SW' 'SB' 'SC' 'SP' nan 'WW' 'WB' 'WP' 'WC' 'WL' 'AL' 'WT' 'GB']
     custom_crop = models.CharField(max_length=255, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     unit = models.CharField(max_length=50)

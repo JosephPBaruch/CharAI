@@ -16,8 +16,7 @@ class PrescriptionMapGenerator:
     def __init__(self, logger: logging.Logger):
         self.logger = logger
 
-    @staticmethod
-    def compute_payback_period_grid(
+    def compute_payback_period_grid(self,
         yield_prediction_df: pd.DataFrame,
         crop_sales_price: float,
         biochar_cost_per_cell: float,
@@ -43,13 +42,20 @@ class PrescriptionMapGenerator:
 
         df["yield_delta"] = yield_with - yield_without
         df["marginal_revenue"] = df["yield_delta"] * float(crop_sales_price)
-        df["payback_period"] = np.inf
+        df["payback_period"] = np.nan
 
         valid_mask = df["marginal_revenue"] > 0
         df.loc[valid_mask, "payback_period"] = (
             float(biochar_cost_per_cell)
             / pd.to_numeric(df.loc[valid_mask, "marginal_revenue"], errors="coerce")
         )
+
+        # Clamp negative payback periods to zero.
+        df["payback_period"] = df["payback_period"].clip(lower=0)
+
+        # Keep only JSON-safe numeric payback values for downstream serialization.
+        finite_mask = np.isfinite(df["payback_period"].to_numpy(dtype=float, copy=False))
+        df.loc[~finite_mask, "payback_period"] = np.nan
 
         return cast(
             pd.DataFrame,
@@ -94,7 +100,8 @@ class PrescriptionMapGenerator:
         for _, row in payback_period_df.iterrows():
             lat = float(row["centroid_lat"])
             lon = float(row["centroid_lon"])
-            payback = float(row["payback_period"])
+            raw_payback = pd.to_numeric(row["payback_period"], errors="coerce")
+            payback = float(raw_payback) if pd.notna(raw_payback) and np.isfinite(raw_payback) else None
 
             lat_offset = cell_radius / 111320.0
             lon_offset = cell_radius / (111320.0 * math.cos(math.radians(lat)))
