@@ -14,3 +14,5 @@ bmi-topography>=0.3.0
 scipy>=1.11.0
 numpy>=2.4.1
 shapely>=2.0.0
+tensorflow>=2.18.0
+scikit-learn>=1.5.0
