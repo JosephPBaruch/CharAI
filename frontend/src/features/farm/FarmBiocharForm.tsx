@@ -80,7 +80,7 @@ export default function FarmBiocharForm({
             alignItems: "center",
           }}
         >
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          <Typography variant="h5" component="span" sx={{ fontWeight: 700 }}>
             Create New Field
           </Typography>
           <IconButton onClick={closeModal} sx={{ color: "text.secondary" }}>

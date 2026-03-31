@@ -324,7 +324,7 @@ const LandingPage = () => {
         fullWidth
       >
         <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          <Typography variant="h5" component="span" sx={{ fontWeight: 700 }}>
             Create New Field
           </Typography>
           <IconButton onClick={() => setIsModalOpen(false)} sx={{ color: "text.secondary" }}>
