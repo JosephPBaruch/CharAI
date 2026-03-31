@@ -55,11 +55,12 @@ Detailed conventions and context for each stack live in their own instruction fi
 
 ## General Coding Guidelines
 
-1. **Keep modules independent**: Each module under `backend/modules/` should be self-contained with its own tests.
-2. **Validate at boundaries**: Serializers validate API input. Don't duplicate validation in views or services.
-3. **Use existing patterns**: Follow the established APIView + serializer + service layer pattern. Don't introduce ViewSets or new paradigms without discussion.
-4. **Type everything in TypeScript**: Avoid `any`. Define interfaces in `src/types/`.
-5. **Test with data-testid**: Frontend E2E tests rely on `data-testid` attributes. Add them to new interactive elements.
-6. **Environment variables**: Never hardcode secrets. Use `.env` + `django-environ` on the backend.
-7. **Logging over print**: Use the `"charai"` logger on the backend, `console.debug` on the frontend for dev-only output.
-8. **Commit messages**: Follow the conventions in `.github/instructions/commit-messages.instructions.md`.
+1. **No emojis**: Never use emojis in code, comments, commit messages, documentation, or responses.
+2. **Keep modules independent**: Each module under `backend/modules/` should be self-contained with its own tests.
+3. **Validate at boundaries**: Serializers validate API input. Don't duplicate validation in views or services.
+4. **Use existing patterns**: Follow the established APIView + serializer + service layer pattern. Don't introduce ViewSets or new paradigms without discussion.
+5. **Type everything in TypeScript**: Avoid `any`. Define interfaces in `src/types/`.
+6. **Test with data-testid**: Frontend E2E tests rely on `data-testid` attributes. Add them to new interactive elements.
+7. **Environment variables**: Never hardcode secrets. Use `.env` + `django-environ` on the backend.
+8. **Logging over print**: Use the `"charai"` logger on the backend, `console.debug` on the frontend for dev-only output.
+9. **Commit messages**: Follow the conventions in `.github/instructions/commit-messages.instructions.md`.
