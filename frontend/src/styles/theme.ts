@@ -97,8 +97,9 @@ export function createAppTheme(mode: PaletteMode) {
       MuiDialog: {
         styleOverrides: {
           paper: {
-            backgroundColor: isDark ? COLORS.bgCard : "#ffffff",
-            backgroundImage: "none",
+            background: isDark
+              ? `linear-gradient(180deg, #0a0a0a 0%, ${COLORS.bgCard} 100%)`
+              : `linear-gradient(180deg, #f0f0f5 0%, #ffffff 100%)`,
           },
         },
       },

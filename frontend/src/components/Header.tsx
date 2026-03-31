@@ -54,7 +54,7 @@ const Header = () => {
         <Typography
           variant="h6"
           component="div"
-          sx={{ fontWeight: 700, flexShrink: 0, letterSpacing: "-0.02em" }}
+          sx={{ fontWeight: 700, flexShrink: 0, letterSpacing: "-0.02em", color: "text.primary" }}
         >
           <RouterLink
             to="/"

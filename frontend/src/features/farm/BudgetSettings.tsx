@@ -8,6 +8,7 @@ import {
   TextField,
   InputAdornment,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { COLORS } from "../../styles/colors";
 
@@ -24,6 +25,7 @@ export default function BiocharSettings({
   onChangeTonsPerHectare,
   onChangeCostPerTon,
 }: BiocharSettingsProps) {
+  const theme = useTheme();
   const isCostValid = biocharCostPerTon !== "" && biocharCostPerTon > 0;
   const isRateValid = biocharTonsPerHectare > 0;
 
@@ -32,11 +34,11 @@ export default function BiocharSettings({
       <Box sx={{ mb: 2 }}>
         <Typography
           variant="h6"
-          sx={{ color: COLORS.whiteHigh, fontWeight: 600, mb: 0.5 }}
+          sx={{ color: "text.primary", fontWeight: 600, mb: 0.5 }}
         >
           Biochar Settings
         </Typography>
-        <Typography variant="body2" sx={{ color: COLORS.whiteMedium }}>
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
           Enter how much biochar you plan to apply and what it costs per ton.
           These values are used to compute payback period per grid cell.
         </Typography>
@@ -45,22 +47,24 @@ export default function BiocharSettings({
       <Accordion
         defaultExpanded
         sx={{
-          background: `${COLORS.blackMedium}`,
-          border: `1px solid ${COLORS.whiteLow}`,
-          "&:hover": { borderColor: COLORS.indigo },
+          backgroundColor: theme.palette.mode === "dark"
+            ? "rgba(0, 0, 0, 0.3)"
+            : "rgba(0, 0, 0, 0.02)",
+          border: `1px solid ${theme.palette.divider}`,
+          "&:hover": { borderColor: theme.palette.primary.main },
         }}
       >
         <AccordionSummary
-          expandIcon={<ExpandMoreIcon sx={{ color: COLORS.whiteHigh }} />}
+          expandIcon={<ExpandMoreIcon sx={{ color: "text.primary" }} />}
           sx={{ "& .MuiAccordionSummary-content": { alignItems: "center" } }}
         >
           <Typography
-            sx={{ color: COLORS.whiteHigh, fontWeight: 600, flex: 1 }}
+            sx={{ color: "text.primary", fontWeight: 600, flex: 1 }}
           >
             Biochar Application
           </Typography>
           {isCostValid && isRateValid && (
-            <Typography sx={{ color: COLORS.whiteMedium, mr: 1 }}>
+            <Typography sx={{ color: "text.secondary", mr: 1 }}>
               {biocharTonsPerHectare} t/ha @ ${biocharCostPerTon}/ton
             </Typography>
           )}
@@ -80,13 +84,13 @@ export default function BiocharSettings({
             <Stack spacing={1} sx={{ minWidth: 250, flex: 1 }}>
               <Typography
                 variant="subtitle2"
-                sx={{ color: COLORS.whiteHigh, fontWeight: 500 }}
+                sx={{ color: "text.primary", fontWeight: 500 }}
               >
                 Application rate
               </Typography>
               <Typography
                 variant="caption"
-                sx={{ color: COLORS.whiteMedium, mb: 0.5 }}
+                sx={{ color: "text.secondary", mb: 0.5 }}
               >
                 How many tons of biochar to apply per hectare. Default is 20
                 t/ha.
@@ -104,28 +108,12 @@ export default function BiocharSettings({
                   onChangeTonsPerHectare(val);
                 }}
                 data-testid="biochar-rate-input"
-                sx={{
-                  minWidth: 120,
-                  "& .MuiOutlinedInput-root": {
-                    color: COLORS.whiteHigh,
-                    "& fieldset": {
-                      borderColor: !isRateValid
-                        ? COLORS.error
-                        : COLORS.whiteLow,
-                    },
-                    "&:hover fieldset": {
-                      borderColor: !isRateValid ? COLORS.error : COLORS.indigo,
-                    },
-                  },
-                  "& .MuiInputLabel-root": {
-                    color: `${COLORS.whiteMedium} !important`,
-                  },
-                }}
+                sx={{ minWidth: 120 }}
                 slotProps={{
                   input: {
                     endAdornment: (
                       <InputAdornment position="end">
-                        <Box sx={{ color: COLORS.whiteHigh }}>t/ha</Box>
+                        <Box sx={{ color: "text.secondary" }}>t/ha</Box>
                       </InputAdornment>
                     ),
                   },
@@ -137,13 +125,13 @@ export default function BiocharSettings({
             <Stack spacing={1} sx={{ minWidth: 250, flex: 1 }}>
               <Typography
                 variant="subtitle2"
-                sx={{ color: COLORS.whiteHigh, fontWeight: 500 }}
+                sx={{ color: "text.primary", fontWeight: 500 }}
               >
                 Cost per ton <span style={{ color: COLORS.error }}>*</span>
               </Typography>
               <Typography
                 variant="caption"
-                sx={{ color: COLORS.whiteMedium, mb: 0.5 }}
+                sx={{ color: "text.secondary", mb: 0.5 }}
               >
                 Price you pay per ton of biochar (required)
               </Typography>
@@ -160,33 +148,17 @@ export default function BiocharSettings({
                   )
                 }
                 data-testid="biochar-cost-input"
-                sx={{
-                  minWidth: 120,
-                  "& .MuiOutlinedInput-root": {
-                    color: COLORS.whiteHigh,
-                    "& fieldset": {
-                      borderColor: !isCostValid
-                        ? COLORS.error
-                        : COLORS.whiteLow,
-                    },
-                    "&:hover fieldset": {
-                      borderColor: !isCostValid ? COLORS.error : COLORS.indigo,
-                    },
-                  },
-                  "& .MuiInputLabel-root": {
-                    color: `${COLORS.whiteMedium} !important`,
-                  },
-                }}
+                sx={{ minWidth: 120 }}
                 slotProps={{
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Box sx={{ color: COLORS.whiteHigh }}>$</Box>
+                        <Box sx={{ color: "text.secondary" }}>$</Box>
                       </InputAdornment>
                     ),
                     endAdornment: (
                       <InputAdornment position="end">
-                        <Box sx={{ color: COLORS.whiteHigh }}>/ton</Box>
+                        <Box sx={{ color: "text.secondary" }}>/ton</Box>
                       </InputAdornment>
                     ),
                   },

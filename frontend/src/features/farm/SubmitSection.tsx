@@ -1,5 +1,5 @@
 import { Box, Button, Stack, Typography } from "@mui/material";
-import { COLORS } from "../../styles/colors";
+import { useTheme } from "@mui/material/styles";
 
 interface SubmitSectionProps {
   coordsReady: boolean;
@@ -10,13 +10,17 @@ export default function SubmitSection({
   coordsReady,
   onSubmit,
 }: SubmitSectionProps) {
+  const theme = useTheme();
+
   return (
     <Box
       sx={{
         p: 2,
-        backgroundColor: `${COLORS.blackMedium}`,
+        backgroundColor: theme.palette.mode === "dark"
+          ? "rgba(0, 0, 0, 0.3)"
+          : "rgba(0, 0, 0, 0.02)",
         borderRadius: 1.5,
-        border: `1px solid ${COLORS.whiteLow}`,
+        border: `1px solid ${theme.palette.divider}`,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -24,7 +28,7 @@ export default function SubmitSection({
         gap: 2,
       }}
     >
-      <Typography variant="body2" sx={{ color: COLORS.whiteMedium }}>
+      <Typography variant="body2" sx={{ color: "text.secondary" }}>
         Ready to proceed? Make sure you've selected all your fields and uploaded
         at least the coordinate file.
       </Typography>
@@ -34,16 +38,7 @@ export default function SubmitSection({
           size="large"
           disabled={!coordsReady}
           onClick={onSubmit}
-          sx={{
-            px: 4,
-            backgroundColor: COLORS.indigo,
-            "&:hover": { backgroundColor: COLORS.indigoHover },
-            "&:disabled": {
-              backgroundColor: COLORS.indigo,
-              opacity: 0.6,
-              color: COLORS.whiteHigh,
-            },
-          }}
+          sx={{ px: 4 }}
         >
           Submit request
         </Button>

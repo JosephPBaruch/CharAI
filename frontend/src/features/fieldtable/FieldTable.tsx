@@ -129,6 +129,15 @@ export default function FieldTable() {
   }
 
   return (
+    <Box
+      sx={{
+        minHeight: "calc(100vh - 64px)",
+        background:
+          theme.palette.mode === "dark"
+            ? `linear-gradient(180deg, #0a0a0a 0%, ${theme.palette.background.default} 100%)`
+            : `linear-gradient(180deg, #f0f0f5 0%, ${theme.palette.background.default} 100%)`,
+      }}
+    >
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header bar */}
       <Box
@@ -261,5 +270,6 @@ export default function FieldTable() {
         }}
       />
     </Container>
+    </Box>
   );
 }

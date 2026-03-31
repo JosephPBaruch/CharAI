@@ -8,14 +8,15 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useAuth } from "../contexts/AuthContext";
 import type { LoginRequest } from "../types/auth";
-import { COLORS } from "../styles/colors";
 import { FormTextField } from "../components/FormTextField";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { login, isLoading } = useAuth();
+  const theme = useTheme();
   const [errorMessage, setErrorMessage] = useState("");
   const [formData, setFormData] = useState<LoginRequest>({
     username: "",
@@ -40,6 +41,11 @@ const LoginPage = () => {
     }
   };
 
+  const gradientBg =
+    theme.palette.mode === "dark"
+      ? `linear-gradient(180deg, #0a0a0a 0%, ${theme.palette.background.default} 100%)`
+      : `linear-gradient(180deg, #f0f0f5 0%, ${theme.palette.background.default} 100%)`;
+
   return (
     <Box
       sx={{
@@ -49,22 +55,26 @@ const LoginPage = () => {
         justifyContent: "center",
         minHeight: "calc(100vh - 64px)",
         padding: 2,
+        background: gradientBg,
       }}
     >
       <Box
         sx={{
           width: "100%",
           maxWidth: 400,
-          backgroundColor: COLORS.bgCard,
+          backgroundColor: "background.paper",
           padding: 3,
           borderRadius: 2,
-          boxShadow: `0 4px 12px ${COLORS.blackMedium}`,
+          border: `1px solid ${theme.palette.divider}`,
+          boxShadow: theme.palette.mode === "dark"
+            ? "0 4px 12px rgba(0,0,0,0.5)"
+            : "0 4px 12px rgba(0,0,0,0.1)",
         }}
       >
         <Typography
           variant="h5"
           component="h2"
-          sx={{ marginBottom: 2, textAlign: "center" }}
+          sx={{ marginBottom: 2, textAlign: "center", color: "text.primary" }}
         >
           Log in
         </Typography>
@@ -90,17 +100,7 @@ const LoginPage = () => {
           />
 
           {!!errorMessage && (
-            <Alert
-              severity="error"
-              sx={{
-                backgroundColor: `${COLORS.error}20`,
-                color: COLORS.error,
-                border: `1px solid ${COLORS.error}`,
-                "& .MuiAlert-icon": {
-                  color: COLORS.error,
-                },
-              }}
-            >
+            <Alert severity="error">
               {errorMessage}
             </Alert>
           )}
@@ -116,11 +116,11 @@ const LoginPage = () => {
           </Button>
         </Box>
         <Box sx={{ mt: 2, textAlign: "center" }}>
-          <Typography variant="body2" sx={{ color: COLORS.whiteHigh }}>
+          <Typography variant="body2" sx={{ color: "text.primary" }}>
             Don't have an account?{" "}
             <RouterLink
               to="/signup"
-              style={{ color: COLORS.indigo, textDecoration: "none" }}
+              style={{ color: theme.palette.primary.main, textDecoration: "none" }}
             >
               Sign up here
             </RouterLink>
