@@ -112,9 +112,9 @@ test.describe("CharAI.feature", () => {
     // Navigate to `/fields`
     await page.goto(`${baseUrl}/fields`);
 
-    // Click "Configure Farm" (or "Edit Farm Configuration" if coords exist)
+    // Click "Create Farm"
     await page
-      .getByRole("button", { name: /Configure Farm|Edit Farm Configuration/ })
+      .getByRole("button", { name: /Create Farm/ })
       .click();
 
     // Enter biochar budget settings = 12
@@ -177,7 +177,7 @@ test.describe("CharAI.feature", () => {
         .locator("tr")
         .filter({ hasText: "WW" })
         .locator("td")
-        .nth(5);
+        .nth(3);
       await expect(statusCell).toHaveText("Complete");
     }).toPass({ intervals: [3_000], timeout: 120_000 });
 
@@ -218,7 +218,7 @@ test.describe("CharAI.feature", () => {
     // Navigate to /fields and open the form
     await page.goto(`${baseUrl}/fields`);
     await page
-      .getByRole("button", { name: /Configure Farm|Edit Farm Configuration/ })
+      .getByRole("button", { name: /Create Farm/ })
       .click();
 
     // Open the crop type dropdown
@@ -258,7 +258,7 @@ test.describe("CharAI.feature", () => {
 
     await page.goto(`${baseUrl}/fields`);
     await page
-      .getByRole("button", { name: /Configure Farm|Edit Farm Configuration/ })
+      .getByRole("button", { name: /Create Farm/ })
       .click();
 
     // Open the crop type dropdown and pick Spring Barley (SB)

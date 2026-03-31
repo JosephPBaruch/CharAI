@@ -16,13 +16,13 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import MapIcon from "@mui/icons-material/Map";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { DeleteField, GETFields } from "../../api/fetch";
 import FieldDialog from "../prescriptions/Dialog";
 import { FarmBiocharForm } from "..";
-import { COLORS } from "../../styles/colors";
 import { formatTimestamp, formatPrice, truncateId } from "../../utils/format";
 
 type FieldRecord = {
@@ -43,6 +43,7 @@ type GetFieldsResponse = {
 };
 
 const POLL_INTERVAL_MS = 5000;
+const MAX_FIELDS = 3;
 
 function StatusChip({ status }: { status: string }) {
   const config: Record<string, { color: "success" | "warning" | "error" | "info" | "default"; label: string }> = {
@@ -63,6 +64,7 @@ export default function FieldTable() {
   const [error, setError] = React.useState<string | null>(null);
   const [selectedField, setSelectedField] = React.useState("");
   const [open, setOpen] = React.useState(false);
+  const theme = useTheme();
 
   const fetchFields = React.useCallback(async () => {
     try {
@@ -108,10 +110,12 @@ export default function FieldTable() {
     }
   };
 
+  const canCreateField = fields.length < MAX_FIELDS;
+
   if (isLoading) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Typography sx={{ color: COLORS.whiteMedium }}>Loading fields...</Typography>
+        <Typography sx={{ color: "text.secondary" }}>Loading fields...</Typography>
       </Container>
     );
   }
@@ -138,21 +142,31 @@ export default function FieldTable() {
         <Box>
           <Typography
             variant="h4"
-            sx={{ color: COLORS.whiteHigh, fontWeight: 700 }}
+            sx={{ color: "text.primary", fontWeight: 700 }}
           >
             Your Fields
           </Typography>
-          <Typography variant="body2" sx={{ color: COLORS.whiteMedium, mt: 0.5 }}>
-            {fields.length} {fields.length === 1 ? "field" : "fields"} configured
+          <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
+            {fields.length} of {MAX_FIELDS} {fields.length === 1 ? "field" : "fields"} configured
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
           <Tooltip title="Refresh">
-            <IconButton onClick={fetchFields} sx={{ color: COLORS.whiteMedium }}>
+            <IconButton onClick={fetchFields} sx={{ color: "text.secondary" }}>
               <RefreshIcon />
             </IconButton>
           </Tooltip>
-          <FarmBiocharForm />
+          {canCreateField ? (
+            <FarmBiocharForm onFieldCreated={fetchFields} />
+          ) : (
+            <Tooltip title="Maximum of 3 fields reached">
+              <span>
+                <Button variant="contained" disabled>
+                  Create Farm
+                </Button>
+              </span>
+            </Tooltip>
+          )}
         </Box>
       </Box>
 
@@ -161,30 +175,24 @@ export default function FieldTable() {
         component={Paper}
         elevation={0}
         sx={{
-          backgroundColor: COLORS.bgCard,
-          border: `1px solid ${COLORS.whiteVeryLow}`,
+          border: `1px solid ${theme.palette.divider}`,
           borderRadius: 2,
         }}
       >
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
               <TableCell>Field ID</TableCell>
               <TableCell>Crop</TableCell>
               <TableCell>Price</TableCell>
-              <TableCell>Unit</TableCell>
               <TableCell>Status</TableCell>
-              <TableCell>Prescription File</TableCell>
               <TableCell>Created</TableCell>
-              <TableCell>Updated</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {fields.map((field) => (
               <TableRow key={field.id}>
-                <TableCell>{field.id}</TableCell>
                 <TableCell>
                   <Tooltip title={field.field_id} placement="top">
                     <Typography
@@ -198,35 +206,12 @@ export default function FieldTable() {
                 </TableCell>
                 <TableCell>{field.crop_type}</TableCell>
                 <TableCell>{formatPrice(field.price, field.unit)}</TableCell>
-                <TableCell>{field.unit}</TableCell>
                 <TableCell>
                   <StatusChip status={field.prescription_map_status} />
                 </TableCell>
                 <TableCell>
-                  {field.prescription_map_file ? (
-                    <Tooltip title={field.prescription_map_file} placement="top">
-                      <Typography
-                        variant="body2"
-                        component="span"
-                        sx={{ fontFamily: "monospace", fontSize: "0.8rem" }}
-                      >
-                        {truncateId(field.prescription_map_file, 20)}
-                      </Typography>
-                    </Tooltip>
-                  ) : (
-                    <Typography variant="body2" sx={{ color: COLORS.whiteMedium }}>
-                      -
-                    </Typography>
-                  )}
-                </TableCell>
-                <TableCell>
                   <Tooltip title={new Date(field.created_at).toLocaleString()} placement="top">
                     <span>{formatTimestamp(field.created_at)}</span>
-                  </Tooltip>
-                </TableCell>
-                <TableCell>
-                  <Tooltip title={new Date(field.updated_at).toLocaleString()} placement="top">
-                    <span>{formatTimestamp(field.updated_at)}</span>
                   </Tooltip>
                 </TableCell>
                 <TableCell align="right">
@@ -235,7 +220,7 @@ export default function FieldTable() {
                       <IconButton
                         size="small"
                         onClick={() => handleDeleteField(field)}
-                        sx={{ color: COLORS.error }}
+                        sx={{ color: "error.main" }}
                       >
                         <DeleteOutlineIcon fontSize="small" />
                       </IconButton>
@@ -256,9 +241,9 @@ export default function FieldTable() {
             ))}
             {fields.length === 0 && (
               <TableRow>
-                <TableCell colSpan={10} sx={{ textAlign: "center", py: 4 }}>
-                  <Typography variant="body2" sx={{ color: COLORS.whiteMedium }}>
-                    No fields found. Configure a farm to get started.
+                <TableCell colSpan={6} sx={{ textAlign: "center", py: 4 }}>
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    No fields found. Create a farm to get started.
                   </Typography>
                 </TableCell>
               </TableRow>
