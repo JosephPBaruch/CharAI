@@ -21,6 +21,8 @@ export interface FieldEntry {
   cropType: string;
   price: number | "";
   unit: "ton" | "kg" | "bushel";
+  biocharTonsPerHectare: number;
+  biocharCostPerTon: number | "";
 }
 
 interface FieldsListProps {

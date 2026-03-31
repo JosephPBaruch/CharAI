@@ -180,7 +180,6 @@ class FieldDataView(APIView):
 
             field_info = validated_data.get('field')
             geojson_data = validated_data.get('data')
-            global_max = validated_data.get('globalMax', '')
             requested_field_id = field_info.get('id')
 
             try:
@@ -202,7 +201,8 @@ class FieldDataView(APIView):
             field.crop_type = field_info.get('cropType')
             field.price = field_info.get('price')
             field.unit = field_info.get('unit')
-            field.global_max = global_max
+            field.biochar_tons_per_hectare = field_info.get('biocharTonsPerHectare', 20)
+            field.biochar_cost_per_ton = field_info.get('biocharCostPerTon')
             field.geojson_data = geojson_data
             field.prescription_map_status = Field.STATUS_PENDING
             field.save()
@@ -215,7 +215,8 @@ class FieldDataView(APIView):
                 'field_id': field.field_id,
                 'crop_type': field.crop_type,
                 'features_count': len(geojson_data.get('features', [])),
-                'global_max': global_max,
+                'biochar_tons_per_hectare': str(field.biochar_tons_per_hectare),
+                'biochar_cost_per_ton': str(field.biochar_cost_per_ton),
                 'prescription_map_status': field.prescription_map_status,
                 'prescription_map_file': field.prescription_map_file,
             }

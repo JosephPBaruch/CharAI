@@ -9,7 +9,7 @@ import {
   DialogContent,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import BudgetSettings from "./BudgetSettings";
+import BiocharSettings from "./BudgetSettings";
 import FieldsList from "./FieldsList";
 import type { FieldEntry } from "./FieldsList";
 import FileUploadSection from "./FileUploadSection";
@@ -24,16 +24,19 @@ const DEFAULT_FIELD = (): FieldEntry => ({
   cropType: "WW",
   price: "",
   unit: "bushel",
+  biocharTonsPerHectare: 20,
+  biocharCostPerTon: "",
 });
 
 interface FarmBiocharFormProps {
   onFieldCreated?: () => void;
 }
 
-export default function FarmBiocharForm({ onFieldCreated }: FarmBiocharFormProps) {
+export default function FarmBiocharForm({
+  onFieldCreated,
+}: FarmBiocharFormProps) {
   const { data, hasCoordinates, setFormSubmitted } = useCoordinates();
   const [field, setField] = React.useState<FieldEntry>(DEFAULT_FIELD());
-  const [globalMax, setGlobalMax] = React.useState<number | "">("");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   const navigate = useNavigate();
@@ -57,25 +60,26 @@ export default function FarmBiocharForm({ onFieldCreated }: FarmBiocharFormProps
 
   const coordsReady = coordUploaded || hasCoordinates;
   const isPriceValid = field.price !== "" && field.price > 0;
+  const isBiocharCostValid =
+    field.biocharCostPerTon !== "" && field.biocharCostPerTon > 0;
+  const canSubmit = coordsReady && isPriceValid && isBiocharCostValid;
 
   return (
     <>
       {/* Modal Trigger Button */}
-      <Button
-        variant="contained"
-        onClick={openModal}
-      >
+      <Button variant="contained" onClick={openModal}>
         Create Farm
       </Button>
 
       {/* Modal Dialog */}
-      <Dialog
-        open={isModalOpen}
-        onClose={closeModal}
-        maxWidth="lg"
-        fullWidth
-      >
-        <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <Dialog open={isModalOpen} onClose={closeModal} maxWidth="lg" fullWidth>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <Typography variant="h5" sx={{ fontWeight: 700 }}>
             Create New Field
           </Typography>
@@ -91,8 +95,15 @@ export default function FarmBiocharForm({ onFieldCreated }: FarmBiocharFormProps
               application rates.
             </Typography>
 
-            {/* Budget Settings */}
-            <BudgetSettings globalMax={globalMax} onChange={setGlobalMax} />
+            {/* Biochar Settings */}
+            <BiocharSettings
+              biocharTonsPerHectare={field.biocharTonsPerHectare}
+              biocharCostPerTon={field.biocharCostPerTon}
+              onChangeTonsPerHectare={(v) =>
+                updateField({ biocharTonsPerHectare: v })
+              }
+              onChangeCostPerTon={(v) => updateField({ biocharCostPerTon: v })}
+            />
 
             {/* Field Configuration */}
             <FieldsList field={field} onUpdateField={updateField} />
@@ -102,23 +113,32 @@ export default function FarmBiocharForm({ onFieldCreated }: FarmBiocharFormProps
 
             {/* Submit Section */}
             <SubmitSection
-              coordsReady={coordsReady && isPriceValid}
-              onSubmit={async () => {
+              coordsReady={canSubmit}
+              onSubmit={() => {
                 if (!isPriceValid) {
                   alert("Please enter a valid crop selling price.");
                   return;
                 }
-                const payload = { globalMax, field, data };
-                console.debug(
+                if (!isBiocharCostValid) {
+                  alert("Please enter a valid biochar cost per ton.");
+                  return;
+                }
+                const payload = {
+                  field: {
+                    ...field,
+                    biocharCostPerTon: field.biocharCostPerTon as number,
+                  },
+                  data,
+                };
+                console.log(
                   `Sending the following field payload to the backend: ${JSON.stringify(payload)}`,
                 );
                 try {
-                  await POSTFieldData(payload);
+                  POSTFieldData(payload);
                   setFormSubmitted(true);
                   closeModal();
                   // Reset form for next creation
                   setField(DEFAULT_FIELD());
-                  setGlobalMax("");
                   // Reload field list immediately
                   if (onFieldCreated) {
                     onFieldCreated();

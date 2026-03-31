@@ -6,7 +6,6 @@ import type { CropType } from "../types/fetch";
 const API_URL = getApiUrlForApi();
 
 const POSTFieldData = async (data: {
-  globalMax: number | "";
   field: FieldEntry;
   data: FeatureCollection | null;
 }) => {
