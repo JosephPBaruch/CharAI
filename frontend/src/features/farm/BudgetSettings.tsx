@@ -10,7 +10,6 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { COLORS } from "../../styles/colors";
 
 interface BiocharSettingsProps {
   biocharTonsPerHectare: number;
@@ -69,7 +68,7 @@ export default function BiocharSettings({
             </Typography>
           )}
           {!isCostValid && (
-            <Typography sx={{ color: COLORS.error, fontSize: "0.8rem", mr: 1 }}>
+            <Typography sx={{ color: "error.main", fontSize: "0.8rem", mr: 1 }}>
               Cost required
             </Typography>
           )}
@@ -127,7 +126,7 @@ export default function BiocharSettings({
                 variant="subtitle2"
                 sx={{ color: "text.primary", fontWeight: 500 }}
               >
-                Cost per ton <span style={{ color: COLORS.error }}>*</span>
+                Cost per ton <span style={{ color: theme.palette.error.main }}>*</span>
               </Typography>
               <Typography
                 variant="caption"
