@@ -168,21 +168,21 @@ test.describe("CharAI.feature", () => {
     // Refresh `/fields` and verify the new field appears in the table as "started"
     await page.goto(`${baseUrl}/fields`);
     await expect(page.locator("table")).toBeVisible();
-    await expect(page.locator("td", { hasText: "Wheat" })).toBeVisible();
+    await expect(page.locator("td", { hasText: "WW" })).toBeVisible();
 
     // Poll for the status to become "complete" — check every 3 seconds for up to 2 minutes
     await expect(async () => {
       await page.reload();
       const statusCell = page
         .locator("tr")
-        .filter({ hasText: "Wheat" })
+        .filter({ hasText: "WW" })
         .locator("td")
         .nth(5);
       await expect(statusCell).toHaveText("complete");
     }).toPass({ intervals: [3_000], timeout: 120_000 });
 
     // Click "Get Map" for that row
-    const fieldRow = page.locator("tr").filter({ hasText: "Wheat" });
+    const fieldRow = page.locator("tr").filter({ hasText: "WW" });
     await fieldRow.getByRole("button", { name: "Get Map" }).click();
 
     // Verify the prescription map dialog is displayed
@@ -206,5 +206,67 @@ test.describe("CharAI.feature", () => {
       body: screenshot,
       contentType: "image/png",
     });
+  });
+
+  test("Crop type dropdown contains all valid options", async ({ page }) => {
+    const timestamp = Date.now();
+    const uniqueUsername = `testuser${timestamp}`;
+    const password = "TestPassword123";
+
+    await registerUser(page, uniqueUsername, password);
+
+    // Navigate to /fields and open the form
+    await page.goto(`${baseUrl}/fields`);
+    await page
+      .getByRole("button", { name: /Configure Farm|Edit Farm Configuration/ })
+      .click();
+
+    // Open the crop type dropdown
+    const cropSelect = page.locator('[data-testid="crop-type-select"]');
+    await cropSelect.click();
+
+    // All 12 crop codes from the training set must be present
+    const expectedCodes = [
+      "SW",
+      "SB",
+      "SC",
+      "SP",
+      "WW",
+      "WB",
+      "WP",
+      "WC",
+      "WL",
+      "AL",
+      "WT",
+      "GB",
+    ];
+    for (const code of expectedCodes) {
+      await expect(
+        page.getByRole("option", { name: new RegExp(code) }),
+      ).toBeVisible();
+    }
+  });
+
+  test("User can select a crop type and it persists in the form", async ({
+    page,
+  }) => {
+    const timestamp = Date.now();
+    const uniqueUsername = `testuser${timestamp}`;
+    const password = "TestPassword123";
+
+    await registerUser(page, uniqueUsername, password);
+
+    await page.goto(`${baseUrl}/fields`);
+    await page
+      .getByRole("button", { name: /Configure Farm|Edit Farm Configuration/ })
+      .click();
+
+    // Open the crop type dropdown and pick Spring Barley (SB)
+    const cropSelect = page.locator('[data-testid="crop-type-select"]');
+    await cropSelect.click();
+    await page.getByRole("option", { name: /Spring Barley/ }).click();
+
+    // The select should now display "Spring Barley (SB)"
+    await expect(cropSelect).toContainText("Spring Barley");
   });
 });
