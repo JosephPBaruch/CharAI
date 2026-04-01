@@ -1,5 +1,4 @@
-import { Box, Button, Stack, Typography } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import { Button, Typography, Stack } from "@mui/material";
 
 interface SubmitSectionProps {
   coordsReady: boolean;
@@ -10,55 +9,32 @@ export default function SubmitSection({
   coordsReady,
   onSubmit,
 }: SubmitSectionProps) {
-  const theme = useTheme();
-
   return (
-    <Box
-      sx={{
-        p: 2,
-        backgroundColor: theme.palette.mode === "dark"
-          ? "rgba(0, 0, 0, 0.3)"
-          : "rgba(0, 0, 0, 0.02)",
-        borderRadius: 1.5,
-        border: `1px solid ${theme.palette.divider}`,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 2,
-      }}
+    <Stack
+      direction="row"
+      spacing={2}
+      alignItems="center"
+      sx={{ width: "100%", justifyContent: "space-between" }}
     >
-      <Typography variant="body2" sx={{ color: "text.secondary" }}>
-        Ready to proceed? Make sure you've selected all your fields and uploaded
-        at least the coordinate file.
-      </Typography>
-      <Stack direction="column" spacing={2} alignItems="center">
-        <Button
-          variant="contained"
-          size="large"
-          disabled={!coordsReady}
-          onClick={onSubmit}
-          sx={{ px: 4 }}
+      {!coordsReady ? (
+        <Typography
+          variant="body2"
+          sx={{ color: "error.main", fontWeight: 500 }}
         >
-          Submit request
-        </Button>
-        {!coordsReady && (
-          <Typography
-            variant="body2"
-            sx={{ color: "warning.main", fontWeight: 500 }}
-          >
-            Upload or draw your boundary to enable submission
-          </Typography>
-        )}
-        {coordsReady && (
-          <Typography
-            variant="body2"
-            sx={{ color: "success.main", fontWeight: 500 }}
-          >
-            Boundary received - ready to submit
-          </Typography>
-        )}
-      </Stack>
-    </Box>
+          *required
+        </Typography>
+      ) : (
+        <span />
+      )}
+      <Button
+        variant="contained"
+        size="large"
+        disabled={!coordsReady}
+        onClick={onSubmit}
+        sx={{ px: 4 }}
+      >
+        Submit request
+      </Button>
+    </Stack>
   );
 }

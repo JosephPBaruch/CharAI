@@ -7,6 +7,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogActions,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import BiocharSettings from "./BudgetSettings";
@@ -22,10 +23,10 @@ import { v4 as uuidv4 } from "uuid";
 const DEFAULT_FIELD = (): FieldEntry => ({
   id: `main-field-${uuidv4()}`,
   cropType: "WW",
-  price: "",
+  price: 7,
   unit: "bushel",
   biocharTonsPerHectare: 20,
-  biocharCostPerTon: "",
+  biocharCostPerTon: 120,
 });
 
 interface FarmBiocharFormProps {
@@ -72,7 +73,7 @@ export default function FarmBiocharForm({
       </Button>
 
       {/* Modal Dialog */}
-      <Dialog open={isModalOpen} onClose={closeModal} maxWidth="lg" fullWidth>
+      <Dialog open={isModalOpen} onClose={closeModal} maxWidth="md" fullWidth>
         <DialogTitle
           sx={{
             display: "flex",
@@ -87,12 +88,12 @@ export default function FarmBiocharForm({
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ pt: 0, pb: 3 }}>
+        <DialogContent sx={{ pt: 0, pb: 0 }}>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              Configure your field's crop and selling price, set your biochar
-              budget, and upload boundary coordinates to calculate optimal
-              application rates.
+              Configure your crop type and selling price, set your biochar
+              application rate and cost per ton, then draw or upload your field
+              boundary to generate a prescription map.
             </Typography>
 
             {/* Biochar Settings */}
@@ -110,48 +111,48 @@ export default function FarmBiocharForm({
 
             {/* File Upload Section */}
             <FileUploadSection />
-
-            {/* Submit Section */}
-            <SubmitSection
-              coordsReady={canSubmit}
-              onSubmit={async () => {
-                if (!isPriceValid) {
-                  alert("Please enter a valid crop selling price.");
-                  return;
-                }
-                if (!isBiocharCostValid) {
-                  alert("Please enter a valid biochar cost per ton.");
-                  return;
-                }
-                const payload = {
-                  field: {
-                    ...field,
-                    biocharCostPerTon: field.biocharCostPerTon as number,
-                  },
-                  data,
-                };
-                console.debug(
-                  `Sending the following field payload to the backend: ${JSON.stringify(payload)}`,
-                );
-                try {
-                  await POSTFieldData(payload);
-                  setFormSubmitted(true);
-                  closeModal();
-                  // Reset form for next creation
-                  setField(DEFAULT_FIELD());
-                  // Reload field list before navigation to avoid race condition
-                  if (onFieldCreated) {
-                    onFieldCreated();
-                  }
-                  navigate("/fields");
-                } catch (err) {
-                  console.debug("Field submission failed:", err);
-                  alert("Failed to submit field. Please try again.");
-                }
-              }}
-            />
           </Box>
         </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, pt: 1 }}>
+          <SubmitSection
+            coordsReady={canSubmit}
+            onSubmit={async () => {
+              if (!isPriceValid) {
+                alert("Please enter a valid crop selling price.");
+                return;
+              }
+              if (!isBiocharCostValid) {
+                alert("Please enter a valid biochar cost per ton.");
+                return;
+              }
+              const payload = {
+                field: {
+                  ...field,
+                  biocharCostPerTon: field.biocharCostPerTon as number,
+                },
+                data,
+              };
+              console.debug(
+                `Sending the following field payload to the backend: ${JSON.stringify(payload)}`,
+              );
+              try {
+                await POSTFieldData(payload);
+                setFormSubmitted(true);
+                closeModal();
+                // Reset form for next creation
+                setField(DEFAULT_FIELD());
+                // Reload field list before navigation to avoid race condition
+                if (onFieldCreated) {
+                  onFieldCreated();
+                }
+                navigate("/fields");
+              } catch (err) {
+                console.debug("Field submission failed:", err);
+                alert("Failed to submit field. Please try again.");
+              }
+            }}
+          />
+        </DialogActions>
       </Dialog>
     </>
   );
