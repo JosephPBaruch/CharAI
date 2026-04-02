@@ -11,8 +11,8 @@ import {
   MenuItem,
   InputAdornment,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { COLORS } from "../../styles/colors";
 import { GETCropTypes } from "../../api/fetch";
 import type { CropType } from "../../types/fetch";
 
@@ -31,6 +31,7 @@ interface FieldsListProps {
 }
 
 export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
+  const theme = useTheme();
   const isPriceValid = field.price !== "" && field.price > 0;
   const [cropTypes, setCropTypes] = React.useState<CropType[]>([]);
 
@@ -48,11 +49,11 @@ export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
       <Box sx={{ mb: 2 }}>
         <Typography
           variant="h6"
-          sx={{ color: COLORS.whiteHigh, fontWeight: 600, mb: 0.5 }}
+          sx={{ color: "text.primary", fontWeight: 600, mb: 0.5 }}
         >
           Field Configuration
         </Typography>
-        <Typography variant="body2" sx={{ color: COLORS.whiteMedium }}>
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
           Configure your field's crop type and current selling price to
           calculate biochar ROI.
         </Typography>
@@ -61,27 +62,29 @@ export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
       <Accordion
         defaultExpanded
         sx={{
-          background: `${COLORS.blackMedium}`,
-          border: `1px solid ${COLORS.whiteLow}`,
-          "&:hover": { borderColor: COLORS.indigo },
+          backgroundColor: theme.palette.mode === "dark"
+            ? "rgba(0, 0, 0, 0.3)"
+            : "rgba(0, 0, 0, 0.02)",
+          border: `1px solid ${theme.palette.divider}`,
+          "&:hover": { borderColor: theme.palette.primary.main },
         }}
       >
         <AccordionSummary
-          expandIcon={<ExpandMoreIcon sx={{ color: COLORS.whiteHigh }} />}
+          expandIcon={<ExpandMoreIcon sx={{ color: "text.primary" }} />}
           sx={{ "& .MuiAccordionSummary-content": { alignItems: "center" } }}
         >
           <Typography
-            sx={{ color: COLORS.whiteHigh, fontWeight: 600, flex: 1 }}
+            sx={{ color: "text.primary", fontWeight: 600, flex: 1 }}
           >
             {selectedLabel}
           </Typography>
           {field.price && (
-            <Typography sx={{ color: COLORS.whiteMedium, mr: 1 }}>
+            <Typography sx={{ color: "text.secondary", mr: 1 }}>
               ${field.price}/{field.unit}
             </Typography>
           )}
           {!isPriceValid && (
-            <Typography sx={{ color: COLORS.error, fontSize: "0.8rem", mr: 1 }}>
+            <Typography sx={{ color: "error.main", fontSize: "0.8rem", mr: 1 }}>
               Price required
             </Typography>
           )}
@@ -96,13 +99,13 @@ export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
             <Stack spacing={1} sx={{ minWidth: 220, flex: 1 }}>
               <Typography
                 variant="subtitle2"
-                sx={{ color: COLORS.whiteHigh, fontWeight: 500 }}
+                sx={{ color: "text.primary", fontWeight: 500 }}
               >
                 Crop type
               </Typography>
               <Typography
                 variant="caption"
-                sx={{ color: COLORS.whiteMedium, mb: 0.5 }}
+                sx={{ color: "text.secondary", mb: 0.5 }}
               >
                 Choose the primary crop grown in your field.
               </Typography>
@@ -111,16 +114,6 @@ export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
                 onChange={(e) => onUpdateField({ cropType: e.target.value })}
                 size="small"
                 data-testid="crop-type-select"
-                sx={{
-                  color: COLORS.whiteHigh,
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: COLORS.whiteLow,
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: COLORS.indigo,
-                  },
-                  "& .MuiSvgIcon-root": { color: COLORS.whiteHigh },
-                }}
               >
                 {cropTypes.map((ct) => (
                   <MenuItem key={ct.code} value={ct.code}>
@@ -136,13 +129,13 @@ export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
             <Stack spacing={1} sx={{ minWidth: 250, flex: 1 }}>
               <Typography
                 variant="subtitle2"
-                sx={{ color: COLORS.whiteHigh, fontWeight: 500 }}
+                sx={{ color: "text.primary", fontWeight: 500 }}
               >
-                Selling price <span style={{ color: COLORS.error }}>*</span>
+                Selling price <span style={{ color: theme.palette.error.main }}>*</span>
               </Typography>
               <Typography
                 variant="caption"
-                sx={{ color: COLORS.whiteMedium, mb: 0.5 }}
+                sx={{ color: "text.secondary", mb: 0.5 }}
               >
                 Current market price per unit (required)
               </Typography>
@@ -160,30 +153,12 @@ export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
                         e.target.value === "" ? "" : Number(e.target.value),
                     })
                   }
-                  sx={{
-                    minWidth: 120,
-                    "& .MuiOutlinedInput-root": {
-                      color: COLORS.whiteHigh,
-                      "& fieldset": {
-                        borderColor: !isPriceValid
-                          ? COLORS.error
-                          : COLORS.whiteLow,
-                      },
-                      "&:hover fieldset": {
-                        borderColor: !isPriceValid
-                          ? COLORS.error
-                          : COLORS.indigo,
-                      },
-                    },
-                    "& .MuiInputLabel-root": {
-                      color: `${COLORS.whiteMedium} !important`,
-                    },
-                  }}
+                  sx={{ minWidth: 120 }}
                   slotProps={{
                     input: {
                       startAdornment: (
                         <InputAdornment position="start">
-                          <Box sx={{ color: COLORS.whiteHigh }}>$</Box>
+                          <Box sx={{ color: "text.secondary" }}>$</Box>
                         </InputAdornment>
                       ),
                     },
@@ -197,16 +172,6 @@ export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
                     })
                   }
                   size="small"
-                  sx={{
-                    color: COLORS.whiteHigh,
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: COLORS.whiteLow,
-                    },
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: COLORS.indigo,
-                    },
-                    "& .MuiSvgIcon-root": { color: COLORS.whiteHigh },
-                  }}
                 >
                   <MenuItem value="ton">ton</MenuItem>
                   <MenuItem value="kg">kg</MenuItem>

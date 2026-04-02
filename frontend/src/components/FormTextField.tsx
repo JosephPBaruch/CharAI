@@ -5,7 +5,6 @@ import {
   Box,
 } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material/styles";
-import { COLORS } from "../styles/colors";
 
 export type FormTextFieldProps = TextFieldProps & {
   errorText?: string; // <-- explicitly type errorText
@@ -21,18 +20,6 @@ export function FormTextField({ errorText, sx, ...props }: FormTextFieldProps) {
         fullWidth
         error={!!errorText}
         sx={{
-          "& .MuiOutlinedInput-root": {
-            color: COLORS.whiteHigh,
-            "& fieldset": { borderColor: COLORS.whiteLow },
-            "&:hover fieldset": { borderColor: COLORS.whiteMedium },
-          },
-          "& .MuiInputBase-input::placeholder": {
-            color: COLORS.whiteMedium,
-            opacity: 1,
-          },
-          "& .MuiInputLabel-root": {
-            color: COLORS.whiteHigh,
-          },
           ...sx,
         }}
       />

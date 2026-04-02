@@ -4,13 +4,21 @@ import React from "react";
 
 export const PaybackLegend: React.FC = () => {
   const legendItems = [
-    { range: "1-2 years", color: COLORS.dataRed, label: "Very High Priority" },
-    { range: "3-4 years", color: COLORS.dataOrange, label: "High Priority" },
+    {
+      range: "1-2 years",
+      color: COLORS.dataGreen,
+      label: "Very High Priority",
+    },
+    {
+      range: "3-4 years",
+      color: COLORS.dataLightGreen,
+      label: "High Priority",
+    },
     { range: "5-6 years", color: COLORS.dataYellow, label: "Medium Priority" },
-    { range: "7-8 years", color: COLORS.dataLightGreen, label: "Low Priority" },
+    { range: "7-8 years", color: COLORS.dataOrange, label: "Low Priority" },
     {
       range: "9-10 years",
-      color: COLORS.dataGreen,
+      color: COLORS.dataRed,
       label: "Very Low Priority",
     },
   ];
