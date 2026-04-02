@@ -247,7 +247,7 @@ export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
                     <Typography
                       variant="h4"
                       sx={{
-                        color: COLORS.whiteHigh,
+                        color: "text.primary",
                         fontWeight: 700,
                         display: "flex",
                         alignItems: "center",
@@ -258,7 +258,7 @@ export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
                     </Typography>
                     <Typography
                       variant="body2"
-                      sx={{ color: COLORS.whiteMedium, mt: 0.5 }}
+                      sx={{ color: "text.secondary", mt: 0.5 }}
                     >
                       Biochar application recommendations based on your field
                       analysis

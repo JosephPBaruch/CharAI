@@ -5,8 +5,6 @@ import os
 from threading import Thread
 from datetime import datetime
 from typing import Any, Dict
-import math
-from typing import Dict, Any
 from django.conf import settings
 from django.db import close_old_connections
 from .models import Field, PrescriptionMap
@@ -70,7 +68,7 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
         pmg = PrescriptionMapGenerator(logger=logger)
 
         cell_size_meters = 10.0
-        cell_area_ha = (cell_size_meters ** 2) / 10_000  # 0.0025 ha per 5m cell
+        cell_area_ha = (cell_size_meters ** 2) / 10_000  # 0.01 ha per 10m cell
         biochar_tons_per_cell = float(field.biochar_tons_per_hectare) * cell_area_ha
         biochar_cost_per_cell = biochar_tons_per_cell * float(field.biochar_cost_per_ton)
 
