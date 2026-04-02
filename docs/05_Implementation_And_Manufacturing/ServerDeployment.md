@@ -34,18 +34,18 @@ This builds all images, starts all containers, runs database migrations, and wai
 
 All configuration is done via environment variables. Defaults are set in `docker-compose.yml` and can be overridden at runtime.
 
-| Variable | Default | Description |
-|---|---|---|
-| `ALLOWED_HOSTS` | `localhost,127.0.0.1,frontend` | Django allowed hosts |
-| `SECRET_KEY` | `ci-test-key` | Django secret key (**change in production**) |
-| `POSTGRES_DB` | `charai_test` | PostgreSQL database name |
-| `POSTGRES_USER` | `charai` | PostgreSQL username |
-| `POSTGRES_PASSWORD` | `testpass` | PostgreSQL password (**change in production**) |
-| `OPENTOPOGRAPHY_API_KEY` | `keykey` | OpenTopography API key |
-| `DEBUG` | `True` | Django debug mode (**set to False in production**) |
-| `BACKEND_PORT` | `8000` | Host port for backend |
-| `FRONTEND_PORT` | `80` | Host port for frontend |
-| `LOG_LEVEL` | `DEBUG` | Caddy log level |
+| Variable                 | Default                        | Description                                        |
+| ------------------------ | ------------------------------ | -------------------------------------------------- |
+| `ALLOWED_HOSTS`          | `localhost,127.0.0.1,frontend` | Django allowed hosts                               |
+| `SECRET_KEY`             | `ci-test-key`                  | Django secret key (**change in production**)       |
+| `POSTGRES_DB`            | `charai_test`                  | PostgreSQL database name                           |
+| `POSTGRES_USER`          | `charai`                       | PostgreSQL username                                |
+| `POSTGRES_PASSWORD`      | `testpass`                     | PostgreSQL password (**change in production**)     |
+| `OPENTOPOGRAPHY_API_KEY` | `keykey`                       | OpenTopography API key                             |
+| `DEBUG`                  | `True`                         | Django debug mode (**set to False in production**) |
+| `BACKEND_PORT`           | `8000`                         | Host port for backend                              |
+| `FRONTEND_PORT`          | `80`                           | Host port for frontend                             |
+| `LOG_LEVEL`              | `DEBUG`                        | Caddy log level                                    |
 
 ### Option A: Inline environment variables
 
