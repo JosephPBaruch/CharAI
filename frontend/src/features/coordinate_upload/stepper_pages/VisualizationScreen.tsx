@@ -1,11 +1,11 @@
 import { Box, Typography } from "@mui/material";
 import { InteractiveFarmMap } from "../../map";
-import type { CoordinateFileUploadScreenProps } from "./types";
+import type { CoordinateScreenProps } from "./types";
 
 export default function CoordinateVisualizationScreen({
   coordinates,
   setCoordinates,
-}: CoordinateFileUploadScreenProps) {
+}: CoordinateScreenProps) {
   return (
     <Box sx={{ width: "600px", height: "600px" }}>
       <InteractiveFarmMap

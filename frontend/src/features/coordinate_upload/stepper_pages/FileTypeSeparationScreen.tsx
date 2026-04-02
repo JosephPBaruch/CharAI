@@ -4,7 +4,6 @@ import type { FileTypes, FileTypeSeparationScreenProps } from "./types";
 export default function FileTypeSeparationScreen({
   setFileType,
   handleNext,
-  handleBack,
 }: FileTypeSeparationScreenProps) {
   const handleClick = (fileType: FileTypes) => {
     setFileType(fileType);

@@ -1,9 +1,10 @@
-import { Box, Button, Step, StepLabel, Stepper } from "@mui/material";
-import React from "react";
+import { Box, Step, StepLabel, Stepper } from "@mui/material";
+import React, { useState } from "react";
 import CoordinateFileUploadScreen from "./stepper_pages/FileUploadScreen";
-import CoordinateValidationScreen from "./stepper_pages/ValidationScreen";
 import CoordinateVisualizationScreen from "./stepper_pages/VisualizationScreen";
-import { type LatLngLiteral } from "leaflet";
+import FileTypeSeparationScreen from "./stepper_pages/FileTypeSeparationScreen";
+import type { FileTypes } from "./stepper_pages/types";
+import type { LatLngLiteral } from "leaflet";
 
 const steps = [
   "Upload your coordinate file",
@@ -11,7 +12,11 @@ const steps = [
   "Visualize your farm and confirm",
 ];
 
-export default function CoordinateUploadStepper() {
+export default function CoordinateUploadStepper({
+  handleClose,
+}: CoordinateStepperProps) {
+  const [fileType, setFileType] = useState<FileTypes>(null);
+
   const [coordinates, setCoordinates] = React.useState<LatLngLiteral[]>([]);
   const [activeStep, setActiveStep] = React.useState<number>(0);
 
@@ -26,9 +31,11 @@ export default function CoordinateUploadStepper() {
   const handleReset = () => {
     setActiveStep(0);
   };
+
+  const handleRedirectToManual = () => {};
   return (
     <Box sx={{ width: "100%" }}>
-      <Stepper activeStep={activeStep}>
+      <Stepper variant="elevation" activeStep={activeStep}>
         {steps.map((label) => {
           const stepProps: { completed?: boolean } = {};
           return (
@@ -38,23 +45,25 @@ export default function CoordinateUploadStepper() {
           );
         })}
       </Stepper>
-      {activeStep === 0 && <CoordinateFileUploadScreen />}
-      {activeStep === 1 && <CoordinateValidationScreen />}
+      {activeStep === 0 && (
+        <FileTypeSeparationScreen
+          setFileType={setFileType}
+          handleNext={handleNext}
+        />
+      )}
+      {activeStep === 1 && (
+        <CoordinateFileUploadScreen
+          setCoordinates={setCoordinates}
+          fileType={fileType}
+          handleNext={handleNext}
+        />
+      )}
       {activeStep === 2 && (
         <CoordinateVisualizationScreen
           coordinates={coordinates}
           setCoordinates={setCoordinates}
         />
       )}
-      <Button onClick={handleNext} variant="contained">
-        Next Step
-      </Button>
-      <Button onClick={handleBack} variant="text">
-        Last Step
-      </Button>
-      <Button onClick={handleReset} variant="outlined">
-        Reset Steps
-      </Button>
     </Box>
   );
 }

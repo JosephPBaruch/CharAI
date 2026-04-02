@@ -2,6 +2,7 @@ import { Button, Modal } from "@mui/material";
 import { useState } from "react";
 import { COLORS } from "../styles/colors";
 import CoordinateUploadStepper from "../features/coordinate_upload/Stepper";
+import CloseIcon from "@mui/icons-material/Close";
 
 export default function CoordinateFileUploadModal() {
   const [open, setOpen] = useState<boolean>(false);

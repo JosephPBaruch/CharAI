@@ -1,49 +1,27 @@
-import { Box, Typography, Alert } from "@mui/material";
-import Dropzone from "react-dropzone";
-import { COLORS } from "../../../styles/colors";
+import { Button } from "@mui/material";
 import { useCallback, useState } from "react";
 import { parseFile } from "../helpers";
 import type { CoordinateFileUploadScreenProps } from "./types";
+import TextFileUploadScreen from "./TextFileUploadScreen";
+import VisualFileUploadScreen from "./VisualFileUploadScreen";
 
-const acceptedFileTypeObject = {
+const acceptedTextFileTypeObject = {
   "text/csv": [".csv"],
-  "application/vnd": [".shp", ".shx", ".dbf", ".kml"],
   "application/json": [".json"],
-  "application/geo+json": [".geojson"],
 };
 
-const dropzoneStyles = {
-  base: {
-    borderWidth: 2,
-    borderStyle: "dashed",
-    borderRadius: 16,
-    borderColor: COLORS.whiteLow,
-    backgroundColor: COLORS.bgCard,
-    color: COLORS.whiteHigh,
-    transition: "border-color 0.24s ease, background-color 0.24s ease",
-    padding: "1.5rem",
-    minHeight: 160,
-    display: "flex",
-    flexDirection: "column" as const,
-    justifyContent: "center",
-    alignItems: "center",
-    cursor: "pointer",
-  },
-  active: {
-    borderColor: COLORS.indigo,
-    backgroundColor: COLORS.indigoLight,
-  },
-  reject: {
-    borderColor: COLORS.error,
-    backgroundColor: COLORS.errorLight,
-  },
+const acceptedVisualFileTypeObject = {
+  "application/vnd": [".kml"],
+  "application/geo+json": [".geojson"],
+  "appplication/zip-compressed": [".zip"],
 };
 
 const MAX_NUMBER_OF_BYTES = 1024 * 1024 * 5; // 5 MB
 
 export default function CoordinateFileUploadScreen({
-  coordinates,
   setCoordinates,
+  fileType,
+  handleNext,
 }: CoordinateFileUploadScreenProps) {
   const [file, setFile] = useState<any>();
   const [errorMessage, setErrorMessage] = useState("");
@@ -58,79 +36,77 @@ export default function CoordinateFileUploadScreen({
     setErrorMessage("Uh oh! An unexpected error occurred. Please try again.");
   };
 
-  const readText = (file: File) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsText(file);
-    });
+  const handleAcceptedFile = useCallback(
+    async (acceptedFile: File[]) => {
+      setErrorMessage("");
 
-  const handleAcceptedFile = useCallback(async (acceptedFile: any) => {
-    const file = acceptedFile[0];
-    const text = await readText(file);
-    const ext = file.name.split(".").pop() ?? "";
-    const parsed = parseFile(text, ext);
-    setCoordinates(parsed);
-    setFile(file);
-  }, []);
+      const file = acceptedFile[0];
+      const result = await parseFile(file);
+
+      if (!result.success) {
+        setErrorMessage(result.error);
+        return;
+      }
+
+      setCoordinates(result.data);
+      setFile(file);
+    },
+    [setCoordinates],
+  );
+
+  /*if (fileType === "text") {
+    return (
+      <TextFileUploadScreen
+        MAX_NUMBER_OF_BYTES={MAX_NUMBER_OF_BYTES}
+        acceptedFileTypeObject={acceptedTextFileTypeObject}
+        handleAcceptedFile={handleAcceptedFile}
+        handleRejectedFile={handleRejectedFile}
+        handleError={handleError}
+        errorMessage={errorMessage}
+        file={file}
+      />
+    );
+  } else if (fileType === "visual") {
+    return (
+      <VisualFileUploadScreen
+        MAX_NUMBER_OF_BYTES={MAX_NUMBER_OF_BYTES}
+        acceptedFileTypeObject={acceptedVisualFileTypeObject}
+        handleAcceptedFile={handleAcceptedFile}
+        handleRejectedFile={handleRejectedFile}
+        handleError={handleError}
+        errorMessage={errorMessage}
+        file={file}
+      />
+    );
+  } else {
+    return <Typography>Error! You have not selected a file type!</Typography>;
+    // TODO: add safeguards / rerouting here. the user should've selected a file type at this point.
+  }*/
 
   return (
-    <Box>
-      <Typography variant="h6" sx={{ color: COLORS.whiteHigh, mb: 1 }}>
-        Upload a coordinate file
-      </Typography>
-      <Dropzone
-        accept={acceptedFileTypeObject}
-        maxFiles={1}
-        maxSize={MAX_NUMBER_OF_BYTES}
-        onDropRejected={handleRejectedFile}
-        onDropAccepted={handleAcceptedFile}
-        onError={handleError}
-      >
-        {({ getRootProps, getInputProps, isDragActive, isDragReject }) => {
-          const dropzoneSx = {
-            ...dropzoneStyles.base,
-            ...(isDragActive ? dropzoneStyles.active : {}),
-            ...(isDragReject ? dropzoneStyles.reject : {}),
-          };
-
-          return (
-            <section>
-              <Box {...getRootProps({ style: dropzoneSx })}>
-                <input {...getInputProps()} />
-                <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                  Drag and drop a file here, or click to browse
-                </Typography>
-                <Typography variant="caption" sx={{ mt: 1, opacity: 0.8 }}>
-                  Supported: CSV / Shapefile / GeoJSON / JSON
-                </Typography>
-              </Box>
-            </section>
-          );
-        }}
-      </Dropzone>
-      {!!errorMessage && (
-        <Alert
-          severity="error"
-          sx={{
-            backgroundColor: `${COLORS.error}20`,
-            color: COLORS.error,
-            border: `1px solid ${COLORS.error}`,
-            "& .MuiAlert-icon": {
-              color: COLORS.error,
-            },
-          }}
-        >
-          {errorMessage}
-        </Alert>
+    <>
+      {fileType === "text" ? (
+        <TextFileUploadScreen
+          MAX_NUMBER_OF_BYTES={MAX_NUMBER_OF_BYTES}
+          acceptedFileTypeObject={acceptedTextFileTypeObject}
+          handleAcceptedFile={handleAcceptedFile}
+          handleRejectedFile={handleRejectedFile}
+          handleError={handleError}
+          errorMessage={errorMessage}
+          file={file}
+        />
+      ) : (
+        <VisualFileUploadScreen
+          MAX_NUMBER_OF_BYTES={MAX_NUMBER_OF_BYTES}
+          acceptedFileTypeObject={acceptedVisualFileTypeObject}
+          handleAcceptedFile={handleAcceptedFile}
+          handleRejectedFile={handleRejectedFile}
+          handleError={handleError}
+          errorMessage={errorMessage}
+          file={file}
+        />
       )}
-      {!!file && (
-        <Box>
-          <Typography>Uploaded file:</Typography>
-          <Typography variant="subtitle2">{file.name}</Typography>
-        </Box>
-      )}
-    </Box>
+      <Button onClick={handleNext}>Next</Button>
+    </>
   );
 }
