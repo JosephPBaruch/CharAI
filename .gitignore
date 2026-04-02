@@ -1,13 +1,16 @@
-# .gitignore
 */.venv/
 */__pycache__/
 *.pyc
 ./backend/.env
 .env
 */db.sqlite3
-*.csv
 */.dockerignore
-
 test-results/
-
 *.tif
+*.zip
+# package-lock.json
+prescription_maps
+*/logs
+**/tests/playwright-report/data/**
+*.csv
+!**/backend/YieldPredictionModel/Data/CookHandHarvest_HY1999-HY2016_P3A3_20241029(in).csv

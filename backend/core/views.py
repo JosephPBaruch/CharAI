@@ -4,15 +4,37 @@ from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.core.management import call_command
 from django.conf import settings
-from datetime import datetime
+from django.http import StreamingHttpResponse
+import gzip
+import io
+import logging
+import json
 import os
-from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer, FieldModelSerializer, PrescriptionMapSerializer
-from .models import Field, PrescriptionMap
-from modules.GeoParser import GeoParser
+from .models import Field
+from .crop_types import CROP_TYPE_CHOICES
+from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer, FieldModelSerializer
+from .services import enqueue_prescription_map_job
 
-#api calls & endpoints
+logger = logging.getLogger("charai")
+
+# api calls & endpoints
+
+class CropTypesView(APIView):
+    """API endpoint to retrieve valid crop type codes.
+
+    The set of codes is derived at startup from the yield-prediction
+    training CSV so it stays in sync with the ML model automatically.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        crop_types = [
+            {"code": code, "label": label}
+            for code, label in CROP_TYPE_CHOICES
+        ]
+        return Response(crop_types, status=status.HTTP_200_OK)
+    
 class RegisterView(APIView):
     """API endpoint for user registration"""
     permission_classes = [permissions.AllowAny]
@@ -29,7 +51,6 @@ class RegisterView(APIView):
                 'message': 'User registered successfully'
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class LoginView(APIView):
     """API endpoint for user login"""
@@ -112,189 +133,167 @@ class FieldDataView(APIView):
             'fields': serializer.data
         }, status=status.HTTP_200_OK)
 
-    def post(self, request):
-        """
-        Accept field data with GeoJSON features and field metadata
-        
-        Expected format:
-        {
-            "globalMax": "",
-            "field": {
-                "id": "main-field",
-                "cropType": "Wheat",
-                "customCrop": "",
-                "price": 23,
-                "unit": "bushel"
-            },
-            "data": {
-                "type": "FeatureCollection",
-                "features": [...]
-            }
-        }
-        """
-        serializer = FieldDataSerializer(data=request.data)
-        
-        if serializer.is_valid():
-            validated_data = serializer.validated_data
-            
-            # Process the data
-            field_info = validated_data.get('field')
-            geojson_data = validated_data.get('data')
-            global_max = validated_data.get('globalMax', '')
-            
-            # Create or update the field record
-            field, created = Field.objects.update_or_create(
-                user=request.user,
-                field_id=field_info.get('id'),
-                defaults={
-                    'crop_type': field_info.get('cropType'),
-                    'custom_crop': field_info.get('customCrop', ''),
-                    'price': field_info.get('price'),
-                    'unit': field_info.get('unit'),
-                    'global_max': global_max,
-                    'geojson_data': geojson_data,
-                }
-            )
-            
-            response_data = {
-                'message': 'Field data received successfully',
-                'created': created,
-                'field_id': field.field_id,
-                'crop_type': field.crop_type,
-                'features_count': len(geojson_data.get('features', [])),
-                'global_max': global_max
-            }
-            
-            return Response(response_data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-class PrescriptionMapView(APIView):
-    """API endpoint to retrieve prescription map data for a field"""
-    permission_classes = [permissions.IsAuthenticated]
+    def delete(self, request):
+        field_id = (
+            request.data.get('field_id')
+            or request.data.get('id')
+            or request.query_params.get('field_id')
+            or request.query_params.get('id')
+        )
 
-    def get(self, request, field_id):
-        """
-        Get prescription map data for a specific field
-        
-        Returns sample prescription map data with GeoJSON features
-        """
+        if not field_id:
+            return Response({
+                'error': 'field_id is required.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             field = Field.objects.get(user=request.user, field_id=field_id)
         except Field.DoesNotExist:
             return Response({
-                'error': 'Field not found'
+                'error': 'Field not found.'
             }, status=status.HTTP_404_NOT_FOUND)
-            
-        # TODO: Check to see if prescription map already exists (if it does, return it and don't create a new one)
-        
-        # Format coordinates from field.geojson_data
-        coords = []
-        for feature in field.geojson_data.get('features', []):
-            if feature['geometry']['type'] == 'Polygon':
-                # Get first ring coordinates
-                ring = feature['geometry']['coordinates'][0]
-                # Convert from [lon, lat] to (lat, lon)
-                coords.extend([(lat, lon) for lon, lat in ring])
-        
-        # Generate unique filename for the DEM
-        dem_dir = os.path.join(settings.MEDIA_ROOT, 'dems')
-        os.makedirs(dem_dir, exist_ok=True)
-        tiff_file_path = os.path.join(
-            dem_dir,
-            f'field_{field.id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.tif'
-        )
-        
-        # Call geotiff generator
-        if coords:
-            coords_str = [f"{lat},{lon}" for lat, lon in coords]
-            call_command(
-                'generate_dem',
-                '--coords', *coords_str,
-                '--output', tiff_file_path,
-                '--dem-type', 'SRTMGL3',
-                '--resolution', '5.0'
-            )
-        
-        # Parse GeoTIFF and extract terrain data
-        try:
-            parser = GeoParser(tiff_file_path)
-            geotiff_data = parser.parse()
-            
-            # Convert to cell-based dataframe with terrain metrics
-            terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
 
-        except Exception as e: #VERY IMPORTANT TO HAVE THESE EVERYWHERE! This helps catch errors at any point in the process
-            return Response({
-                'error': f'Failed to parse GeoTIFF: {str(e)}'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        # TODO: Fetch additional data here
-        # field_data = fetch_additional_data(field_data)
-        
-        # TODO: Duplicate the data set (set1, set2)
-        # field_data_set1 = field_data
-        # field_data_set1 = field_data
-        
-        # TODO: Modify the data set2 with effect of biochar
-        # field_data_set2 = apply_biochar_effect(field_data)
-        
-        # TODO: Send set1 to yield predictor/calculator
-        # prediction1 = yield_predictor(field_data_set1)
-        
-        # TODO: Send set2 (biochar) to yield predictor
-        # prediction2 = yield_predictor(field_data_set2)
-        
-        # TODO: send predicton1 and prediction2 to prescription map genreator
-        # prescription_map_data = generate_prescription_map(prediction1, prediction2)
-        
-        # TODO: Format and send prescirption map data (continue this below)
-        
-        # Get or create prescription map
-        prescription_map, _ = PrescriptionMap.objects.get_or_create(
-            field=field,
-            defaults={
-                'prescription_data': {
-                    'type': 'FeatureCollection',
-                    'features': [
-                        {
-                            'type': 'Feature',
-                            'properties': {
-                                'applicationRate': 5.5,
-                                'paybackPeriod': 3,
-                                'type': 'boundary'
-                            },
-                            'geometry': {
-                                'type': 'Polygon',
-                                'coordinates': [[
-                                    [-117.12799072265626, 47.410866618794536],
-                                    [-117.06481933593751, 47.379713888843426],
-                                    [-117.15545654296876, 47.33597602644443],
-                                    [-117.12799072265626, 47.410866618794536]
-                                ]]
-                            }
-                        },
-                        {
-                            'type': 'Feature',
-                            'properties': {
-                                'applicationRate': 3.2,
-                                'paybackPeriod': 2,
-                                'type': 'zone'
-                            },
-                            'geometry': {
-                                'type': 'Polygon',
-                                'coordinates': [[
-                                    [-117.06481933593751, 47.379713888843426],
-                                    [-117.00164794921876, 47.348561159292175],
-                                    [-117.09228515625, 47.30482329634525],
-                                    [-117.06481933593751, 47.379713888843426]
-                                ]]
-                            }
-                        }
-                    ]
-                }
+        prescription_map_file = field.prescription_map_file
+        field.delete()
+
+        if prescription_map_file:
+            file_path = os.path.join(settings.BASE_DIR, prescription_map_file)
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                except OSError:
+                    logger.warning(
+                        'Field deleted but failed to remove prescription file for field_id=%s',
+                        field_id,
+                    )
+
+        return Response({
+            'message': 'Field deleted successfully.',
+            'field_id': field_id,
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = FieldDataSerializer(data=request.data)
+
+        if serializer.is_valid():
+            validated_data = serializer.validated_data
+
+            field_info = validated_data.get('field')
+            geojson_data = validated_data.get('data')
+            requested_field_id = field_info.get('id')
+
+            try:
+                field = Field.objects.get(user=request.user, field_id=requested_field_id)
+                created = False
+            except Field.DoesNotExist:
+                user_field_count = Field.objects.filter(user=request.user).count()
+                if user_field_count >= 3:
+                    return Response({
+                        'error': 'Field limit reached. Maximum allowed is 3 fields per user.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+                field = Field(
+                    user=request.user,
+                    field_id=requested_field_id,
+                )
+                created = True
+
+            field.crop_type = field_info.get('cropType')
+            field.price = field_info.get('price')
+            field.unit = field_info.get('unit')
+            field.biochar_tons_per_hectare = field_info.get('biocharTonsPerHectare', 20)
+            field.biochar_cost_per_ton = field_info.get('biocharCostPerTon')
+            field.geojson_data = geojson_data
+            field.prescription_map_status = Field.STATUS_PENDING
+            field.save()
+
+            enqueue_prescription_map_job(logger, field)
+
+            response_data = {
+                'message': 'Field data received and prescription map generation submitted.',
+                'created': created,
+                'field_id': field.field_id,
+                'crop_type': field.crop_type,
+                'features_count': len(geojson_data.get('features', [])),
+                'biochar_tons_per_hectare': str(field.biochar_tons_per_hectare),
+                'biochar_cost_per_ton': str(field.biochar_cost_per_ton),
+                'prescription_map_status': field.prescription_map_status,
+                'prescription_map_file': field.prescription_map_file,
             }
+
+            return Response(response_data, status=status.HTTP_202_ACCEPTED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class FieldPrescriptionView(APIView):
+    """API endpoint to retrieve a stored prescription map for a field"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, field_id):
+        try:
+            field = Field.objects.get(user=request.user, field_id=field_id)
+        except Field.DoesNotExist:
+            return Response({
+                'error': 'Field not found.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if field.prescription_map_status != Field.STATUS_COMPLETE:
+            return Response({
+                'field_id': field.field_id,
+                'prescription_map_status': field.prescription_map_status,
+                'message': 'Prescription map is not ready yet.',
+            }, status=status.HTTP_202_ACCEPTED)
+
+        if not field.prescription_map_file:
+            return Response({
+                'error': 'Prescription map file path is missing for this field.',
+                'field_id': field.field_id,
+                'prescription_map_status': field.prescription_map_status,
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        file_path = os.path.join(settings.BASE_DIR, field.prescription_map_file)
+        if not os.path.exists(file_path):
+            return Response({
+                'error': 'Prescription map file does not exist.',
+                'field_id': field.field_id,
+                'prescription_map_status': field.prescription_map_status,
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        with open(file_path, 'r', encoding='utf-8') as prescription_file:
+            data = json.load(prescription_file)
+
+        # Compress and stream the response to avoid rate-limiting on large payloads
+        response_data = {
+            'field_id': field.field_id,
+            'prescription_map_status': field.prescription_map_status,
+            'prescription_map': data,
+        }
+
+        def stream_compressed_json(payload):
+            json_bytes = json.dumps(payload).encode('utf-8')
+            buf = io.BytesIO()
+            chunk_size = 8192
+            with gzip.GzipFile(fileobj=buf, mode='wb') as gz:
+                for i in range(0, len(json_bytes), chunk_size):
+                    gz.write(json_bytes[i:i + chunk_size])
+                    gz.flush()
+                    buf.seek(0)
+                    chunk = buf.read()
+                    if chunk:
+                        yield chunk
+                    buf.seek(0)
+                    buf.truncate()
+            # Yield remaining data (gzip footer)
+            buf.seek(0)
+            remaining = buf.read()
+            if remaining:
+                yield remaining
+
+        response = StreamingHttpResponse(
+            streaming_content=stream_compressed_json(response_data),
+            content_type='application/json',
+            status=200,
         )
-        
-        serializer = PrescriptionMapSerializer(prescription_map)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        response['Content-Encoding'] = 'gzip'
+        return response

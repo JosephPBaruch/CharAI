@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Box,
   Stack,
@@ -12,13 +13,16 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { COLORS } from "../../styles/colors";
+import { GETCropTypes } from "../../api/fetch";
+import type { CropType } from "../../types/fetch";
 
 export interface FieldEntry {
   id: string;
   cropType: string;
-  customCrop?: string;
   price: number | "";
   unit: "ton" | "kg" | "bushel";
+  biocharTonsPerHectare: number;
+  biocharCostPerTon: number | "";
 }
 
 interface FieldsListProps {
@@ -28,6 +32,16 @@ interface FieldsListProps {
 
 export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
   const isPriceValid = field.price !== "" && field.price > 0;
+  const [cropTypes, setCropTypes] = React.useState<CropType[]>([]);
+
+  React.useEffect(() => {
+    GETCropTypes()
+      .then(setCropTypes)
+      .catch((err) => console.error("Failed to load crop types:", err));
+  }, []);
+
+  const selectedLabel =
+    cropTypes.find((ct) => ct.code === field.cropType)?.label ?? field.cropType;
 
   return (
     <Box>
@@ -59,9 +73,7 @@ export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
           <Typography
             sx={{ color: COLORS.whiteHigh, fontWeight: 600, flex: 1 }}
           >
-            {field.cropType === "Other"
-              ? field.customCrop || "Other"
-              : field.cropType}
+            {selectedLabel}
           </Typography>
           {field.price && (
             <Typography sx={{ color: COLORS.whiteMedium, mr: 1 }}>
@@ -98,6 +110,7 @@ export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
                 value={field.cropType}
                 onChange={(e) => onUpdateField({ cropType: e.target.value })}
                 size="small"
+                data-testid="crop-type-select"
                 sx={{
                   color: COLORS.whiteHigh,
                   "& .MuiOutlinedInput-notchedOutline": {
@@ -109,34 +122,14 @@ export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
                   "& .MuiSvgIcon-root": { color: COLORS.whiteHigh },
                 }}
               >
-                <MenuItem value="Corn">Corn</MenuItem>
-                <MenuItem value="Wheat">Wheat</MenuItem>
-                <MenuItem value="Soy">Soy</MenuItem>
-                <MenuItem value="Barley">Barley</MenuItem>
-                <MenuItem value="Other">Other</MenuItem>
+                {cropTypes.map((ct) => (
+                  <MenuItem key={ct.code} value={ct.code}>
+                    {ct.label === ct.code
+                      ? ct.code
+                      : `${ct.label} (${ct.code})`}
+                  </MenuItem>
+                ))}
               </Select>
-
-              {field.cropType === "Other" && (
-                <TextField
-                  label="Custom crop name"
-                  size="small"
-                  value={field.customCrop}
-                  onChange={(e) =>
-                    onUpdateField({ customCrop: e.target.value })
-                  }
-                  placeholder="e.g., Alfalfa, Oats"
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      color: COLORS.whiteHigh,
-                      "& fieldset": { borderColor: COLORS.whiteLow },
-                      "&:hover fieldset": { borderColor: COLORS.indigo },
-                    },
-                    "& .MuiInputLabel-root": {
-                      color: `${COLORS.whiteMedium} !important`,
-                    },
-                  }}
-                />
-              )}
             </Stack>
 
             {/* Selling Price */}

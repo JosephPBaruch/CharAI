@@ -1,11 +1,11 @@
 import type { FeatureCollection } from "geojson";
 import type { FieldEntry } from "../features";
 import { getApiUrlForApi, getAuthToken } from "../services/authService";
+import type { CropType } from "../types/fetch";
 
 const API_URL = getApiUrlForApi();
 
 const POSTFieldData = async (data: {
-  globalMax: number | "";
   field: FieldEntry;
   data: FeatureCollection | null;
 }) => {
@@ -25,11 +25,29 @@ const POSTFieldData = async (data: {
   return response.json();
 };
 
-const GETPrescriptionMap = async (fieldId: string) => {
-  const response = await fetch(`${API_URL}/prescription/${fieldId}/`, {
-    method: "GET",
+const DeleteField = async (fieldId: string) => {
+  const response = await fetch(`${API_URL}/field/`, {
+    method: "Delete",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Token ${getAuthToken()}`,
+    },
+    body: JSON.stringify({
+      field_id: fieldId,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error deleting field`);
+  }
+
+  return response.status;
+};
+
+const GETPrescriptionMap = async (fieldId: string) => {
+  const response = await fetch(`${API_URL}/field/${fieldId}/`, {
+    method: "GET",
+    headers: {
       Authorization: `Token ${getAuthToken()}`,
     },
   });
@@ -38,7 +56,24 @@ const GETPrescriptionMap = async (fieldId: string) => {
     throw new Error(`Error fetching prescription map: ${response.statusText}`);
   }
 
-  return response.json();
+  // Stream the (decompressed) response body in chunks.
+  // Fallback to response.json() for environments without ReadableStream support.
+  if (!response.body) {
+    return response.json();
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let result = "";
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    result += decoder.decode(value, { stream: true });
+  }
+  result += decoder.decode();
+
+  return JSON.parse(result);
 };
 
 const GETFields = async () => {
@@ -57,4 +92,23 @@ const GETFields = async () => {
   return response.json();
 };
 
-export { GETPrescriptionMap, GETFields, POSTFieldData };
+const GETCropTypes = async (): Promise<CropType[]> => {
+  const response = await fetch(`${API_URL}/crop-types/`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error fetching crop types: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
+export {
+  DeleteField,
+  GETCropTypes,
+  GETPrescriptionMap,
+  GETFields,
+  POSTFieldData,
+};

@@ -10,33 +10,31 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { COLORS } from "../../styles/colors";
-import BudgetSettings from "./BudgetSettings";
+import BiocharSettings from "./BudgetSettings";
 import FieldsList from "./FieldsList";
 import type { FieldEntry } from "./FieldsList";
 import FileUploadSection from "./FileUploadSection";
 import SubmitSection from "./SubmitSection";
 import { useCoordinates } from "../../contexts/CoordinateContext";
 import { POSTFieldData } from "../../api/fetch";
+import { useNavigate } from "react-router";
+import { v4 as uuidv4 } from "uuid";
 
 const DEFAULT_FIELD = (): FieldEntry => ({
-  id: "main-field",
-  cropType: "Wheat",
-  customCrop: "",
+  id: `main-field-${uuidv4()}`,
+  cropType: "WW",
   price: "",
   unit: "bushel",
+  biocharTonsPerHectare: 20,
+  biocharCostPerTon: "",
 });
 
 export default function FarmBiocharForm() {
-  const {
-    data,
-    hasCoordinates,
-    hasPendingCoordinates,
-    setFormSubmitted,
-    commitPendingCoordinates,
-  } = useCoordinates();
+  const { data, hasCoordinates, setFormSubmitted } = useCoordinates();
   const [field, setField] = React.useState<FieldEntry>(DEFAULT_FIELD());
-  const [globalMax, setGlobalMax] = React.useState<number | "">("");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  const navigate = useNavigate();
 
   const updateField = (patch: Partial<FieldEntry>) => {
     setField((prev) => ({ ...prev, ...patch }));
@@ -47,32 +45,35 @@ export default function FarmBiocharForm() {
 
   // If coordinates already exist in context (from upload or manual draw), mark as ready
   React.useEffect(() => {
-    if (hasCoordinates || hasPendingCoordinates) {
+    if (hasCoordinates) {
       setCoordUploaded(true);
     }
-  }, [hasCoordinates, hasPendingCoordinates]);
+  }, [hasCoordinates]);
 
-  const handleCoordSelect = (file: File | null) => {
-    setCoordUploaded(!!file);
-  };
+  // const handleCoordSelect = (file: File | null) => {
+  //   setCoordUploaded(!!file);
+  // };
 
-  const handleCoordUploaded = () => {
-    setCoordUploaded(true);
-  };
+  // const handleCoordUploaded = () => {
+  //   setCoordUploaded(true);
+  // };
 
-  const handleYieldSelect = () => {
-    // yield file is optional, no action needed on select
-  };
+  // const handleYieldSelect = () => {
+  //   // yield file is optional, no action needed on select
+  // };
 
-  const handleYieldUploaded = () => {
-    // yield file is optional, no action needed on upload completion
-  };
+  // const handleYieldUploaded = () => {
+  //   // yield file is optional, no action needed on upload completion
+  // };
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  const coordsReady = coordUploaded || hasPendingCoordinates || hasCoordinates;
+  const coordsReady = coordUploaded || hasCoordinates;
   const isPriceValid = field.price !== "" && field.price > 0;
+  const isBiocharCostValid =
+    field.biocharCostPerTon !== "" && field.biocharCostPerTon > 0;
+  const canSubmit = coordsReady && isPriceValid && isBiocharCostValid;
 
   return (
     <>
@@ -126,33 +127,53 @@ export default function FarmBiocharForm() {
               </Typography>
             </Box>
 
-            {/* Budget Settings */}
-            <BudgetSettings globalMax={globalMax} onChange={setGlobalMax} />
+            {/* Biochar Settings */}
+            <BiocharSettings
+              biocharTonsPerHectare={field.biocharTonsPerHectare}
+              biocharCostPerTon={field.biocharCostPerTon}
+              onChangeTonsPerHectare={(v) =>
+                updateField({ biocharTonsPerHectare: v })
+              }
+              onChangeCostPerTon={(v) => updateField({ biocharCostPerTon: v })}
+            />
 
             {/* Field Configuration */}
             <FieldsList field={field} onUpdateField={updateField} />
 
             {/* File Upload Section */}
-            <FileUploadSection
-              onCoordSelect={handleCoordSelect}
-              onCoordUploaded={handleCoordUploaded}
-              onYieldSelect={handleYieldSelect}
-              onYieldUploaded={handleYieldUploaded}
-            />
+            <FileUploadSection />
+            {/* // onCoordSelect={handleCoordSelect}
+              // onCoordUploaded={handleCoordUploaded}
+              // onYieldSelect={handleYieldSelect}
+              // onYieldUploaded={handleYieldUploaded}
+            // /> */}
 
             {/* Submit Section */}
             <SubmitSection
-              coordsReady={coordsReady && isPriceValid}
+              coordsReady={canSubmit}
               onSubmit={() => {
                 if (!isPriceValid) {
                   alert("Please enter a valid crop selling price.");
                   return;
                 }
-                commitPendingCoordinates();
-                const payload = { globalMax, field, data };
+                if (!isBiocharCostValid) {
+                  alert("Please enter a valid biochar cost per ton.");
+                  return;
+                }
+                const payload = {
+                  field: {
+                    ...field,
+                    biocharCostPerTon: field.biocharCostPerTon as number,
+                  },
+                  data,
+                };
+                console.log(
+                  `Sending the following field payload to the backend: ${JSON.stringify(payload)}`,
+                );
                 POSTFieldData(payload);
                 setFormSubmitted(true);
                 closeModal();
+                navigate("/fields");
               }}
             />
           </Box>

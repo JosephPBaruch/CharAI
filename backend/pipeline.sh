@@ -35,6 +35,10 @@ while [[ $# -gt 0 ]]; do
       ALLOWED_HOSTS="${1#*=}"
       shift
       ;;
+    --opentopokey=*)
+      OPENTOPOGRAPHY_API_KEY="${1#*=}"
+      shift
+      ;;
     *)
       # ignore unknown args
       shift
@@ -50,6 +54,7 @@ docker run -d \
   -e OPENTOPOGRAPHY_API_KEY="$OPENTOPOGRAPHY_API_KEY" \
   -e DEBUG="$DEBUG" \
   -e ALLOWED_HOSTS="$ALLOWED_HOSTS" \
+  -e MODEL_LOCATION="./YieldPredictionModel/Models/yield_model.keras" \
   --network "$NETWORK" \
   -p "$EXTERNAL_PORT":"$INTERNAL_PORT" \
   --name "$CONTAINER_NAME" "$IMAGE"

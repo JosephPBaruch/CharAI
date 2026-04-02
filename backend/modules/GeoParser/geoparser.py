@@ -1,23 +1,20 @@
 """GeoTIFF parser entry-point for backend ingestion pipeline."""
 
 from __future__ import annotations
-
 from pathlib import Path
-
 from .geotiff import GeoTIFFData
-
-
+import logging
 PathLike = str | Path
-
 
 class GeoParser:
     """Parser for GeoTIFF DEM files."""
 
     SUPPORTED_EXTENSIONS = {".tif", ".tiff"}
 
-    def __init__(self, path: PathLike):
+    def __init__(self, logger: logging.Logger, path: PathLike):
         self.path = Path(path).expanduser().resolve()
         self._geotiff: GeoTIFFData | None = None
+        self.logger = logger
 
     def parse(self) -> GeoTIFFData:
         """Load the GeoTIFF and return the data model."""

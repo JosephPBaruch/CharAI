@@ -1,6 +1,6 @@
 import { test, expect, Page } from "@playwright/test";
 
-const baseUrl = process.env.BASE_URL || "http://localhost";
+const baseUrl = process.env.BASE_URL || "http://localhost:5173";
 
 // Mirrors scenarios from CharAI.feature so Playwright Test UI can display them.
 test.describe("CharAI.feature", () => {
@@ -98,5 +98,176 @@ test.describe("CharAI.feature", () => {
     await logoutUser(page);
 
     await loginUser(page, uniqueUsername, password);
+  });
+
+  test("User creates field and views prescription map", async ({ page }) => {
+    test.setTimeout(180_000); // allow up to 3 minutes for prescription processing
+
+    const timestamp = Date.now();
+    const uniqueUsername = `testuser${timestamp}`;
+    const password = "TestPassword123";
+
+    await registerUser(page, uniqueUsername, password);
+
+    // Navigate to `/fields`
+    await page.goto(`${baseUrl}/fields`);
+
+    // Click "Configure Farm" (or "Edit Farm Configuration" if coords exist)
+    await page
+      .getByRole("button", { name: /Configure Farm|Edit Farm Configuration/ })
+      .click();
+
+    // Enter biochar settings: application rate (t/ha) and cost per ton
+    await page.getByTestId("biochar-rate-input").locator("input").fill("20");
+    await page.getByTestId("biochar-cost-input").locator("input").fill("150");
+
+    // Set crop selling price = 12
+    await page.getByLabel("Price").fill("12");
+
+    // Click "Draw Boundaries" / "Edit Coordinates" to open the coordinate modal
+    await page.getByTestId("open-manual-coordinates").click();
+
+    // Add first marker
+    await page.getByTestId("add-marker-button").click();
+    await page
+      .getByTestId("marker-lat-0")
+      .locator("input")
+      .fill("46.75520514295208");
+    await page
+      .getByTestId("marker-lng-0")
+      .locator("input")
+      .fill("-116.97727203369142");
+
+    // Add second marker
+    await page.getByTestId("add-marker-button").click();
+    await page
+      .getByTestId("marker-lat-1")
+      .locator("input")
+      .fill("46.75214798439814");
+    await page
+      .getByTestId("marker-lng-1")
+      .locator("input")
+      .fill("-116.94499969482423");
+
+    // Add third marker
+    await page.getByTestId("add-marker-button").click();
+    await page
+      .getByTestId("marker-lat-2")
+      .locator("input")
+      .fill("46.74591554718295");
+    await page
+      .getByTestId("marker-lng-2")
+      .locator("input")
+      .fill("-116.96405410766603");
+
+    // Click "Save Boundaries"
+    await page.getByTestId("save-boundaries-button").click();
+
+    // Click "Submit request"
+    await page.getByRole("button", { name: "Submit request" }).click();
+
+    // Refresh `/fields` and verify the new field appears in the table as "started"
+    await page.goto(`${baseUrl}/fields`);
+    await expect(page.locator("table")).toBeVisible();
+    await expect(page.locator("td", { hasText: "WW" })).toBeVisible();
+
+    // Poll for the status to become "complete" — check every 3 seconds for up to 2 minutes
+    await expect(async () => {
+      await page.reload();
+      const statusCell = page
+        .locator("tr")
+        .filter({ hasText: "WW" })
+        .locator("td")
+        .nth(5);
+      await expect(statusCell).toHaveText("complete");
+    }).toPass({ intervals: [3_000], timeout: 120_000 });
+
+    // Click "Get Map" for that row
+    const fieldRow = page.locator("tr").filter({ hasText: "WW" });
+    await fieldRow.getByRole("button", { name: "Get Map" }).click();
+
+    // Verify the prescription map dialog is displayed
+    await expect(page.getByText("Prescription Map")).toBeVisible();
+    await expect(page.locator(".leaflet-container")).toBeVisible();
+
+    // Verify Analysis Summary shows correct total grid cells
+    await expect(page.getByText("Analysis Summary")).toBeVisible();
+    await expect(page.getByText("Total Grid Cells")).toBeVisible();
+    const gridCellsValue = page
+      .locator("text=Total Grid Cells")
+      .locator("..")
+      .locator("p")
+      .last();
+    await expect(gridCellsValue).toHaveText("11,043");
+
+    // Wait for render then attach a screenshot to the HTML report
+    await page.waitForTimeout(1000);
+    const screenshot = await page.screenshot({ fullPage: true });
+    await test.info().attach("prescription-map", {
+      body: screenshot,
+      contentType: "image/png",
+    });
+  });
+
+  test("Crop type dropdown contains all valid options", async ({ page }) => {
+    const timestamp = Date.now();
+    const uniqueUsername = `testuser${timestamp}`;
+    const password = "TestPassword123";
+
+    await registerUser(page, uniqueUsername, password);
+
+    // Navigate to /fields and open the form
+    await page.goto(`${baseUrl}/fields`);
+    await page
+      .getByRole("button", { name: /Configure Farm|Edit Farm Configuration/ })
+      .click();
+
+    // Open the crop type dropdown
+    const cropSelect = page.locator('[data-testid="crop-type-select"]');
+    await cropSelect.click();
+
+    // All 12 crop codes from the training set must be present
+    const expectedCodes = [
+      "SW",
+      "SB",
+      "SC",
+      "SP",
+      "WW",
+      "WB",
+      "WP",
+      "WC",
+      "WL",
+      "AL",
+      "WT",
+      "GB",
+    ];
+    for (const code of expectedCodes) {
+      await expect(
+        page.getByRole("option", { name: new RegExp(code) }),
+      ).toBeVisible();
+    }
+  });
+
+  test("User can select a crop type and it persists in the form", async ({
+    page,
+  }) => {
+    const timestamp = Date.now();
+    const uniqueUsername = `testuser${timestamp}`;
+    const password = "TestPassword123";
+
+    await registerUser(page, uniqueUsername, password);
+
+    await page.goto(`${baseUrl}/fields`);
+    await page
+      .getByRole("button", { name: /Configure Farm|Edit Farm Configuration/ })
+      .click();
+
+    // Open the crop type dropdown and pick Spring Barley (SB)
+    const cropSelect = page.locator('[data-testid="crop-type-select"]');
+    await cropSelect.click();
+    await page.getByRole("option", { name: /Spring Barley/ }).click();
+
+    // The select should now display "Spring Barley (SB)"
+    await expect(cropSelect).toContainText("Spring Barley");
   });
 });

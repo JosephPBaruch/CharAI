@@ -6,6 +6,27 @@
 
 [Crop Data Information](https://meta.cafltar.org/catalog/datasets/Production/CafPlantGridPointSurvey/CookEastHandHarvest_P3A3_V1)
 
+#### Cook Farm Metadata
+
+##### Cook Farm Polygon Coordinates
+
+| Lat               | Long                |
+| ----------------- | ------------------- |
+| 46.77863200102642 | -117.0936964616513  |
+| 46.77863200102642 | -117.07662800000426 |
+| 46.78504435150698 | -117.07662800000426 |
+| 46.78504435150698 | -117.0936964616513  |
+
+##### Grid Cell resolution
+
+```py
+Latitude resolution (m): 1.1550531642327897
+Longitude resolution (m): 2.105384854636277
+Approx grid resolution (m): 1.6302190094345332
+```
+
+This means that since the finest resolution that we have is 5 x 5 meters, we will just need to pull the id locations of the data that is closest to our points.
+
 #### Raw Dataset Metadata
 
 | Name                     | Description                                                                                                                                                                                                                                                                  | Units     |
@@ -109,3 +130,11 @@ Target Column: "GrainYieldAirDry"
 TODO: Research the differences and similarities between the Cook Crop/Terrain Dataset and CropSyst Input set.
 
 Note: The CropSyst set is a biomass cumulation model, which is not what CharAI will be doing, but it could contain inputs that might lead to improving the model.
+
+## Model Creation Plan
+
+Run a script to get the CharAI data and to splice it into the Cook data
+
+Export to Colab and run a script to train the model.
+
+Import the model into repo

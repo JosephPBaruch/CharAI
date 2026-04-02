@@ -1,7 +1,9 @@
+from decimal import Decimal
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from .models import Field, PrescriptionMap
+from .crop_types import VALID_CROP_CODES
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -67,15 +69,19 @@ class FieldPropertiesSerializer(serializers.Serializer):
 class FieldSerializer(serializers.Serializer):
     """Serializer for field metadata"""
     id = serializers.CharField(required=True)
-    cropType = serializers.CharField(required=True)
-    customCrop = serializers.CharField(required=False, allow_blank=True)
-    price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True)
+    cropType = serializers.ChoiceField(choices=Field.CROP_TYPE_CHOICES, required=True)
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True, min_value=Decimal('0'))
     unit = serializers.CharField(required=True)
+    biocharTonsPerHectare = serializers.DecimalField(
+        max_digits=10, decimal_places=4, required=False, default=Decimal('20'), min_value=Decimal('0.01'),
+    )
+    biocharCostPerTon = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=True, min_value=Decimal('0.01'),
+    )
 
 
 class FieldDataSerializer(serializers.Serializer):
     """Serializer for prescription map data submission"""
-    globalMax = serializers.CharField(required=False, allow_blank=True)
     field = FieldSerializer(required=True)
     data = serializers.JSONField(required=True)  # GeoJSON FeatureCollection
 
@@ -84,7 +90,19 @@ class FieldModelSerializer(serializers.ModelSerializer):
     """Serializer for Field model"""
     class Meta:
         model = Field
-        fields = ('id', 'field_id', 'crop_type', 'custom_crop', 'price', 'unit', 'global_max', 'created_at', 'updated_at')
+        fields = (
+            'id',
+            'field_id',
+            'crop_type',
+            'price',
+            'unit',
+            'biochar_tons_per_hectare',
+            'biochar_cost_per_ton',
+            'prescription_map_status',
+            'prescription_map_file',
+            'created_at',
+            'updated_at',
+        )
         read_only_fields = ('id', 'created_at', 'updated_at')
 
 
