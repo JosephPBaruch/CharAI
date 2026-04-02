@@ -42,7 +42,7 @@ jobs:
       - name: Get Playwright version
         id: playwright-version
         run: |
-          echo "version=$(cd frontend/tests && npx playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p "require('./frontend/tests/package.json').devDependencies['@playwright/test']")" >> "$GITHUB_OUTPUT"
 
       - name: Cache Playwright browsers
         id: playwright-cache
