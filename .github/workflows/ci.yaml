@@ -8,48 +8,38 @@ on:
     branches: [main]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build images with cache
+        uses: docker/bake-action@v6
+        with:
+          files: docker-compose.yml
+          load: true
+          set: |
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
+
+      - name: Start services
+        run: docker compose up -d --wait
+        env:
+          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+
+      - name: Run database migrations
+        run: docker exec django-backend python manage.py migrate
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-
-      - name: Run database pipeline
-        run: |
-          cd database
-          ./pipeline.sh
-
-      - name: Wait for PostgreSQL to be ready
-        run: |
-          timeout 30 bash -c 'until docker exec postgres-test pg_isready -U charai > /dev/null; do sleep 1; done'
-
-      - name: Run backend pipeline
-        run: |
-          cd backend
-          ./pipeline.sh --opentopokey=${{ secrets.OPENTOPOGRAPHY_API_KEY }}
-
-      - name: Run database migrations
-        run: |
-          docker exec django-backend python manage.py migrate
-
-      - name: Run frontend pipeline
-        run: |
-          cd frontend
-          ./pipeline.sh
-
-      - name: Cache npm dependencies
-        uses: actions/cache@v4
-        with:
-          path: frontend/tests/node_modules
-          key: npm-playwright-${{ hashFiles('frontend/tests/package-lock.json') }}
-          restore-keys: |
-            npm-playwright-
+          cache: npm
+          cache-dependency-path: frontend/tests/package-lock.json
 
       - name: Get Playwright version
         id: playwright-version
@@ -66,7 +56,7 @@ jobs:
       - name: Install Playwright dependencies
         run: |
           cd frontend/tests
-          npm install
+          npm ci
           if [ "${{ steps.playwright-cache.outputs.cache-hit }}" != "true" ]; then
             npx playwright install --with-deps
           else
@@ -86,8 +76,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: |
-            frontend/tests/playwright-report/
+          path: frontend/tests/playwright-report/
 
       - name: Show container logs on failure
         if: failure()
@@ -98,11 +87,9 @@ jobs:
           echo "=== Frontend logs ==="
           docker logs char-ai-frontend || true
 
-      - name: Cleanup containers
+      - name: Cleanup
         if: always()
-        run: |
-          docker stop django-backend char-ai-frontend postgres-test || true
-          docker rm django-backend char-ai-frontend postgres-test || true
+        run: docker compose down
 
       # - name: Login to Azure Container Registry
       #   if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
