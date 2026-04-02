@@ -1,4 +1,4 @@
-# Django Backend Setup
+# Backend Setup
 
 This guide outlines how to initialize and manage a Django backend environment using `venv` and `requirements.txt`.
 
@@ -15,23 +15,28 @@ This guide outlines how to initialize and manage a Django backend environment us
 ---
 
 ## Setup for Backend (Run once to get the requirements in your python)
+
 Windows
+
 ```bash
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
 Linux / macOS
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
 ---
 
-## Initialization 
+## Initialization
 
 ```bash
 # Create and activate virtual environment
@@ -74,7 +79,7 @@ ALLOWED_HOSTS=127.0.0.1,localhost
 DATABASE_URL=sqlite:///db.sqlite3
 ```
 
->  Add `.env` to your `.gitignore` to keep secrets out of version control.
+> Add `.env` to your `.gitignore` to keep secrets out of version control.
 
 ---
 
