@@ -23,6 +23,8 @@ class Field(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fields')
     field_id = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, blank=True, default='')
+    description = models.TextField(blank=True, default='')
     crop_type = models.CharField(max_length=2, choices=CROP_TYPE_CHOICES)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     unit = models.CharField(max_length=50)

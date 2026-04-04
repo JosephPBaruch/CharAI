@@ -69,6 +69,8 @@ class FieldPropertiesSerializer(serializers.Serializer):
 class FieldSerializer(serializers.Serializer):
     """Serializer for field metadata"""
     id = serializers.CharField(required=True)
+    name = serializers.CharField(required=False, default='', allow_blank=True, max_length=255)
+    description = serializers.CharField(required=False, default='', allow_blank=True)
     cropType = serializers.ChoiceField(choices=Field.CROP_TYPE_CHOICES, required=True)
     price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True, min_value=Decimal('0'))
     unit = serializers.CharField(required=True)
@@ -93,6 +95,8 @@ class FieldModelSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'field_id',
+            'name',
+            'description',
             'crop_type',
             'price',
             'unit',

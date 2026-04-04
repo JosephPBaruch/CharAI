@@ -199,6 +199,8 @@ class FieldDataView(APIView):
                 created = True
 
             field.crop_type = field_info.get('cropType')
+            field.name = field_info.get('name', '')
+            field.description = field_info.get('description', '')
             field.price = field_info.get('price')
             field.unit = field_info.get('unit')
             field.biochar_tons_per_hectare = field_info.get('biocharTonsPerHectare', 20)
@@ -266,6 +268,8 @@ class FieldPrescriptionView(APIView):
         # Compress and stream the response to avoid rate-limiting on large payloads
         response_data = {
             'field_id': field.field_id,
+            'name': field.name,
+            'description': field.description,
             'prescription_map_status': field.prescription_map_status,
             'prescription_map': data,
         }
