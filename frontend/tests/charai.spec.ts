@@ -64,6 +64,7 @@ test.describe("CharAI.feature", () => {
     await page.goto(baseUrl);
     await expect(page).toHaveURL(/localhost/);
 
+    await page.click('[data-testid="profile-menu-button"]');
     await page.click('[data-testid="logout-button"]');
     await expect(page).toHaveURL(baseUrl);
 
