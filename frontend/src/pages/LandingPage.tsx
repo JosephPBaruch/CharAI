@@ -57,6 +57,8 @@ function FeatureCard({ icon, title, description }: FeatureCardProps) {
 
 const DEFAULT_FIELD = (): FieldEntry => ({
   id: `main-field-${uuidv4()}`,
+  name: "",
+  description: "",
   cropType: "WW",
   price: "",
   unit: "bushel",

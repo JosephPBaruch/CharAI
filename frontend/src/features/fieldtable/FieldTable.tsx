@@ -28,6 +28,8 @@ import { formatTimestamp, formatPrice, truncateId } from "../../utils/format";
 type FieldRecord = {
   id: number;
   field_id: string;
+  name: string;
+  description: string;
   crop_type: string;
   price: string;
   unit: string;
@@ -63,6 +65,8 @@ export default function FieldTable() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [selectedField, setSelectedField] = React.useState("");
+  const [selectedFieldName, setSelectedFieldName] = React.useState("");
+  const [selectedFieldDescription, setSelectedFieldDescription] = React.useState("");
   const [open, setOpen] = React.useState(false);
   const theme = useTheme();
 
@@ -96,6 +100,8 @@ export default function FieldTable() {
 
   const handleGetMap = (field: FieldRecord) => {
     setSelectedField(field.field_id);
+    setSelectedFieldName(field.name);
+    setSelectedFieldDescription(field.description);
     setOpen(true);
   };
 
@@ -192,6 +198,8 @@ export default function FieldTable() {
           <TableHead>
             <TableRow>
               <TableCell>Field ID</TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell>Description</TableCell>
               <TableCell>Crop</TableCell>
               <TableCell>Price</TableCell>
               <TableCell>Status</TableCell>
@@ -210,6 +218,24 @@ export default function FieldTable() {
                       sx={{ fontFamily: "monospace", fontSize: "0.8rem" }}
                     >
                       {truncateId(field.field_id)}
+                    </Typography>
+                  </Tooltip>
+                </TableCell>
+                <TableCell>{field.name || "-"}</TableCell>
+                <TableCell>
+                  <Tooltip title={field.description || ""} placement="top">
+                    <Typography
+                      variant="body2"
+                      component="span"
+                      sx={{
+                        maxWidth: 200,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        display: "inline-block",
+                      }}
+                    >
+                      {field.description || "-"}
                     </Typography>
                   </Tooltip>
                 </TableCell>
@@ -250,7 +276,7 @@ export default function FieldTable() {
             ))}
             {fields.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} sx={{ textAlign: "center", py: 4 }}>
+                <TableCell colSpan={8} sx={{ textAlign: "center", py: 4 }}>
                   <Typography variant="body2" sx={{ color: "text.secondary" }}>
                     No fields found. Create a farm to get started.
                   </Typography>
@@ -264,9 +290,13 @@ export default function FieldTable() {
       <FieldDialog
         open={open}
         id={selectedField}
+        name={selectedFieldName}
+        description={selectedFieldDescription}
         onClose={() => {
           setOpen(false);
           setSelectedField("");
+          setSelectedFieldName("");
+          setSelectedFieldDescription("");
         }}
       />
     </Container>

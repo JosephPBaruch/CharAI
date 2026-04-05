@@ -14,3 +14,4 @@ prescription_maps
 **/tests/playwright-report/data/**
 *.csv
 !**/backend/YieldPredictionModel/Data/CookHandHarvest_HY1999-HY2016_P3A3_20241029(in).csv
+frontend/dist/

@@ -22,6 +22,8 @@ import { v4 as uuidv4 } from "uuid";
 
 const DEFAULT_FIELD = (): FieldEntry => ({
   id: `main-field-${uuidv4()}`,
+  name: "",
+  description: "",
   cropType: "WW",
   price: 7,
   unit: "bushel",
