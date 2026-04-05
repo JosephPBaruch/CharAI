@@ -112,7 +112,7 @@ export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
                 Give your field a recognizable name.
               </Typography>
               <TextField
-                label="Name"
+                placeholder="Name"
                 size="small"
                 value={field.name}
                 onChange={(e) => onUpdateField({ name: e.target.value })}
@@ -136,7 +136,7 @@ export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
                 A short description of this field (optional).
               </Typography>
               <TextField
-                label="Description"
+                placeholder="Description"
                 size="small"
                 multiline
                 minRows={1}
