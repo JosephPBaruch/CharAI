@@ -1,17 +1,21 @@
 import { Link as RouterLink } from "react-router";
-import { AppBar, Toolbar, Typography, Button, Box, IconButton, Tooltip } from "@mui/material";
+import { AppBar, Toolbar, Typography, Button, Box, IconButton, Tooltip, Avatar, Menu, MenuItem, ListItemIcon, ListItemText, Divider } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
+import PersonIcon from "@mui/icons-material/Person";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
 import { useThemeMode } from "../contexts/ThemeContext";
 
 const Header = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const { showToast } = useToast();
   const { mode, toggleTheme } = useThemeMode();
   const theme = useTheme();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const navButtonSx = {
     color: theme.palette.text.primary,
@@ -24,6 +28,7 @@ const Header = () => {
   };
 
   const handleLogout = async () => {
+    setAnchorEl(null);
     try {
       await logout();
     } catch {
@@ -32,6 +37,13 @@ const Header = () => {
         severity: "error",
       });
     }
+  };
+
+  const getInitials = () => {
+    if (user?.first_name || user?.last_name) {
+      return `${(user.first_name?.[0] ?? "").toUpperCase()}${(user.last_name?.[0] ?? "").toUpperCase()}`;
+    }
+    return user?.username?.[0]?.toUpperCase() ?? "U";
   };
 
   return (
@@ -91,13 +103,61 @@ const Header = () => {
               >
                 Fields
               </Button>
-              <Button
-                onClick={handleLogout}
-                data-testid="logout-button"
-                sx={navButtonSx}
+              <Tooltip title="Account">
+                <IconButton
+                  onClick={(e) => setAnchorEl(e.currentTarget)}
+                  data-testid="profile-menu-button"
+                  sx={{ ml: 0.5 }}
+                >
+                  <Avatar
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      fontSize: "0.875rem",
+                      bgcolor: "primary.main",
+                    }}
+                  >
+                    {getInitials()}
+                  </Avatar>
+                </IconButton>
+              </Tooltip>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={() => setAnchorEl(null)}
+                transformOrigin={{ horizontal: "right", vertical: "top" }}
+                anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      minWidth: 180,
+                      mt: 1,
+                    },
+                  },
+                }}
               >
-                Logout
-              </Button>
+                <MenuItem
+                  component={RouterLink}
+                  to="/profile"
+                  onClick={() => setAnchorEl(null)}
+                  data-testid="profile-link"
+                >
+                  <ListItemIcon>
+                    <PersonIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Profile</ListItemText>
+                </MenuItem>
+                <Divider />
+                <MenuItem
+                  onClick={handleLogout}
+                  data-testid="logout-button"
+                >
+                  <ListItemIcon>
+                    <LogoutIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Logout</ListItemText>
+                </MenuItem>
+              </Menu>
             </>
           ) : (
             <>

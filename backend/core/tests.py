@@ -67,3 +67,95 @@ class FieldNameDescriptionTest(TestCase):
         field = Field.objects.get(field_id='test-field-2')
         self.assertEqual(field.name, '')
         self.assertEqual(field.description, '')
+
+
+class ChangePasswordTest(TestCase):
+    """Tests for the change-password endpoint."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='pwuser', password='OldPass123!', email='pw@example.com',
+        )
+        self.token = Token.objects.create(user=self.user)
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+    def test_change_password_success(self):
+        response = self.client.post('/api/auth/change-password/', {
+            'current_password': 'OldPass123!',
+            'new_password': 'NewPass456!',
+            'new_password2': 'NewPass456!',
+        }, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('token', response.json())
+        # Old token should be invalid
+        self.assertFalse(Token.objects.filter(key=self.token.key).exists())
+        # User can authenticate with new password
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('NewPass456!'))
+
+    def test_change_password_wrong_current(self):
+        response = self.client.post('/api/auth/change-password/', {
+            'current_password': 'WrongPass!',
+            'new_password': 'NewPass456!',
+            'new_password2': 'NewPass456!',
+        }, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('current_password', response.json())
+
+    def test_change_password_mismatch(self):
+        response = self.client.post('/api/auth/change-password/', {
+            'current_password': 'OldPass123!',
+            'new_password': 'NewPass456!',
+            'new_password2': 'Different789!',
+        }, format='json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_change_password_unauthenticated(self):
+        self.client.credentials()  # Clear auth
+        response = self.client.post('/api/auth/change-password/', {
+            'current_password': 'OldPass123!',
+            'new_password': 'NewPass456!',
+            'new_password2': 'NewPass456!',
+        }, format='json')
+        self.assertEqual(response.status_code, 401)
+
+
+class DeleteAccountTest(TestCase):
+    """Tests for the delete-account endpoint."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='deluser', password='DelPass123!', email='del@example.com',
+        )
+        self.token = Token.objects.create(user=self.user)
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+    def test_delete_account_success(self):
+        response = self.client.delete('/api/auth/delete-account/', {
+            'password': 'DelPass123!',
+        }, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(User.objects.filter(username='deluser').exists())
+
+    def test_delete_account_wrong_password(self):
+        response = self.client.delete('/api/auth/delete-account/', {
+            'password': 'WrongPass!',
+        }, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('password', response.json())
+        # User should still exist
+        self.assertTrue(User.objects.filter(username='deluser').exists())
+
+    def test_delete_account_missing_password(self):
+        response = self.client.delete('/api/auth/delete-account/', {}, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('password', response.json())
+
+    def test_delete_account_unauthenticated(self):
+        self.client.credentials()  # Clear auth
+        response = self.client.delete('/api/auth/delete-account/', {
+            'password': 'DelPass123!',
+        }, format='json')
+        self.assertEqual(response.status_code, 401)
