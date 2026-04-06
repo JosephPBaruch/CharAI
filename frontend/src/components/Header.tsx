@@ -1,4 +1,4 @@
-import { Link as RouterLink } from "react-router";
+import { Link as RouterLink, useNavigate } from "react-router";
 import { AppBar, Toolbar, Typography, Button, Box, IconButton, Tooltip, Avatar, Menu, MenuItem, ListItemIcon, ListItemText, Divider } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
@@ -15,6 +15,7 @@ const Header = () => {
   const { showToast } = useToast();
   const { mode, toggleTheme } = useThemeMode();
   const theme = useTheme();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const navButtonSx = {
@@ -31,6 +32,7 @@ const Header = () => {
     setAnchorEl(null);
     try {
       await logout();
+      navigate("/");
     } catch {
       showToast({
         message: "Logout failed. Please try again.",
