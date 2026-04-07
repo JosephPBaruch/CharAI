@@ -14,14 +14,15 @@ export interface CoordinateStepperProps {
 export interface CoordinateFileUploadScreenProps {
   fileType: FileTypes;
   setCoordinates: React.Dispatch<React.SetStateAction<LatLngLiteral[]>>;
-  handleNext: () => void;
+  setFileName: React.Dispatch<React.SetStateAction<string>>;
+  coordinates: LatLngLiteral[];
 }
 
 export type FileTypes = "text" | "visual" | null;
 
 export interface FileTypeSeparationScreenProps {
   setFileType: React.Dispatch<React.SetStateAction<FileTypes>>;
-  handleNext: () => void;
+  fileType: FileTypes;
 }
 
 export interface FileUploadScreenProps {
@@ -31,7 +32,8 @@ export interface FileUploadScreenProps {
   handleRejectedFile: () => void;
   handleError: () => void;
   errorMessage: string;
-  file: File;
+  file: File | null;
+  isFileUploaded: boolean;
 }
 
 export interface CoordinateContextType {

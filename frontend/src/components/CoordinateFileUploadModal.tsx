@@ -1,11 +1,17 @@
-import { Button, Modal } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+} from "@mui/material";
 import { useState } from "react";
-import { COLORS } from "../styles/colors";
-import CoordinateUploadStepper from "../features/coordinate_upload/Stepper";
 import CloseIcon from "@mui/icons-material/Close";
+import CoordinateUploadStepper from "../features/coordinate_upload/Stepper";
 
 export default function CoordinateFileUploadModal() {
   const [open, setOpen] = useState<boolean>(false);
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
@@ -13,27 +19,51 @@ export default function CoordinateFileUploadModal() {
     <>
       <Button
         onClick={handleOpen}
+        variant="contained"
         sx={{
-          backgroundColor: COLORS.indigo,
-          "&:hover": { backgroundColor: COLORS.indigoHover },
           textTransform: "none",
+          fontWeight: 500,
           fontSize: "0.95rem",
         }}
-        variant="contained"
+        data-testid="upload-coordinates-button"
       >
         Upload farm boundary coordinates
       </Button>
-      <Modal
+
+      <Dialog
         open={open}
         onClose={handleClose}
-        sx={{
-          borderRadius: 12,
-          padding: 2,
-          backgroundColor: COLORS.bgPage,
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+          },
         }}
       >
-        <CoordinateUploadStepper />
-      </Modal>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            pr: 1,
+          }}
+        >
+          Upload Farm Boundary
+          <IconButton
+            onClick={handleClose}
+            size="small"
+            sx={{ ml: 2 }}
+            data-testid="coordinate-upload-dialog-close-button"
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: 2 }}>
+          <CoordinateUploadStepper handleClose={handleClose} />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

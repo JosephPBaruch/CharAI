@@ -1,4 +1,3 @@
-import { Button } from "@mui/material";
 import { useCallback, useState } from "react";
 import { parseFile } from "../helpers";
 import type { CoordinateFileUploadScreenProps } from "./types";
@@ -20,10 +19,11 @@ const MAX_NUMBER_OF_BYTES = 1024 * 1024 * 5; // 5 MB
 
 export default function CoordinateFileUploadScreen({
   setCoordinates,
+  setFileName,
   fileType,
-  handleNext,
+  coordinates,
 }: CoordinateFileUploadScreenProps) {
-  const [file, setFile] = useState<any>();
+  const [file, setFile] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleRejectedFile = () => {
@@ -37,11 +37,11 @@ export default function CoordinateFileUploadScreen({
   };
 
   const handleAcceptedFile = useCallback(
-    async (acceptedFile: File[]) => {
+    async (acceptedFiles: File[]) => {
       setErrorMessage("");
 
-      const file = acceptedFile[0];
-      const result = await parseFile(file);
+      const uploadedFile = acceptedFiles[0];
+      const result = await parseFile(uploadedFile);
 
       if (!result.success) {
         setErrorMessage(result.error);
@@ -49,39 +49,11 @@ export default function CoordinateFileUploadScreen({
       }
 
       setCoordinates(result.data);
-      setFile(file);
+      setFileName(uploadedFile.name);
+      setFile(uploadedFile);
     },
-    [setCoordinates],
+    [setCoordinates, setFileName],
   );
-
-  /*if (fileType === "text") {
-    return (
-      <TextFileUploadScreen
-        MAX_NUMBER_OF_BYTES={MAX_NUMBER_OF_BYTES}
-        acceptedFileTypeObject={acceptedTextFileTypeObject}
-        handleAcceptedFile={handleAcceptedFile}
-        handleRejectedFile={handleRejectedFile}
-        handleError={handleError}
-        errorMessage={errorMessage}
-        file={file}
-      />
-    );
-  } else if (fileType === "visual") {
-    return (
-      <VisualFileUploadScreen
-        MAX_NUMBER_OF_BYTES={MAX_NUMBER_OF_BYTES}
-        acceptedFileTypeObject={acceptedVisualFileTypeObject}
-        handleAcceptedFile={handleAcceptedFile}
-        handleRejectedFile={handleRejectedFile}
-        handleError={handleError}
-        errorMessage={errorMessage}
-        file={file}
-      />
-    );
-  } else {
-    return <Typography>Error! You have not selected a file type!</Typography>;
-    // TODO: add safeguards / rerouting here. the user should've selected a file type at this point.
-  }*/
 
   return (
     <>
@@ -94,6 +66,7 @@ export default function CoordinateFileUploadScreen({
           handleError={handleError}
           errorMessage={errorMessage}
           file={file}
+          isFileUploaded={coordinates.length > 0}
         />
       ) : (
         <VisualFileUploadScreen
@@ -104,9 +77,9 @@ export default function CoordinateFileUploadScreen({
           handleError={handleError}
           errorMessage={errorMessage}
           file={file}
+          isFileUploaded={coordinates.length > 0}
         />
       )}
-      <Button onClick={handleNext}>Next</Button>
     </>
   );
 }
