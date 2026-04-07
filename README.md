@@ -117,6 +117,12 @@ Django migrations are applied automatically after every deploy or upgrade.
 | `stop`     | Stop all containers (database volume is preserved)            |
 | `clean`    | Remove all containers **and** the database volume (destructive) |
 
+Makefile targets use environment variables from the shell. Set `ALLOWED_HOSTS` (and any other overrides) before running:
+
+```sh
+ALLOWED_HOSTS=your.domain.com make deploy
+```
+
 > **Warning:** `make clean` (or `docker compose down -v`) destroys the database volume and all stored data. Use only when you want a fresh start.
 
 #### Running Individual Services
