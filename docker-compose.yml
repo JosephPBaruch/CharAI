@@ -6,6 +6,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-charai_test}
       POSTGRES_USER: ${POSTGRES_USER:-charai}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-testpass}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
     networks:
       - charai-net
     healthcheck:
@@ -46,6 +48,9 @@ services:
       - "${FRONTEND_PORT:-80}:80"
     networks:
       - charai-net
+
+volumes:
+  postgres-data:
 
 networks:
   charai-net:

@@ -79,15 +79,52 @@ python manage.py runserver
 
 ### Docker
 
-Pipeline scripts are provided to build and run services with Docker. From the repository root (or from an individual service directory) run the pipeline script:
+All services are orchestrated with Docker Compose. A **persistent named volume** (`postgres-data`) keeps PostgreSQL data across container restarts, so redeploying the application does not destroy the database.
+
+#### First Deploy
+
+Build and start all services (database, backend, frontend) and run migrations:
 
 ```sh
-# Run all pipelines from the repository root
 ./pipeline.sh --hosts HOST
-
-# Or run the backend pipeline from the backend directory
-cd backend
-./pipeline.sh --hosts HOST
+# or
+make deploy
 ```
 
 Replace `HOST` with the hostname or IP address to bind the services to.
+
+#### Upgrading (Redeploying Frontend/Backend)
+
+To deploy new code without losing database state, use the `--upgrade` flag. This stops and recreates **only** the frontend and backend containers while the database volume remains intact:
+
+```sh
+./pipeline.sh --upgrade --hosts HOST
+# or
+make upgrade
+```
+
+Django migrations are applied automatically after every deploy or upgrade.
+
+#### Makefile Targets
+
+| Target     | Description                                                   |
+| ---------- | ------------------------------------------------------------- |
+| `deploy`   | First-time deploy: build all services and run migrations      |
+| `upgrade`  | Rebuild frontend/backend only, preserve database              |
+| `migrate`  | Run Django migrations on the running backend container        |
+| `status`   | Show running container status                                 |
+| `logs`     | Tail logs for all services                                    |
+| `stop`     | Stop all containers (database volume is preserved)            |
+| `clean`    | Remove all containers **and** the database volume (destructive) |
+
+> **Warning:** `make clean` (or `docker compose down -v`) destroys the database volume and all stored data. Use only when you want a fresh start.
+
+#### Running Individual Services
+
+```sh
+# Start only the database
+cd database && ./pipeline.sh
+
+# Start only the backend (and its dependency: postgres)
+cd backend && ./pipeline.sh --hosts HOST
+```
