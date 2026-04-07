@@ -14,7 +14,6 @@ export interface CoordinateStepperProps {
 export interface CoordinateFileUploadScreenProps {
   fileType: FileTypes;
   setCoordinates: React.Dispatch<React.SetStateAction<LatLngLiteral[]>>;
-  setFileName: React.Dispatch<React.SetStateAction<string>>;
   coordinates: LatLngLiteral[];
 }
 

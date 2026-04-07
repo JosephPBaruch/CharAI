@@ -19,7 +19,6 @@ const MAX_NUMBER_OF_BYTES = 1024 * 1024 * 5; // 5 MB
 
 export default function CoordinateFileUploadScreen({
   setCoordinates,
-  setFileName,
   fileType,
   coordinates,
 }: CoordinateFileUploadScreenProps) {
@@ -49,10 +48,9 @@ export default function CoordinateFileUploadScreen({
       }
 
       setCoordinates(result.data);
-      setFileName(uploadedFile.name);
       setFile(uploadedFile);
     },
-    [setCoordinates, setFileName],
+    [setCoordinates],
   );
 
   return (

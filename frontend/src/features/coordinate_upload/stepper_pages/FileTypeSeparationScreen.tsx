@@ -9,7 +9,6 @@ import {
 import { useTheme } from "@mui/material/styles";
 import DescriptionIcon from "@mui/icons-material/Description";
 import MapIcon from "@mui/icons-material/Map";
-import BadgeIcon from "@mui/icons-material/Badge";
 import type { FileTypes, FileTypeSeparationScreenProps } from "./types";
 import { getStepContentStyles } from "../../../styles/theme";
 
@@ -183,13 +182,7 @@ export default function FileTypeSeparationScreen({
         ))}
       </Grid>
 
-      {/* Help Section */}
-      <Box sx={stepContentStyles.section}>
-        <Alert severity="info" icon={<BadgeIcon />}>
-          Not sure which format you have? Check your file's extension
-          (the part after the dot in the filename).
-        </Alert>
-      </Box>
+
 
       {/* Selected File Type Info */}
       {fileType && (

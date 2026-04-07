@@ -279,19 +279,6 @@ export default function TextFileUploadScreen({
           </Box>
         </Paper>
       )}
-
-      {/* Help Tip */}
-      <Typography
-        variant="caption"
-        sx={{
-          color: "text.secondary",
-          fontStyle: "italic",
-          pt: 1,
-        }}
-      >
-        Unsure about your file format? Check the example above or verify your
-        file ends with .csv or .json.
-      </Typography>
     </Box>
   );
 }

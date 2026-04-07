@@ -4,14 +4,12 @@ import {
   Step,
   StepLabel,
   Stepper,
-  Typography,
   CircularProgress,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useTheme } from "@mui/material/styles";
 import CoordinateFileUploadScreen from "./stepper_pages/FileUploadScreen";
 import CoordinateVisualizationScreen from "./stepper_pages/VisualizationScreen";
-import ConfirmationScreen from "./stepper_pages/ConfirmationScreen";
 import FileTypeSeparationScreen from "./stepper_pages/FileTypeSeparationScreen";
 import type { FileTypes } from "./stepper_pages/types";
 import type { LatLngLiteral } from "leaflet";
@@ -21,12 +19,7 @@ interface CoordinateStepperProps {
   handleClose: () => void;
 }
 
-const steps = [
-  "Choose file type",
-  "Upload your file",
-  "Visualize your farm",
-  "Confirm and finish",
-];
+const steps = ["Choose file type", "Upload your file", "Visualize your farm"];
 
 export default function CoordinateUploadStepper({
   handleClose,
@@ -34,12 +27,19 @@ export default function CoordinateUploadStepper({
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const stepContentStyles = getStepContentStyles(isDark);
+  const stepContentRef = useRef<HTMLDivElement>(null);
 
   const [fileType, setFileType] = useState<FileTypes>(null);
-  const [fileName, setFileName] = useState<string>("");
   const [coordinates, setCoordinates] = React.useState<LatLngLiteral[]>([]);
   const [activeStep, setActiveStep] = React.useState<number>(0);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+
+  // Scroll to top of step content when step changes
+  useEffect(() => {
+    if (stepContentRef.current) {
+      stepContentRef.current.scrollTop = 0;
+    }
+  }, [activeStep]);
 
   // Validation states
   const isFileTypeSelected = fileType !== null;
@@ -51,7 +51,12 @@ export default function CoordinateUploadStepper({
   const canProceedStep3 = isVisualized;
 
   const handleNext = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    if (activeStep === 2) {
+      // Last step - finish and close
+      handleFinish();
+    } else {
+      setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    }
   };
 
   const handleFinish = async () => {
@@ -68,24 +73,17 @@ export default function CoordinateUploadStepper({
     }
   };
 
-  const handleReset = () => {
-    setActiveStep(0);
-    setFileType(null);
-    setFileName("");
-    setCoordinates([]);
-  };
-
   return (
     <Box
       sx={{
         width: "100%",
         display: "flex",
         flexDirection: "column",
-        gap: 3,
+        gap: 2,
       }}
     >
       {/* Stepper Header */}
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 2 }}>
         <Stepper
           variant="elevation"
           activeStep={activeStep}
@@ -106,10 +104,12 @@ export default function CoordinateUploadStepper({
 
       {/* Step Content */}
       <Box
+        ref={stepContentRef}
         sx={{
           ...stepContentStyles.container,
           minHeight: 300,
           position: "relative",
+          overflow: "auto",
         }}
       >
         {/* Step 0: File Type Selection */}
@@ -124,7 +124,6 @@ export default function CoordinateUploadStepper({
         {activeStep === 1 && (
           <CoordinateFileUploadScreen
             setCoordinates={setCoordinates}
-            setFileName={setFileName}
             fileType={fileType}
             coordinates={coordinates}
           />
@@ -135,15 +134,6 @@ export default function CoordinateUploadStepper({
           <CoordinateVisualizationScreen
             coordinates={coordinates}
             setCoordinates={setCoordinates}
-          />
-        )}
-
-        {/* Step 3: Confirmation */}
-        {activeStep === 3 && (
-          <ConfirmationScreen
-            fileName={fileName}
-            coordinateCount={coordinates.length}
-            coordinates={coordinates}
           />
         )}
       </Box>
@@ -175,70 +165,39 @@ export default function CoordinateUploadStepper({
 
         {/* Right Side: Navigation Buttons */}
         <Box sx={{ display: "flex", gap: 2 }}>
-          {/* Next Button (visible on steps 0-2) */}
-          {activeStep < 3 && (
-            <Button
-              variant="contained"
-              onClick={handleNext}
-              disabled={
-                isLoading ||
-                (activeStep === 0 && !canProceedStep1) ||
-                (activeStep === 1 && !canProceedStep2) ||
-                (activeStep === 2 && !canProceedStep3)
-              }
-              sx={{
-                textTransform: "none",
-                fontWeight: 500,
-                minWidth: 100,
-              }}
-              data-testid="coordinate-upload-next-button"
-            >
-              {activeStep === 2 ? "Review" : "Next"}
-            </Button>
-          )}
-
-          {/* Finish Button (visible on step 3) */}
-          {activeStep === 3 && (
-            <Button
-              variant="contained"
-              onClick={handleFinish}
-              disabled={isLoading}
-              sx={{
-                textTransform: "none",
-                fontWeight: 500,
-                minWidth: 100,
-                display: "flex",
-                gap: 1,
-              }}
-              data-testid="coordinate-upload-finish-button"
-            >
-              {isLoading ? (
-                <>
-                  <CircularProgress size={20} color="inherit" />
-                  Finishing...
-                </>
-              ) : (
-                "Finish"
-              )}
-            </Button>
-          )}
+          {/* Next Button (visible on all steps) */}
+          <Button
+            variant="contained"
+            onClick={handleNext}
+            disabled={
+              isLoading ||
+              (activeStep === 0 && !canProceedStep1) ||
+              (activeStep === 1 && !canProceedStep2) ||
+              (activeStep === 2 && !canProceedStep3)
+            }
+            sx={{
+              textTransform: "none",
+              fontWeight: 500,
+              minWidth: 100,
+              display: "flex",
+              gap: 1,
+            }}
+            data-testid="coordinate-upload-next-button"
+          >
+            {isLoading ? (
+              <>
+                <CircularProgress size={20} color="inherit" />
+                Finishing...
+              </>
+            ) : activeStep === 2 ? (
+              "Finish"
+            ) : (
+              "Next"
+            )}
+          </Button>
         </Box>
       </Box>
 
-      {/* Helpful Tip */}
-      {activeStep === 0 && (
-        <Typography
-          variant="caption"
-          sx={{
-            color: "text.secondary",
-            pt: 1,
-            fontStyle: "italic",
-          }}
-        >
-          Different file formats require different handling. Choose the one that
-          matches your file.
-        </Typography>
-      )}
     </Box>
   );
 }
