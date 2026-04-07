@@ -2,8 +2,41 @@ import { createTheme } from "@mui/material/styles";
 import type { PaletteMode } from "@mui/material";
 import { COLORS } from "./colors";
 
+/**
+ * Helper function to generate dropzone styles based on theme
+ */
+export function getDropzoneStyles(isDark: boolean) {
+  return {
+    base: {
+      borderWidth: 2,
+      borderStyle: "dashed" as const,
+      borderRadius: 16,
+      borderColor: isDark ? COLORS.whiteLow : "#d1d5db",
+      backgroundColor: isDark ? COLORS.bgCard : "#f9fafb",
+      color: isDark ? COLORS.whiteHigh : "#1a1a2e",
+      transition: "border-color 0.24s ease, background-color 0.24s ease",
+      padding: "1.5rem",
+      minHeight: 160,
+      display: "flex" as const,
+      flexDirection: "column" as const,
+      justifyContent: "center" as const,
+      alignItems: "center" as const,
+      cursor: "pointer" as const,
+    },
+    active: {
+      borderColor: COLORS.indigo,
+      backgroundColor: isDark ? COLORS.indigoLight : "rgba(100, 108, 255, 0.05)",
+    },
+    reject: {
+      borderColor: COLORS.error,
+      backgroundColor: isDark ? COLORS.errorLight : "rgba(239, 68, 68, 0.08)",
+    },
+  };
+}
+
 export function createAppTheme(mode: PaletteMode) {
   const isDark = mode === "dark";
+  const dropzoneStyles = getDropzoneStyles(isDark);
 
   return createTheme({
     palette: {
@@ -27,6 +60,7 @@ export function createAppTheme(mode: PaletteMode) {
         primary: isDark ? COLORS.whiteHigh : "#1a1a2e",
         secondary: isDark ? COLORS.whiteMedium : "#64748b",
       },
+      divider: isDark ? COLORS.whiteVeryLow : "#e5e7eb",
     },
     typography: {
       fontFamily: "system-ui, Avenir, Helvetica, Arial, sans-serif",
@@ -60,6 +94,84 @@ export function createAppTheme(mode: PaletteMode) {
             "&:hover": {
               borderColor: isDark ? COLORS.whiteMedium : "#9ca3af",
               backgroundColor: isDark ? COLORS.whiteHover : "rgba(0,0,0,0.04)",
+            },
+          },
+        },
+      },
+      MuiTextField: {
+        styleOverrides: {
+          root: {
+            "& .MuiInputBase-input": {
+              color: isDark ? COLORS.whiteHigh : "#1a1a2e",
+              fontSize: "0.9rem",
+            },
+            "& .MuiInputLabel-root": {
+              color: isDark ? COLORS.whiteMedium : "#64748b",
+              "&.Mui-focused": {
+                color: COLORS.indigo,
+              },
+            },
+            "& .MuiOutlinedInput-notchedOutline": {
+              borderColor: isDark ? COLORS.whiteVeryLow : "#d1d5db",
+            },
+            "&:hover .MuiOutlinedInput-notchedOutline": {
+              borderColor: isDark ? COLORS.whiteLow : "#9ca3af",
+            },
+            "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: COLORS.indigo,
+            },
+          },
+        },
+      },
+      MuiStepper: {
+        styleOverrides: {
+          root: {
+            backgroundColor: "transparent",
+          },
+        },
+      },
+      MuiStepLabel: {
+        styleOverrides: {
+          label: {
+            color: isDark ? COLORS.whiteMedium : "#64748b",
+            "&.Mui-active": {
+              color: isDark ? COLORS.whiteHigh : "#1a1a2e",
+              fontWeight: 600,
+            },
+            "&.Mui-completed": {
+              color: isDark ? COLORS.whiteMedium : "#64748b",
+            },
+          },
+        },
+      },
+      MuiAlert: {
+        styleOverrides: {
+          root: {
+            borderRadius: 8,
+            fontWeight: 500,
+          },
+          standardError: {
+            backgroundColor: isDark ? `${COLORS.error}20` : "rgba(239, 68, 68, 0.08)",
+            color: COLORS.error,
+            border: `1px solid ${COLORS.error}`,
+            "& .MuiAlert-icon": {
+              color: COLORS.error,
+            },
+          },
+          standardWarning: {
+            backgroundColor: isDark ? `${COLORS.warning}20` : "rgba(251, 191, 36, 0.08)",
+            color: COLORS.warning,
+            border: `1px solid ${COLORS.warning}`,
+            "& .MuiAlert-icon": {
+              color: COLORS.warning,
+            },
+          },
+          standardInfo: {
+            backgroundColor: isDark ? "rgba(100, 108, 255, 0.1)" : "rgba(100, 108, 255, 0.05)",
+            color: COLORS.indigo,
+            border: `1px solid ${COLORS.indigoBorder}`,
+            "& .MuiAlert-icon": {
+              color: COLORS.indigo,
             },
           },
         },

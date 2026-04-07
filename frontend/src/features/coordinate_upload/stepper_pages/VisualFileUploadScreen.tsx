@@ -1,8 +1,8 @@
 import { Alert, Box, Typography } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import Dropzone from "react-dropzone";
-import { COLORS } from "../../../styles/colors";
 import type { FileUploadScreenProps } from "./types";
-import { dropzoneStyles } from "../../../styles/styles";
+import { getDropzoneStyles } from "../../../styles/theme";
 
 export default function VisualFileUploadScreen({
   MAX_NUMBER_OF_BYTES,
@@ -13,9 +13,13 @@ export default function VisualFileUploadScreen({
   errorMessage,
   file,
 }: FileUploadScreenProps) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+  const dropzoneStylesThemed = getDropzoneStyles(isDark);
+
   return (
     <Box>
-      <Typography variant="h6" sx={{ color: COLORS.whiteHigh, mb: 1 }}>
+      <Typography variant="h6" sx={{ color: "text.primary", mb: 1 }}>
         Upload a coordinate file
       </Typography>
       <Dropzone
@@ -28,9 +32,9 @@ export default function VisualFileUploadScreen({
       >
         {({ getRootProps, getInputProps, isDragActive, isDragReject }) => {
           const dropzoneSx = {
-            ...dropzoneStyles.base,
-            ...(isDragActive ? dropzoneStyles.active : {}),
-            ...(isDragReject ? dropzoneStyles.reject : {}),
+            ...dropzoneStylesThemed.base,
+            ...(isDragActive ? dropzoneStylesThemed.active : {}),
+            ...(isDragReject ? dropzoneStylesThemed.reject : {}),
           };
 
           return (
@@ -49,24 +53,16 @@ export default function VisualFileUploadScreen({
         }}
       </Dropzone>
       {!!errorMessage && (
-        <Alert
-          severity="error"
-          sx={{
-            backgroundColor: `${COLORS.error}20`,
-            color: COLORS.error,
-            border: `1px solid ${COLORS.error}`,
-            "& .MuiAlert-icon": {
-              color: COLORS.error,
-            },
-          }}
-        >
+        <Alert severity="error">
           {errorMessage}
         </Alert>
       )}
       {!!file && (
         <Box>
-          <Typography>Uploaded file:</Typography>
-          <Typography variant="subtitle2">{file.name}</Typography>
+          <Typography sx={{ color: "text.primary" }}>Uploaded file:</Typography>
+          <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>
+            {file.name}
+          </Typography>
         </Box>
       )}
     </Box>

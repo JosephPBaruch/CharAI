@@ -5,10 +5,10 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import Dropzone from "react-dropzone";
-import { COLORS } from "../../../styles/colors";
 import type { FileUploadScreenProps } from "./types";
-import { dropzoneStyles } from "../../../styles/styles";
+import { getDropzoneStyles } from "../../../styles/theme";
 import React from "react";
 
 const jsonExample = [
@@ -33,6 +33,9 @@ export default function TextFileUploadScreen({
   errorMessage,
   file,
 }: FileUploadScreenProps) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+  const dropzoneStylesThemed = getDropzoneStyles(isDark);
   const [fileExtension, setFileExtension] = React.useState<"csv" | "json">(
     "csv",
   );
@@ -46,15 +49,15 @@ export default function TextFileUploadScreen({
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ color: COLORS.whiteHigh, mb: 1 }}>
+      <Typography variant="h6" sx={{ color: "text.primary", mb: 1 }}>
         Upload a coordinate file
       </Typography>
-      <Typography>
+      <Typography sx={{ color: "text.secondary" }}>
         Before you upload a file, it must be correctly formatted. Review the
         formats below to see what we are expecting, and please adjust your file
         accordingly.
       </Typography>
-      <Typography>
+      <Typography sx={{ color: "text.secondary" }}>
         Note: it is okay if additional columns or information are included in
         your file. We just need the coordinates to included in your file
         accordinging to the file formats.
@@ -66,21 +69,25 @@ export default function TextFileUploadScreen({
       >
         <ToggleButton
           value="csv"
-          sx={{ textTransform: "none", color: COLORS.whiteHigh, mb: 1 }}
+          sx={{ textTransform: "none", mb: 1, color: "text.primary" }}
         >
           .csv
         </ToggleButton>
         <ToggleButton
           value="json"
-          sx={{ textTransform: "none", color: COLORS.whiteHigh, mb: 1 }}
+          sx={{ textTransform: "none", mb: 1, color: "text.primary" }}
         >
           .json
         </ToggleButton>
       </ToggleButtonGroup>
       {fileExtension === "csv" ? (
-        <pre>{csvExample}</pre>
+        <pre style={{ color: theme.palette.text.primary, overflow: "auto" }}>
+          {csvExample}
+        </pre>
       ) : (
-        <pre>{JSON.stringify(jsonExample, null, 2)}</pre>
+        <pre style={{ color: theme.palette.text.primary, overflow: "auto" }}>
+          {JSON.stringify(jsonExample, null, 2)}
+        </pre>
       )}
       <Dropzone
         accept={acceptedFileTypeObject}
@@ -92,9 +99,9 @@ export default function TextFileUploadScreen({
       >
         {({ getRootProps, getInputProps, isDragActive, isDragReject }) => {
           const dropzoneSx = {
-            ...dropzoneStyles.base,
-            ...(isDragActive ? dropzoneStyles.active : {}),
-            ...(isDragReject ? dropzoneStyles.reject : {}),
+            ...dropzoneStylesThemed.base,
+            ...(isDragActive ? dropzoneStylesThemed.active : {}),
+            ...(isDragReject ? dropzoneStylesThemed.reject : {}),
           };
 
           return (
@@ -113,24 +120,16 @@ export default function TextFileUploadScreen({
         }}
       </Dropzone>
       {!!errorMessage && (
-        <Alert
-          severity="error"
-          sx={{
-            backgroundColor: `${COLORS.error}20`,
-            color: COLORS.error,
-            border: `1px solid ${COLORS.error}`,
-            "& .MuiAlert-icon": {
-              color: COLORS.error,
-            },
-          }}
-        >
+        <Alert severity="error">
           {errorMessage}
         </Alert>
       )}
       {!!file && (
         <Box>
-          <Typography>Uploaded file:</Typography>
-          <Typography variant="subtitle2">{file.name}</Typography>
+          <Typography sx={{ color: "text.primary" }}>Uploaded file:</Typography>
+          <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>
+            {file.name}
+          </Typography>
         </Box>
       )}
     </Box>

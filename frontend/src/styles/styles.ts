@@ -1,28 +1,17 @@
-import { COLORS } from "./colors";
+import { getDropzoneStyles } from "./theme";
 
+/**
+ * Convenience export for getDropzoneStyles from theme.ts
+ * Use this in components by calling: getDropzoneStyles(theme.palette.mode === "dark")
+ * 
+ * @deprecated Use getDropzoneStyles from theme.ts directly
+ */
 export const dropzoneStyles = {
-  base: {
-    borderWidth: 2,
-    borderStyle: "dashed",
-    borderRadius: 16,
-    borderColor: COLORS.whiteLow,
-    backgroundColor: COLORS.bgCard,
-    color: COLORS.whiteHigh,
-    transition: "border-color 0.24s ease, background-color 0.24s ease",
-    padding: "1.5rem",
-    minHeight: 160,
-    display: "flex",
-    flexDirection: "column" as const,
-    justifyContent: "center",
-    alignItems: "center",
-    cursor: "pointer",
-  },
-  active: {
-    borderColor: COLORS.indigo,
-    backgroundColor: COLORS.indigoLight,
-  },
-  reject: {
-    borderColor: COLORS.error,
-    backgroundColor: COLORS.errorLight,
-  },
+  // Kept for backward compatibility - dark mode default
+  base: getDropzoneStyles(true).base,
+  active: getDropzoneStyles(true).active,
+  reject: getDropzoneStyles(true).reject,
 };
+
+export { getDropzoneStyles } from "./theme";
+

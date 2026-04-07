@@ -1,21 +1,26 @@
 import { Box, Stack, Typography } from "@mui/material";
-import { COLORS } from "../../styles/colors";
+import { useTheme } from "@mui/material/styles";
 import ManualCoordinateUpload from "./ManualCoordinateUpload";
 import CoordinateFileUploadModal from "../../components/CoordinateFileUploadModal";
 
 export default function FileUploadSection() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+
   return (
     <Box
       sx={{
         p: 2.5,
-        border: `1px dashed ${COLORS.indigo}`,
+        border: `1px dashed ${theme.palette.primary.main}`,
         borderRadius: 2,
-        backgroundColor: COLORS.indigoVeryLight,
+        backgroundColor: isDark
+          ? "rgba(100, 108, 255, 0.08)"
+          : "rgba(100, 108, 255, 0.04)",
       }}
     >
       <Typography
         variant="h6"
-        sx={{ color: COLORS.indigo, fontWeight: 600, mb: 1.5 }}
+        sx={{ color: "primary.main", fontWeight: 600, mb: 1.5 }}
       >
         Set Farm Coordinates
       </Typography>
@@ -25,8 +30,10 @@ export default function FileUploadSection() {
         <Box
           sx={{
             p: 2,
-            backgroundColor: COLORS.indigoMedium,
-            border: `2px solid ${COLORS.indigo}`,
+            backgroundColor: isDark
+              ? "rgba(100, 108, 255, 0.12)"
+              : "rgba(100, 108, 255, 0.06)",
+            border: `2px solid ${theme.palette.primary.main}`,
             borderRadius: 1.5,
           }}
         >
