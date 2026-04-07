@@ -68,6 +68,10 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
         geotiff_data = GeoParser(logger=logger, path=tiff_file_path).parse()
         terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
 
+        logger.info("Fetching Soil Data")
+        fetcher = SoilInfoFetcher(logger=logger)
+        terrain_df = fetcher.add_soil_moisture(terrain_df)
+
         logger.info("Calculating Yield")
         calculator = YieldCalculator(logger=logger)
         yield_results_df = calculator.calculate(terrain_df.copy())
