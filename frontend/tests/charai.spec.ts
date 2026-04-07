@@ -64,6 +64,7 @@ test.describe("CharAI.feature", () => {
     await page.goto(baseUrl);
     await expect(page).toHaveURL(/localhost/);
 
+    await page.click('[data-testid="profile-menu-button"]');
     await page.click('[data-testid="logout-button"]');
     await expect(page).toHaveURL(baseUrl);
 
@@ -363,5 +364,99 @@ test.describe("CharAI.feature", () => {
     await expect(
       page.getByRole("heading", { name: "Create New Field" }),
     ).not.toBeVisible();
+  });
+
+  test("User can view profile information", async ({ page }) => {
+    const timestamp = Date.now();
+    const uniqueUsername = `testuser${timestamp}`;
+    const password = "TestPassword123";
+
+    await registerUser(page, uniqueUsername, password);
+
+    // Open profile menu
+    await page.click('[data-testid="profile-menu-button"]');
+
+    // Click Profile link
+    await page.click('[data-testid="profile-link"]');
+    await expect(page).toHaveURL(/\/profile/);
+
+    // Verify profile information is displayed
+    await expect(page.getByTestId("profile-username")).toHaveText(uniqueUsername);
+    await expect(page.getByTestId("profile-name")).toContainText(uniqueUsername);
+    await expect(page.getByTestId("profile-email")).toContainText(
+      `testuser${uniqueUsername}@example.com`,
+    );
+  });
+
+  test("User can change password", async ({ page }) => {
+    const timestamp = Date.now();
+    const uniqueUsername = `testuser${timestamp}`;
+    const password = "TestPassword123";
+    const newPassword = "NewPassword456!";
+
+    await registerUser(page, uniqueUsername, password);
+
+    // Navigate to profile
+    await page.click('[data-testid="profile-menu-button"]');
+    await page.click('[data-testid="profile-link"]');
+    await expect(page).toHaveURL(/\/profile/);
+
+    // Fill in password change form
+    await page.fill('[data-testid="current-password-input"]', password);
+    await page.fill('[data-testid="new-password-input"]', newPassword);
+    await page.fill('[data-testid="confirm-new-password-input"]', newPassword);
+
+    // Submit password change
+    await page.click('[data-testid="change-password-button"]');
+
+    // Verify success
+    await expect(page.getByTestId("password-success-alert")).toBeVisible({
+      timeout: 10_000,
+    });
+
+    // Logout and login with new password to verify it works
+    await page.click('[data-testid="profile-menu-button"]');
+    await page.click('[data-testid="logout-button"]');
+    await expect(page.locator('[data-testid="login-button"]')).toBeVisible();
+
+    await loginUser(page, uniqueUsername, newPassword);
+  });
+
+  test("User can delete account", async ({ page }) => {
+    const timestamp = Date.now();
+    const uniqueUsername = `testuser${timestamp}`;
+    const password = "TestPassword123";
+
+    await registerUser(page, uniqueUsername, password);
+
+    // Navigate to profile
+    await page.click('[data-testid="profile-menu-button"]');
+    await page.click('[data-testid="profile-link"]');
+    await expect(page).toHaveURL(/\/profile/);
+
+    // Click delete account button
+    await page.click('[data-testid="delete-account-button"]');
+
+    // Verify confirmation dialog appears
+    await expect(page.getByText("Confirm Account Deletion")).toBeVisible();
+
+    // Enter password and confirm
+    await page.fill('[data-testid="delete-confirm-password-input"]', password);
+    await page.click('[data-testid="delete-confirm-button"]');
+
+    // Verify redirected to landing page and logged out
+    await expect(page.locator('[data-testid="login-button"]')).toBeVisible({
+      timeout: 10_000,
+    });
+
+    // Verify cannot login with deleted account
+    await page.click('[data-testid="login-button"]');
+    await expect(page).toHaveURL(/\/login/);
+    await page.fill('input[name="username"]', uniqueUsername);
+    await page.fill('input[name="password"]', password);
+    await page.click('button[type="submit"]');
+
+    // Should see an error
+    await expect(page.locator(".MuiAlert-root")).toBeVisible({ timeout: 5_000 });
   });
 });

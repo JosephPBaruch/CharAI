@@ -4,6 +4,10 @@ import {
   type AuthResponse,
   type UserResponse,
   type LogoutResponse,
+  type ChangePasswordRequest,
+  type ChangePasswordResponse,
+  type DeleteAccountRequest,
+  type DeleteAccountResponse,
 } from "../types/auth";
 
 const AUTH_URL = getApiUrl() + "/auth";
@@ -139,6 +143,56 @@ export const logout = async (): Promise<LogoutResponse> => {
   } finally {
     clearToken();
   }
+};
+
+export const changePassword = async (
+  data: ChangePasswordRequest,
+): Promise<ChangePasswordResponse> => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  const token = getToken();
+  if (token) {
+    headers["Authorization"] = `Token ${token}`;
+  }
+
+  const response = await fetch(`${AUTH_URL}/change-password/`, {
+    method: "POST",
+    headers,
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
+
+  const result = await handleResponse(response);
+
+  if (result && result.token) {
+    storeToken(result.token);
+  }
+
+  return result as ChangePasswordResponse;
+};
+
+export const deleteAccount = async (
+  data: DeleteAccountRequest,
+): Promise<DeleteAccountResponse> => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  const token = getToken();
+  if (token) {
+    headers["Authorization"] = `Token ${token}`;
+  }
+
+  const response = await fetch(`${AUTH_URL}/delete-account/`, {
+    method: "DELETE",
+    headers,
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
+
+  const result = await handleResponse(response);
+  clearToken();
+  return result as DeleteAccountResponse;
 };
 
 export const getAuthToken = getToken;

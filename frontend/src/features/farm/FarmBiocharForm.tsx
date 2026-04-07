@@ -134,9 +134,6 @@ export default function FarmBiocharForm({
                 },
                 data,
               };
-              console.debug(
-                `Sending the following field payload to the backend: ${JSON.stringify(payload)}`,
-              );
               try {
                 await POSTFieldData(payload);
                 setFormSubmitted(true);

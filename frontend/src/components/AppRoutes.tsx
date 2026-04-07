@@ -3,6 +3,7 @@ import App from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
 import SignupPage from "../pages/SignupPage";
 import HomePage from "../pages/HomePage";
+import ProfilePage from "../pages/ProfilePage";
 import { ProtectedRoute, PublicRoute } from "../features/auth";
 // import PrescriptionsPage from "../pages/PrescriptionsPage";
 import FieldPage from "../pages/FieldPage";
@@ -21,6 +22,12 @@ export default function AppRoutes() {
       <Route
         path="/signup"
         element={<PublicRoute element={<SignupPage />} />}
+      />
+
+      {/* Profile page - requires authentication */}
+      <Route
+        path="/profile"
+        element={<ProtectedRoute element={<ProfilePage />} />}
       />
 
       {/* Prescriptions page - requires authentication
