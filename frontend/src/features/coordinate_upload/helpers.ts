@@ -11,18 +11,28 @@ export const parseFile = async (file: File): Promise<ParseResult> => {
     return {
       success: false,
       error:
-        "The input is empty or the file was read improperly. Please try again.",
+        "Unable to read the file. The file may be corrupted or too large. Please try uploading a different file.",
     };
   const fileExtension = getFileExtension(file.name);
-  if (fileExtension === "csv") return parseCSVFile(await file.text());
-  if (fileExtension === "kml") return parseKMLFile(await file.text());
-  if (fileExtension === "json") return parseJSONFile(await file.text());
-  if (fileExtension === "geojson") return parseGeoJSONFile(await file.text());
-  if (fileExtension === "zip") return parseSHPFile(await file.arrayBuffer());
+  
+  try {
+    if (fileExtension === "csv") return parseCSVFile(await file.text());
+    if (fileExtension === "kml") return parseKMLFile(await file.text());
+    if (fileExtension === "json") return parseJSONFile(await file.text());
+    if (fileExtension === "geojson") return parseGeoJSONFile(await file.text());
+    if (fileExtension === "zip") return parseSHPFile(await file.arrayBuffer());
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return {
+      success: false,
+      error: `Failed to parse file: ${errorMessage}. Please check the file format and try again.`,
+    };
+  }
+
   return {
     success: false,
     error:
-      "The uploaded file is of an unsupported type. Please try again with a different file type.",
+      "Unsupported file type. Please upload a CSV, JSON, GeoJSON, KML, or Shapefile (.zip).",
   };
 };
 
@@ -31,101 +41,179 @@ const getFileExtension = (fileName: string) => {
 };
 
 const parseCSVFile = (fileContent: string): ParseResult => {
-  const parsedContent = Papa.parse(fileContent, {
-    header: true,
-    dynamicTyping: true,
-    skipEmptyLines: true,
-  }).data;
+  try {
+    const parsedContent = Papa.parse(fileContent, {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+    }).data;
 
-  if (!isLatLngArray(parsedContent) || parsedContent.length < 3)
+    if (!isLatLngArray(parsedContent)) {
+      return {
+        success: false,
+        error: "CSV file must contain columns named 'lat' and 'lng' with valid coordinate values.",
+      };
+    }
+    
+    if (parsedContent.length < 3) {
+      return {
+        success: false,
+        error: "Farm boundary must have at least 3 coordinate points. Your file has " + parsedContent.length + ".",
+      };
+    }
+    
+    return {
+      success: true,
+      data: parsedContent,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return {
       success: false,
-      error: "The input is incorrectly formatted.",
+      error: `Failed to parse CSV file: ${errorMessage}. Ensure the file is properly formatted.`,
     };
-  return {
-    success: true,
-    data: parsedContent,
-  };
+  }
 };
 
 const parseKMLFile = (fileContent: string): ParseResult => {
-  const DOMParser = xmldom.DOMParser;
-  const parsedKML = new DOMParser().parseFromString(fileContent);
-  const converted = kml.kml(parsedKML);
-  if (!hasOnlyGeometries(converted)) {
+  try {
+    const DOMParser = xmldom.DOMParser;
+    const parsedKML = new DOMParser().parseFromString(fileContent);
+    const converted = kml.kml(parsedKML);
+    
+    if (!hasOnlyGeometries(converted)) {
+      return {
+        success: false,
+        error: "KML file contains features without geometry. Ensure all features have valid coordinates.",
+      };
+    }
+    
+    const coordsAsJSON = normalizeToJSON(converted);
+    
+    if (coordsAsJSON.length < 3) {
+      return {
+        success: false,
+        error: "Farm boundary must have at least 3 coordinate points. Your file has " + coordsAsJSON.length + ".",
+      };
+    }
+    
+    return {
+      success: true,
+      data: coordsAsJSON,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return {
       success: false,
-      error: "The input is incorrectly formatted.",
+      error: `Failed to parse KML file: ${errorMessage}. Ensure the file is a valid KML document.`,
     };
   }
-  const coordsAsJSON = normalizeToJSON(converted);
-  if (coordsAsJSON.length < 3) {
-    return {
-      success: false,
-      error: "The input is incorrectly formatted.",
-    };
-  }
-  return {
-    success: true,
-    data: coordsAsJSON,
-  };
 };
 
 const parseSHPFile = async (
   fileArrayBuffer: ArrayBuffer,
 ): Promise<ParseResult> => {
-  const geojson = await shp(fileArrayBuffer);
-  if (Array.isArray(geojson)) {
+  try {
+    const geojson = await shp(fileArrayBuffer);
+    
+    if (Array.isArray(geojson)) {
+      return {
+        success: false,
+        error: "Shapefile must contain a single layer. Your file contains multiple layers.",
+      };
+    }
+    
+    const { fileName, ...filteredGeoJSON } = geojson;
+    const coordsAsJSON = normalizeToJSON(filteredGeoJSON);
+    
+    if (coordsAsJSON.length < 3) {
+      return {
+        success: false,
+        error: "Farm boundary must have at least 3 coordinate points. Your file has " + coordsAsJSON.length + ".",
+      };
+    }
+    
+    return {
+      success: true,
+      data: coordsAsJSON,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return {
       success: false,
-      error: "The input is incorrectly formatted.",
+      error: `Failed to parse Shapefile: ${errorMessage}. Ensure you've uploaded a valid ZIP file containing all required shapefile components (.shp, .shx, .dbf).`,
     };
   }
-  const { fileName, ...filteredGeoJSON } = geojson;
-  const coordsAsJSON = normalizeToJSON(filteredGeoJSON);
-  if (coordsAsJSON.length < 3) {
-    return {
-      success: false,
-      error: "The input is incorrectly formatted.",
-    };
-  }
-  return {
-    success: true,
-    data: coordsAsJSON,
-  };
 };
 
 const parseJSONFile = (fileContent: string): ParseResult => {
-  const parsedContent: unknown[] = JSON.parse(fileContent);
-  if (!isLatLngArray(parsedContent))
+  try {
+    const parsedContent: unknown[] = JSON.parse(fileContent);
+    
+    if (!isLatLngArray(parsedContent)) {
+      if (!Array.isArray(parsedContent)) {
+        return {
+          success: false,
+          error: "JSON file must contain an array of coordinates.",
+        };
+      }
+      return {
+        success: false,
+        error: "Each coordinate must have 'lat' and 'lng' properties with numeric values.",
+      };
+    }
+    
+    if (parsedContent.length < 3) {
+      return {
+        success: false,
+        error: "Farm boundary must have at least 3 coordinate points. Your file has " + parsedContent.length + ".",
+      };
+    }
+    
+    return {
+      success: true,
+      data: parsedContent,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return {
       success: false,
-      error: "The input is incorrectly formatted.",
+      error: `Failed to parse JSON file: ${errorMessage}. Ensure the file contains valid JSON.`,
     };
-  return {
-    success: true,
-    data: parsedContent,
-  };
+  }
 };
 
 const parseGeoJSONFile = (fileContent: string): ParseResult => {
-  const parsedContent: unknown = JSON.parse(fileContent);
-  if (!isFeatureCollection(parsedContent))
+  try {
+    const parsedContent: unknown = JSON.parse(fileContent);
+    
+    if (!isFeatureCollection(parsedContent)) {
+      return {
+        success: false,
+        error: "GeoJSON file must contain a FeatureCollection with at least one feature.",
+      };
+    }
+    
+    const coordsAsJSON = normalizeToJSON(parsedContent);
+    
+    if (coordsAsJSON.length < 3) {
+      return {
+        success: false,
+        error: "Farm boundary must have at least 3 coordinate points. Your file has " + coordsAsJSON.length + ".",
+      };
+    }
+    
     return {
-      success: false,
-      error: "The input is incorrectly formatted.",
+      success: true,
+      data: coordsAsJSON,
     };
-  const coordsAsJSON = normalizeToJSON(parsedContent);
-  if (coordsAsJSON.length < 3) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return {
       success: false,
-      error: "The input is incorrectly formatted.",
+      error: `Failed to parse GeoJSON file: ${errorMessage}. Ensure the file contains valid GeoJSON.`,
     };
   }
-  return {
-    success: true,
-    data: coordsAsJSON,
-  };
 };
 
 const isLatLngArray = (data: unknown): data is LatLngLiteral[] => {
@@ -160,9 +248,15 @@ const isFeatureCollection = (
 };
 
 const normalizeToJSON = (geojson: GeoJSON.GeoJSON) => {
-  const coords = coordAll(geojson);
-  const formattedCoords: LatLngLiteral[] = coords.map((pair) => {
-    return { lng: pair[0], lat: pair[1] };
-  });
-  return formattedCoords;
+  try {
+    const coords = coordAll(geojson);
+    const formattedCoords: LatLngLiteral[] = coords.map((pair) => {
+      return { lng: pair[0], lat: pair[1] };
+    });
+    return formattedCoords;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Error normalizing GeoJSON coordinates:", errorMessage);
+    return [];
+  }
 };

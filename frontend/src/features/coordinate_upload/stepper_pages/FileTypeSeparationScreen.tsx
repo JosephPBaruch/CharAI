@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Button,
   Grid,
@@ -18,7 +17,6 @@ interface FileTypeOption {
   description: string;
   formats: string[];
   icon: React.ReactNode;
-  helpText: string;
 }
 
 const fileTypeOptions: FileTypeOption[] = [
@@ -28,8 +26,6 @@ const fileTypeOptions: FileTypeOption[] = [
     description: "Spreadsheet or data interchange format",
     formats: [".csv", ".json"],
     icon: <DescriptionIcon sx={{ fontSize: 40 }} />,
-    helpText:
-      "Use this if you have coordinates in a spreadsheet (CSV) or JSON format. Columns/keys must include lat and lng.",
   },
   {
     type: "visual",
@@ -37,8 +33,6 @@ const fileTypeOptions: FileTypeOption[] = [
     description: "Geographic data formats",
     formats: [".geojson", ".kml", ".shp"],
     icon: <MapIcon sx={{ fontSize: 40 }} />,
-    helpText:
-      "Use this for geographic formats that already contain boundary definitions.",
   },
 ];
 
@@ -181,45 +175,6 @@ export default function FileTypeSeparationScreen({
           </Grid>
         ))}
       </Grid>
-
-
-
-      {/* Selected File Type Info */}
-      {fileType && (
-        <Paper
-          elevation={0}
-          sx={{
-            p: 2,
-            backgroundColor: isDark ? "rgba(100, 108, 255, 0.05)" : "rgba(100, 108, 255, 0.02)",
-            border: `1px solid ${isDark ? "rgba(100, 108, 255, 0.2)" : "rgba(100, 108, 255, 0.15)"}`,
-            borderRadius: 1,
-          }}
-        >
-          <Typography
-            variant="caption"
-            sx={{
-              color: "text.secondary",
-              display: "block",
-              mb: 0.5,
-              textTransform: "uppercase",
-              fontSize: "0.7rem",
-              fontWeight: 600,
-              letterSpacing: "0.05em",
-            }}
-          >
-            About your selection
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{
-              color: "text.primary",
-              lineHeight: 1.6,
-            }}
-          >
-            {fileTypeOptions.find((opt) => opt.type === fileType)?.helpText}
-          </Typography>
-        </Paper>
-      )}
     </Box>
   );
 }

@@ -55,7 +55,7 @@ export default function CoordinateUploadStepper({
       // Last step - finish and close
       handleFinish();
     } else {
-      setActiveStep((prevActiveStep) => prevActiveStep + 1);
+      setActiveStep((prevActiveStep: number) => prevActiveStep + 1);
     }
   };
 
@@ -149,19 +149,34 @@ export default function CoordinateUploadStepper({
           borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "#e5e7eb"}`,
         }}
       >
-        {/* Left Side: Cancel/Back */}
-        <Button
-          variant="outlined"
-          onClick={handleClose}
-          disabled={isLoading}
-          sx={{
-            textTransform: "none",
-            fontWeight: 500,
-          }}
-          data-testid="coordinate-upload-cancel-button"
-        >
-          Cancel
-        </Button>
+        {/* Left Side: Cancel (step 0) / Back (other steps) */}
+        {activeStep === 0 ? (
+          <Button
+            variant="outlined"
+            onClick={handleClose}
+            disabled={isLoading}
+            sx={{
+              textTransform: "none",
+              fontWeight: 500,
+            }}
+            data-testid="coordinate-upload-cancel-button"
+          >
+            Cancel
+          </Button>
+        ) : (
+          <Button
+            variant="outlined"
+            onClick={() => setActiveStep((prev: number) => prev - 1)}
+            disabled={isLoading}
+            sx={{
+              textTransform: "none",
+              fontWeight: 500,
+            }}
+            data-testid="coordinate-upload-back-button"
+          >
+            Back
+          </Button>
+        )}
 
         {/* Right Side: Navigation Buttons */}
         <Box sx={{ display: "flex", gap: 2 }}>

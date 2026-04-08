@@ -43,14 +43,14 @@ export function getStepContentStyles(isDark: boolean) {
     container: {
       display: "flex" as const,
       flexDirection: "column" as const,
-      gap: 3,
-      py: 3,
+      gap: 1.5,
+      py: 1,
       px: 0,
     },
     section: {
       display: "flex" as const,
       flexDirection: "column" as const,
-      gap: 2,
+      gap: 1,
     },
   };
 }

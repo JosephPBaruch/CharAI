@@ -176,42 +176,6 @@ export default function VisualFileUploadScreen({
         </Paper>
       )}
 
-      {/* Help Information */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 2,
-          backgroundColor: isDark ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.02)",
-          border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "#e5e7eb"}`,
-          borderRadius: 1,
-        }}
-      >
-        <Typography
-          variant="caption"
-          sx={{
-            color: "text.secondary",
-            display: "block",
-            mb: 1,
-            textTransform: "uppercase",
-            fontSize: "0.7rem",
-            fontWeight: 600,
-            letterSpacing: "0.05em",
-          }}
-        >
-          Tip for Shapefiles
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{
-            color: "text.secondary",
-            fontSize: "0.875rem",
-            lineHeight: 1.5,
-          }}
-        >
-          Shapefiles require multiple files (.shp, .shx, .dbf, etc.). Create a
-          ZIP archive containing all files and upload it as a single file.
-        </Typography>
-      </Paper>
     </Box>
   );
 }
