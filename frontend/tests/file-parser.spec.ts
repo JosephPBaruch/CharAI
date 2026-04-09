@@ -72,11 +72,11 @@ test.describe("CharAI.feature.file-parser", () => {
     await page.getByTestId("coordinate-upload-next-button").click();
 
     // Verify we're on the upload step
-    await expect(page.getByRole("heading", { name: "Upload your file" })).toBeVisible(
-      {
-        timeout: 5_000,
-      },
-    );
+    await expect(
+      page.getByRole("heading", { name: "Upload your file" }),
+    ).toBeVisible({
+      timeout: 5_000,
+    });
   };
 
   const setupFieldFormAndOpenUpload = async (page: Page) => {
@@ -112,7 +112,7 @@ test.describe("CharAI.feature.file-parser", () => {
 
     // Upload CSV file via dropzone
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles("tests/fixtures/valid_coordinates.csv");
+    await fileInput.setInputFiles("./fixtures/valid_coordinates.csv");
 
     // Wait for file to be processed
     await page.waitForTimeout(500);
@@ -129,7 +129,7 @@ test.describe("CharAI.feature.file-parser", () => {
     await chooseFileType(page, "text");
 
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles("tests/fixtures/valid_coordinates.json");
+    await fileInput.setInputFiles("./fixtures/valid_coordinates.json");
 
     await page.waitForTimeout(500);
 
@@ -144,7 +144,7 @@ test.describe("CharAI.feature.file-parser", () => {
     await chooseFileType(page, "visual");
 
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles("tests/fixtures/valid_coordinates.geojson");
+    await fileInput.setInputFiles("./fixtures/valid_coordinates.geojson");
 
     await page.waitForTimeout(500);
 
@@ -159,7 +159,7 @@ test.describe("CharAI.feature.file-parser", () => {
     await chooseFileType(page, "visual");
 
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles("tests/fixtures/valid_coordinates.kml");
+    await fileInput.setInputFiles("./fixtures/valid_coordinates.kml");
 
     await page.waitForTimeout(500);
 
@@ -177,7 +177,7 @@ test.describe("CharAI.feature.file-parser", () => {
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      "tests/fixtures/invalid_coordinates_insufficient.csv",
+      "./fixtures/invalid_coordinates_insufficient.csv",
     );
 
     // Wait for validation error to appear
@@ -200,7 +200,7 @@ test.describe("CharAI.feature.file-parser", () => {
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      "tests/fixtures/invalid_coordinates_missing_columns.csv",
+      "./fixtures/invalid_coordinates_missing_columns.csv",
     );
 
     // Expect error about missing columns
@@ -222,7 +222,7 @@ test.describe("CharAI.feature.file-parser", () => {
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      "tests/fixtures/invalid_coordinates_non_numeric.csv",
+      "./fixtures/invalid_coordinates_non_numeric.csv",
     );
 
     // Should show validation error
@@ -244,7 +244,7 @@ test.describe("CharAI.feature.file-parser", () => {
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      "tests/fixtures/invalid_coordinates_insufficient.json",
+      "./fixtures/invalid_coordinates_insufficient.json",
     );
 
     await expect(page.getByText(/at least 3 coordinate points/i)).toBeVisible({
@@ -263,7 +263,7 @@ test.describe("CharAI.feature.file-parser", () => {
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      "tests/fixtures/invalid_geojson_no_geometry.geojson",
+      "./fixtures/invalid_geojson_no_geometry.geojson",
     );
 
     // Expect geometry-related error
@@ -285,7 +285,7 @@ test.describe("CharAI.feature.file-parser", () => {
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      "tests/fixtures/invalid_geojson_insufficient_coords.geojson",
+      "./fixtures/invalid_geojson_insufficient_coords.geojson",
     );
 
     await expect(page.getByText(/at least 3 coordinate points/i)).toBeVisible({
@@ -303,7 +303,7 @@ test.describe("CharAI.feature.file-parser", () => {
     await chooseFileType(page, "visual");
 
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles("tests/fixtures/invalid_coordinates.kml");
+    await fileInput.setInputFiles("./fixtures/invalid_coordinates.kml");
 
     // Expect error about geometry or coordinates
     await expect(
