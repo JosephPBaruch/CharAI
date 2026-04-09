@@ -11,7 +11,7 @@ export default function CoordinateVisualizationScreen({
 }: CoordinateScreenProps) {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
-  const stepContentStyles = getStepContentStyles(isDark);
+  const stepContentStyles = getStepContentStyles();
 
   return (
     <Box sx={stepContentStyles.container}>

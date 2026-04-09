@@ -39,7 +39,7 @@ export default function TextFileUploadScreen({
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const dropzoneStylesThemed = getDropzoneStyles(isDark);
-  const stepContentStyles = getStepContentStyles(isDark);
+  const stepContentStyles = getStepContentStyles();
   const [fileExtension, setFileExtension] = React.useState<"csv" | "json">(
     "csv",
   );

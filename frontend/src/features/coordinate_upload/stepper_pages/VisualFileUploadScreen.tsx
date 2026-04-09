@@ -18,7 +18,7 @@ export default function VisualFileUploadScreen({
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const dropzoneStylesThemed = getDropzoneStyles(isDark);
-  const stepContentStyles = getStepContentStyles(isDark);
+  const stepContentStyles = getStepContentStyles();
 
   return (
     <Box sx={stepContentStyles.container}>
