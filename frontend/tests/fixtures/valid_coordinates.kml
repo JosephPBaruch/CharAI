@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Farm Boundary</name>
+    <Placemark>
+      <name>North Field</name>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              -116.97727203369142,46.75520514295208,0
+              -116.94499969482423,46.75214798439814,0
+              -116.96405410766603,46.74591554718295,0
+              -116.97727203369142,46.75520514295208,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>
