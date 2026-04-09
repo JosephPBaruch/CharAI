@@ -2,9 +2,6 @@ import { createTheme } from "@mui/material/styles";
 import type { PaletteMode } from "@mui/material";
 import { COLORS } from "./colors";
 
-/**
- * Helper function to generate dropzone styles based on theme
- */
 export function getDropzoneStyles(isDark: boolean) {
   return {
     base: {
@@ -25,7 +22,9 @@ export function getDropzoneStyles(isDark: boolean) {
     },
     active: {
       borderColor: COLORS.indigo,
-      backgroundColor: isDark ? COLORS.indigoLight : "rgba(100, 108, 255, 0.05)",
+      backgroundColor: isDark
+        ? COLORS.indigoLight
+        : "rgba(100, 108, 255, 0.05)",
     },
     reject: {
       borderColor: COLORS.error,
@@ -34,11 +33,7 @@ export function getDropzoneStyles(isDark: boolean) {
   };
 }
 
-/**
- * Helper function to generate step content container styles
- * Used in stepper-based modal flows
- */
-export function getStepContentStyles(isDark: boolean) {
+export function getStepContentStyles() {
   return {
     container: {
       display: "flex" as const,
@@ -55,10 +50,7 @@ export function getStepContentStyles(isDark: boolean) {
   };
 }
 
-/**
- * Helper function to generate modal footer navigation styles
- */
-export function getModalFooterStyles() {
+export function getModalFooterStyles(isDark: boolean) {
   return {
     container: {
       display: "flex" as const,
@@ -73,7 +65,6 @@ export function getModalFooterStyles() {
 
 export function createAppTheme(mode: PaletteMode) {
   const isDark = mode === "dark";
-  const dropzoneStyles = getDropzoneStyles(isDark);
 
   return createTheme({
     palette: {
@@ -154,9 +145,10 @@ export function createAppTheme(mode: PaletteMode) {
             "&:hover .MuiOutlinedInput-notchedOutline": {
               borderColor: isDark ? COLORS.whiteLow : "#9ca3af",
             },
-            "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: COLORS.indigo,
-            },
+            "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+              {
+                borderColor: COLORS.indigo,
+              },
           },
         },
       },
@@ -188,7 +180,9 @@ export function createAppTheme(mode: PaletteMode) {
             fontWeight: 500,
           },
           standardError: {
-            backgroundColor: isDark ? `${COLORS.error}20` : "rgba(239, 68, 68, 0.08)",
+            backgroundColor: isDark
+              ? `${COLORS.error}20`
+              : "rgba(239, 68, 68, 0.08)",
             color: COLORS.error,
             border: `1px solid ${COLORS.error}`,
             "& .MuiAlert-icon": {
@@ -196,7 +190,9 @@ export function createAppTheme(mode: PaletteMode) {
             },
           },
           standardWarning: {
-            backgroundColor: isDark ? `${COLORS.warning}20` : "rgba(251, 191, 36, 0.08)",
+            backgroundColor: isDark
+              ? `${COLORS.warning}20`
+              : "rgba(251, 191, 36, 0.08)",
             color: COLORS.warning,
             border: `1px solid ${COLORS.warning}`,
             "& .MuiAlert-icon": {
@@ -204,7 +200,9 @@ export function createAppTheme(mode: PaletteMode) {
             },
           },
           standardInfo: {
-            backgroundColor: isDark ? "rgba(100, 108, 255, 0.1)" : "rgba(100, 108, 255, 0.05)",
+            backgroundColor: isDark
+              ? "rgba(100, 108, 255, 0.1)"
+              : "rgba(100, 108, 255, 0.05)",
             color: COLORS.indigo,
             border: `1px solid ${COLORS.indigoBorder}`,
             "& .MuiAlert-icon": {
@@ -258,7 +256,9 @@ export function createAppTheme(mode: PaletteMode) {
       MuiModal: {
         styleOverrides: {
           backdrop: {
-            backgroundColor: isDark ? "rgba(0, 0, 0, 0.7)" : "rgba(0, 0, 0, 0.5)",
+            backgroundColor: isDark
+              ? "rgba(0, 0, 0, 0.7)"
+              : "rgba(0, 0, 0, 0.5)",
             backdropFilter: "blur(4px)",
           },
         },
@@ -305,7 +305,9 @@ export function createAppTheme(mode: PaletteMode) {
           root: {
             color: isDark ? COLORS.whiteMedium : "#64748b",
             "&:hover": {
-              backgroundColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.04)",
+              backgroundColor: isDark
+                ? "rgba(255, 255, 255, 0.08)"
+                : "rgba(0, 0, 0, 0.04)",
             },
           },
         },

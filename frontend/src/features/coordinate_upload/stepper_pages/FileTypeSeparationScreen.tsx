@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Paper, Typography } from "@mui/material";
+import { Box, Button, Paper, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import DescriptionIcon from "@mui/icons-material/Description";
 import MapIcon from "@mui/icons-material/Map";
@@ -36,7 +36,7 @@ export default function FileTypeSeparationScreen({
 }: FileTypeSeparationScreenProps) {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
-  const stepContentStyles = getStepContentStyles(isDark);
+  const stepContentStyles = getStepContentStyles();
 
   return (
     <Box sx={stepContentStyles.container}>
@@ -63,10 +63,16 @@ export default function FileTypeSeparationScreen({
         </Typography>
       </Box>
 
-      {/* File Type Options Grid */}
-      <Grid container spacing={2}>
+      {/* File Type Options */}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+          gap: 2,
+        }}
+      >
         {fileTypeOptions.map((option) => (
-          <Grid item xs={12} sm={6} key={option.type}>
+          <Box key={option.type}>
             <Paper
               component={Button}
               onClick={() => setFileType(option.type)}
@@ -166,9 +172,9 @@ export default function FileTypeSeparationScreen({
                 ))}
               </Box>
             </Paper>
-          </Grid>
+          </Box>
         ))}
-      </Grid>
+      </Box>
     </Box>
   );
 }

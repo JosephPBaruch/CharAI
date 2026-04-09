@@ -29,7 +29,7 @@ export default function CoordinateUploadStepper({
 }: CoordinateStepperProps) {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
-  const stepContentStyles = getStepContentStyles(isDark);
+  const stepContentStyles = getStepContentStyles();
   const stepContentRef = useRef<HTMLDivElement>(null);
   const { setCoordinateData } = useCoordinates();
   const { showToast } = useToast();
