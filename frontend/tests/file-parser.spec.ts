@@ -2,8 +2,8 @@ import { test, expect, Page } from "@playwright/test";
 
 const baseUrl = process.env.BASE_URL || "http://localhost:5173";
 
-// Mirrors scenarios from CharAI.feature.file-upload so Playwright Test UI can display them.
-test.describe("CharAI.feature.file-upload", () => {
+// Mirrors scenarios from CharAI.feature.file-parser so Playwright Test UI can display them.
+test.describe("CharAI.feature.file-parser", () => {
   const registerUser = async (
     page: Page,
     username: string,

@@ -1,7 +1,7 @@
 import { Box, Stack, Typography, Paper } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import ManualCoordinateUpload from "./ManualCoordinateUpload";
-import CoordinateFileUploadModal from "../../components/CoordinateFileUploadModal";
+import CoordinateFileUploadModal from "./CoordinateFileUploadModal";
 import { useCoordinates } from "../../contexts/CoordinateContext";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DrawIcon from "@mui/icons-material/Edit";

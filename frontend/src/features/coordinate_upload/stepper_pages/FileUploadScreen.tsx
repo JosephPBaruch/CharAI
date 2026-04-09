@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { parseFile } from "../helpers";
-import type { CoordinateFileUploadScreenProps } from "./types";
+import type { CoordinateFileUploadScreenProps } from "../types";
 import TextFileUploadScreen from "./TextFileUploadScreen";
 import VisualFileUploadScreen from "./VisualFileUploadScreen";
 

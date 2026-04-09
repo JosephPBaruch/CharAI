@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import type { FeatureCollection } from "geojson";
-import type { CoordinateContextType } from "../features/coordinate_upload/stepper_pages/types";
+import type { CoordinateContextType } from "../features/coordinate_upload/types";
 import type { LatLngLiteral } from "leaflet";
 
 const STORAGE_KEY = "charai_coordinate_data"; // committed/approved coordinates

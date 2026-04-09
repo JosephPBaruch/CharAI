@@ -1,13 +1,8 @@
-import {
-  Alert,
-  Box,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Paper, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import Dropzone from "react-dropzone";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import type { FileUploadScreenProps } from "./types";
+import type { FileUploadScreenProps } from "../types";
 import { getDropzoneStyles, getStepContentStyles } from "../../../styles/theme";
 
 export default function VisualFileUploadScreen({
@@ -70,8 +65,8 @@ export default function VisualFileUploadScreen({
               geographic data
             </Typography>
             <Typography variant="caption" sx={{ display: "block", mb: 0.5 }}>
-              <strong>KML (.kml):</strong> Keyhole Markup Language (used by Google
-              Earth)
+              <strong>KML (.kml):</strong> Keyhole Markup Language (used by
+              Google Earth)
             </Typography>
             <Typography variant="caption">
               <strong>Shapefile (.shp, .dbf, .shx):</strong> Upload as a ZIP
@@ -175,7 +170,6 @@ export default function VisualFileUploadScreen({
           </Box>
         </Paper>
       )}
-
     </Box>
   );
 }

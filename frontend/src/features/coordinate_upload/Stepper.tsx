@@ -11,9 +11,9 @@ import { useTheme } from "@mui/material/styles";
 import CoordinateFileUploadScreen from "./stepper_pages/FileUploadScreen";
 import CoordinateVisualizationScreen from "./stepper_pages/VisualizationScreen";
 import FileTypeSeparationScreen from "./stepper_pages/FileTypeSeparationScreen";
-import type { FileTypes } from "./stepper_pages/types";
-import type { LatLngLiteral, Polygon } from "leaflet";
-import type { Feature, FeatureCollection } from "geojson";
+import type { FileTypes } from "./types";
+import type { LatLngLiteral } from "leaflet";
+import type { FeatureCollection } from "geojson";
 import { getStepContentStyles } from "../../styles/theme";
 import { useCoordinates } from "../../contexts/CoordinateContext";
 import { useToast } from "../../contexts/ToastContext";
@@ -72,7 +72,7 @@ export default function CoordinateUploadStepper({
       // Close the polygon by adding the first point at the end
       coords.push(coords[0]);
 
-      const boundary: Feature<Polygon> = {
+      const boundary: GeoJSON.Feature<GeoJSON.Polygon> = {
         type: "Feature",
         properties: { type: "boundary", applicationRate: 5, paybackPeriod: 3 },
         geometry: {

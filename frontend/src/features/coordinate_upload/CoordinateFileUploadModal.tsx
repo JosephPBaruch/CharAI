@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
-import CoordinateUploadStepper from "../features/coordinate_upload/Stepper";
+import CoordinateUploadStepper from "./Stepper";
 
 interface CoordinateFileUploadModalProps {
   hasCoordinates?: boolean;

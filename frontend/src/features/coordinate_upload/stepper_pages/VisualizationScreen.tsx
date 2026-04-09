@@ -2,7 +2,7 @@ import { Alert, Box, Paper, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import EditIcon from "@mui/icons-material/Edit";
 import { InteractiveFarmMap } from "../../map";
-import type { CoordinateScreenProps } from "./types";
+import type { CoordinateScreenProps } from "../types";
 import { getStepContentStyles } from "../../../styles/theme";
 
 export default function CoordinateVisualizationScreen({

@@ -1,14 +1,8 @@
-import {
-  Box,
-  Button,
-  Grid,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Grid, Paper, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import DescriptionIcon from "@mui/icons-material/Description";
 import MapIcon from "@mui/icons-material/Map";
-import type { FileTypes, FileTypeSeparationScreenProps } from "./types";
+import type { FileTypes, FileTypeSeparationScreenProps } from "../types";
 import { getStepContentStyles } from "../../../styles/theme";
 
 interface FileTypeOption {
@@ -64,8 +58,8 @@ export default function FileTypeSeparationScreen({
             lineHeight: 1.6,
           }}
         >
-          Choose the format that matches your farm boundary file. Don't worry—CharAI
-          supports multiple formats and can handle them correctly.
+          Choose the format that matches your farm boundary file. Don't
+          worry—CharAI supports multiple formats and can handle them correctly.
         </Typography>
       </Box>
 

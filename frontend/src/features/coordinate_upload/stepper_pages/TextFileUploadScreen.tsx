@@ -9,7 +9,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import Dropzone from "react-dropzone";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import type { FileUploadScreenProps } from "./types";
+import type { FileUploadScreenProps } from "../types";
 import { getDropzoneStyles, getStepContentStyles } from "../../../styles/theme";
 import React from "react";
 

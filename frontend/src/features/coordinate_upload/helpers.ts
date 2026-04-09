@@ -2,7 +2,7 @@ import Papa from "papaparse";
 import * as kml from "@tmcw/togeojson";
 import * as xmldom from "@xmldom/xmldom";
 import shp from "shpjs";
-import type { ParseResult } from "./stepper_pages/types";
+import type { ParseResult } from "./types";
 import { coordAll } from "@turf/turf";
 import type { LatLngLiteral } from "leaflet";
 
@@ -14,7 +14,7 @@ export const parseFile = async (file: File): Promise<ParseResult> => {
         "Unable to read the file. The file may be corrupted or too large. Please try uploading a different file.",
     };
   const fileExtension = getFileExtension(file.name);
-  
+
   try {
     if (fileExtension === "csv") return parseCSVFile(await file.text());
     if (fileExtension === "kml") return parseKMLFile(await file.text());
@@ -51,17 +51,21 @@ const parseCSVFile = (fileContent: string): ParseResult => {
     if (!isLatLngArray(parsedContent)) {
       return {
         success: false,
-        error: "CSV file must contain columns named 'lat' and 'lng' with valid coordinate values.",
+        error:
+          "CSV file must contain columns named 'lat' and 'lng' with valid coordinate values.",
       };
     }
-    
+
     if (parsedContent.length < 3) {
       return {
         success: false,
-        error: "Farm boundary must have at least 3 coordinate points. Your file has " + parsedContent.length + ".",
+        error:
+          "Farm boundary must have at least 3 coordinate points. Your file has " +
+          parsedContent.length +
+          ".",
       };
     }
-    
+
     return {
       success: true,
       data: parsedContent,
@@ -80,23 +84,27 @@ const parseKMLFile = (fileContent: string): ParseResult => {
     const DOMParser = xmldom.DOMParser;
     const parsedKML = new DOMParser().parseFromString(fileContent);
     const converted = kml.kml(parsedKML);
-    
+
     if (!hasOnlyGeometries(converted)) {
       return {
         success: false,
-        error: "KML file contains features without geometry. Ensure all features have valid coordinates.",
+        error:
+          "KML file contains features without geometry. Ensure all features have valid coordinates.",
       };
     }
-    
+
     const coordsAsJSON = normalizeToJSON(converted);
-    
+
     if (coordsAsJSON.length < 3) {
       return {
         success: false,
-        error: "Farm boundary must have at least 3 coordinate points. Your file has " + coordsAsJSON.length + ".",
+        error:
+          "Farm boundary must have at least 3 coordinate points. Your file has " +
+          coordsAsJSON.length +
+          ".",
       };
     }
-    
+
     return {
       success: true,
       data: coordsAsJSON,
@@ -115,24 +123,28 @@ const parseSHPFile = async (
 ): Promise<ParseResult> => {
   try {
     const geojson = await shp(fileArrayBuffer);
-    
+
     if (Array.isArray(geojson)) {
       return {
         success: false,
-        error: "Shapefile must contain a single layer. Your file contains multiple layers.",
+        error:
+          "Shapefile must contain a single layer. Your file contains multiple layers.",
       };
     }
-    
+
     const { fileName, ...filteredGeoJSON } = geojson;
     const coordsAsJSON = normalizeToJSON(filteredGeoJSON);
-    
+
     if (coordsAsJSON.length < 3) {
       return {
         success: false,
-        error: "Farm boundary must have at least 3 coordinate points. Your file has " + coordsAsJSON.length + ".",
+        error:
+          "Farm boundary must have at least 3 coordinate points. Your file has " +
+          coordsAsJSON.length +
+          ".",
       };
     }
-    
+
     return {
       success: true,
       data: coordsAsJSON,
@@ -149,7 +161,7 @@ const parseSHPFile = async (
 const parseJSONFile = (fileContent: string): ParseResult => {
   try {
     const parsedContent: unknown[] = JSON.parse(fileContent);
-    
+
     if (!isLatLngArray(parsedContent)) {
       if (!Array.isArray(parsedContent)) {
         return {
@@ -159,17 +171,21 @@ const parseJSONFile = (fileContent: string): ParseResult => {
       }
       return {
         success: false,
-        error: "Each coordinate must have 'lat' and 'lng' properties with numeric values.",
+        error:
+          "Each coordinate must have 'lat' and 'lng' properties with numeric values.",
       };
     }
-    
+
     if (parsedContent.length < 3) {
       return {
         success: false,
-        error: "Farm boundary must have at least 3 coordinate points. Your file has " + parsedContent.length + ".",
+        error:
+          "Farm boundary must have at least 3 coordinate points. Your file has " +
+          parsedContent.length +
+          ".",
       };
     }
-    
+
     return {
       success: true,
       data: parsedContent,
@@ -186,23 +202,27 @@ const parseJSONFile = (fileContent: string): ParseResult => {
 const parseGeoJSONFile = (fileContent: string): ParseResult => {
   try {
     const parsedContent: unknown = JSON.parse(fileContent);
-    
+
     if (!isFeatureCollection(parsedContent)) {
       return {
         success: false,
-        error: "GeoJSON file must contain a FeatureCollection with at least one feature.",
+        error:
+          "GeoJSON file must contain a FeatureCollection with at least one feature.",
       };
     }
-    
+
     const coordsAsJSON = normalizeToJSON(parsedContent);
-    
+
     if (coordsAsJSON.length < 3) {
       return {
         success: false,
-        error: "Farm boundary must have at least 3 coordinate points. Your file has " + coordsAsJSON.length + ".",
+        error:
+          "Farm boundary must have at least 3 coordinate points. Your file has " +
+          coordsAsJSON.length +
+          ".",
       };
     }
-    
+
     return {
       success: true,
       data: coordsAsJSON,
