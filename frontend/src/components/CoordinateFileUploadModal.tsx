@@ -9,7 +9,13 @@ import { useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import CoordinateUploadStepper from "../features/coordinate_upload/Stepper";
 
-export default function CoordinateFileUploadModal() {
+interface CoordinateFileUploadModalProps {
+  hasCoordinates?: boolean;
+}
+
+export default function CoordinateFileUploadModal({
+  hasCoordinates = false,
+}: CoordinateFileUploadModalProps) {
   const [open, setOpen] = useState<boolean>(false);
 
   const handleOpen = () => setOpen(true);
@@ -20,6 +26,7 @@ export default function CoordinateFileUploadModal() {
       <Button
         onClick={handleOpen}
         variant="contained"
+        fullWidth
         sx={{
           textTransform: "none",
           fontWeight: 500,
@@ -27,7 +34,9 @@ export default function CoordinateFileUploadModal() {
         }}
         data-testid="upload-coordinates-button"
       >
-        Upload farm boundary coordinates
+        {hasCoordinates
+          ? "Re-upload farm boundary coordinates"
+          : "Upload farm boundary coordinates"}
       </Button>
 
       <Dialog

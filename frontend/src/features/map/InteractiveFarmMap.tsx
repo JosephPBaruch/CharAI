@@ -73,12 +73,14 @@ interface DraggableMarkerProps {
   position: LatLngLiteral;
   index: number;
   onDragEnd: (index: number, newPosition: LatLngLiteral) => void;
+  draggable?: boolean;
 }
 
 const DraggableMarker: React.FC<DraggableMarkerProps> = ({
   position,
   index,
   onDragEnd,
+  draggable = true,
 }) => {
   const markerRef = React.useRef<L.Marker | null>(null);
 
@@ -97,7 +99,7 @@ const DraggableMarker: React.FC<DraggableMarkerProps> = ({
 
   return (
     <Marker
-      draggable={true}
+      draggable={draggable}
       eventHandlers={eventHandlers}
       position={position}
       ref={markerRef}
@@ -108,28 +110,32 @@ const DraggableMarker: React.FC<DraggableMarkerProps> = ({
 interface InteractiveFarmMapProps {
   markers: LatLngLiteral[];
   setMarkers: React.Dispatch<React.SetStateAction<LatLngLiteral[]>>;
+  isReadOnly?: boolean;
 }
 
 export default function InteractiveFarmMap({
   markers,
   setMarkers,
+  isReadOnly = false,
 }: InteractiveFarmMapProps) {
   const handleMarkerDragEnd = React.useCallback(
     (index: number, newPosition: LatLngLiteral) => {
+      if (isReadOnly) return;
       setMarkers((prevMarkers) => {
         const updated = [...prevMarkers];
         updated[index] = newPosition;
         return updated;
       });
     },
-    [setMarkers],
+    [setMarkers, isReadOnly],
   );
 
   const handleLocationFound = React.useCallback(
     (position: LatLngLiteral) => {
+      if (isReadOnly) return;
       setMarkers((prevMarkers) => [...prevMarkers, position]);
     },
-    [setMarkers],
+    [setMarkers, isReadOnly],
   );
 
   return (
@@ -157,9 +163,13 @@ export default function InteractiveFarmMap({
           attribution="Cities &copy; Esri"
         />
 
-        <GeocoderControl onLocationFound={handleLocationFound} />
+        {!isReadOnly && (
+          <GeocoderControl onLocationFound={handleLocationFound} />
+        )}
 
-        <ClickHandler markers={markers} setMarkers={setMarkers} />
+        {!isReadOnly && (
+          <ClickHandler markers={markers} setMarkers={setMarkers} />
+        )}
 
         {markers.map((position, idx) => (
           <DraggableMarker
@@ -167,6 +177,7 @@ export default function InteractiveFarmMap({
             position={position}
             index={idx}
             onDragEnd={handleMarkerDragEnd}
+            draggable={!isReadOnly}
           />
         ))}
 

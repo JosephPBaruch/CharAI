@@ -104,17 +104,18 @@ export default function ManualCoordinateUpload() {
         variant="contained"
         startIcon={hasCoordinatesReady ? <EditIcon /> : undefined}
         onClick={openModal}
+        fullWidth
         data-testid="open-manual-coordinates"
+        sx={{
+          textTransform: "none",
+          fontWeight: 500,
+          fontSize: "0.95rem",
+        }}
       >
-        {hasCoordinatesReady ? "Edit Coordinates" : "Draw Boundaries"}
+        {hasCoordinatesReady ? "Manually edit coordinates" : "Draw boundaries"}
       </Button>
 
-      <Dialog
-        open={isModalOpen}
-        onClose={closeModal}
-        maxWidth="xl"
-        fullWidth
-      >
+      <Dialog open={isModalOpen} onClose={closeModal} maxWidth="xl" fullWidth>
         <DialogTitle sx={{ pb: 2 }}>
           <Box
             sx={{

@@ -12,8 +12,11 @@ import CoordinateFileUploadScreen from "./stepper_pages/FileUploadScreen";
 import CoordinateVisualizationScreen from "./stepper_pages/VisualizationScreen";
 import FileTypeSeparationScreen from "./stepper_pages/FileTypeSeparationScreen";
 import type { FileTypes } from "./stepper_pages/types";
-import type { LatLngLiteral } from "leaflet";
+import type { LatLngLiteral, Polygon } from "leaflet";
+import type { Feature, FeatureCollection } from "geojson";
 import { getStepContentStyles } from "../../styles/theme";
+import { useCoordinates } from "../../contexts/CoordinateContext";
+import { useToast } from "../../contexts/ToastContext";
 
 interface CoordinateStepperProps {
   handleClose: () => void;
@@ -28,6 +31,8 @@ export default function CoordinateUploadStepper({
   const isDark = theme.palette.mode === "dark";
   const stepContentStyles = getStepContentStyles(isDark);
   const stepContentRef = useRef<HTMLDivElement>(null);
+  const { setCoordinateData } = useCoordinates();
+  const { showToast } = useToast();
 
   const [fileType, setFileType] = useState<FileTypes>(null);
   const [coordinates, setCoordinates] = React.useState<LatLngLiteral[]>([]);
@@ -62,12 +67,43 @@ export default function CoordinateUploadStepper({
   const handleFinish = async () => {
     setIsLoading(true);
     try {
-      // Here you would typically make an API call to save the coordinates
-      // For now, we'll just wait a moment before closing
+      // Convert coordinates to GeoJSON boundary polygon
+      const coords: [number, number][] = coordinates.map((m) => [m.lng, m.lat]);
+      // Close the polygon by adding the first point at the end
+      coords.push(coords[0]);
+
+      const boundary: Feature<Polygon> = {
+        type: "Feature",
+        properties: { type: "boundary", applicationRate: 5, paybackPeriod: 3 },
+        geometry: {
+          type: "Polygon",
+          coordinates: [coords],
+        },
+      };
+
+      const geojson: FeatureCollection = {
+        type: "FeatureCollection",
+        features: [boundary],
+      };
+
+      // Save to context (which persists to localStorage)
+      setCoordinateData(geojson);
+
+      // Show success toast
+      showToast({
+        message: "Farm boundary coordinates uploaded successfully!",
+        severity: "success",
+      });
+
+      // Close the modal
       await new Promise((resolve) => setTimeout(resolve, 500));
       handleClose();
     } catch (error) {
       console.error("Error finishing coordinate upload:", error);
+      showToast({
+        message: "Error uploading coordinates. Please try again.",
+        severity: "error",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -212,7 +248,6 @@ export default function CoordinateUploadStepper({
           </Button>
         </Box>
       </Box>
-
     </Box>
   );
 }
