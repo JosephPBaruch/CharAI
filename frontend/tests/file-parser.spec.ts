@@ -72,7 +72,7 @@ test.describe("CharAI.feature.file-parser", () => {
     await page.getByTestId("coordinate-upload-next-button").click();
 
     // Verify we're on the upload step
-    await expect(page.getByText(/Upload your file|drag and drop/i)).toBeVisible(
+    await expect(page.getByRole("heading", { name: "Upload your file" })).toBeVisible(
       {
         timeout: 5_000,
       },
