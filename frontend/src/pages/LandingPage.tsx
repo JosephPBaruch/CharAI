@@ -1,5 +1,16 @@
 import React from "react";
-import { Box, Typography, Container, Button, Paper, Grid, Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Container,
+  Button,
+  Paper,
+  Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+} from "@mui/material";
 import { Link as RouterLink } from "react-router";
 import { useTheme } from "@mui/material/styles";
 import { useAuth } from "../contexts/AuthContext";
@@ -15,7 +26,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import BiocharSettings from "../features/farm/BudgetSettings";
 import FieldsList from "../features/farm/FieldsList";
 import type { FieldEntry } from "../features/farm/FieldsList";
-import FileUploadSection from "../features/farm/FileUploadSection";
+import FileUploadSection from "../features/coordinate_upload/FileUploadSection";
 import SubmitSection from "../features/farm/SubmitSection";
 
 interface FeatureCardProps {
@@ -112,7 +123,10 @@ const LandingPage = () => {
               display: "inline-flex",
               alignItems: "center",
               gap: 1,
-              backgroundColor: theme.palette.mode === "dark" ? "rgba(100, 108, 255, 0.1)" : "rgba(100, 108, 255, 0.08)",
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? "rgba(100, 108, 255, 0.1)"
+                  : "rgba(100, 108, 255, 0.08)",
               border: `1px solid rgba(99, 102, 241, 0.3)`,
               borderRadius: 5,
               px: 2,
@@ -120,9 +134,7 @@ const LandingPage = () => {
               mb: 3,
             }}
           >
-            <AutoAwesomeIcon
-              sx={{ fontSize: 16, color: "primary.main" }}
-            />
+            <AutoAwesomeIcon sx={{ fontSize: 16, color: "primary.main" }} />
             <Typography
               variant="caption"
               sx={{ color: "primary.light", fontWeight: 500 }}
@@ -298,10 +310,7 @@ const LandingPage = () => {
             >
               Ready to optimize your fields?
             </Typography>
-            <Typography
-              variant="body1"
-              sx={{ color: "text.secondary", mb: 3 }}
-            >
+            <Typography variant="body1" sx={{ color: "text.secondary", mb: 3 }}>
               Create a free account and generate your first prescription map in
               minutes.
             </Typography>
@@ -325,11 +334,20 @@ const LandingPage = () => {
         maxWidth="lg"
         fullWidth
       >
-        <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <Typography variant="h5" component="span" sx={{ fontWeight: 700 }}>
             Create New Field
           </Typography>
-          <IconButton onClick={() => setIsModalOpen(false)} sx={{ color: "text.secondary" }}>
+          <IconButton
+            onClick={() => setIsModalOpen(false)}
+            sx={{ color: "text.secondary" }}
+          >
             <CloseIcon />
           </IconButton>
         </DialogTitle>
