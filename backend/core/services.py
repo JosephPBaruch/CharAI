@@ -3,7 +3,7 @@ import logging
 import math
 import os
 from threading import Thread
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Dict
 from django.conf import settings
 from django.db import close_old_connections
@@ -12,8 +12,24 @@ from modules.GeoParser import GeoParser
 from modules.Geotiffgenerator import DEMGeneratorService
 from modules.Calculator import YieldCalculator
 from modules.PrescriptionMapGenerator import PrescriptionMapGenerator
+from modules.WeatherFetch import WeatherFetcher
 
-def create_charai_data(logger: logging.Logger, coords, tiff_file_path, crop: str = "WW"):
+
+def _default_evt_date_range() -> tuple[str, str]:
+    """Return the default EVT window for last year's growing season."""
+    last_year = date.today().year - 1
+    return f"{last_year}-01-01", f"{last_year}-09-30"
+
+
+def create_charai_data(
+    logger: logging.Logger,
+    coords,
+    tiff_file_path,
+    crop: str = "WW",
+    include_evt_dataframe: bool = False,
+    evt_start_date: str | None = None,
+    evt_end_date: str | None = None,
+):
     if not isinstance(coords, list):
         raise TypeError("coords must be a list of (lat, lon) tuples")
 
@@ -29,8 +45,31 @@ def create_charai_data(logger: logging.Logger, coords, tiff_file_path, crop: str
     terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
 
     terrain_df["Crop"] = crop or "WW"
-        
-    return terrain_df
+
+    if not include_evt_dataframe:
+        return terrain_df
+
+    start_date = evt_start_date
+    end_date = evt_end_date
+    if not start_date or not end_date:
+        start_date, end_date = _default_evt_date_range()
+
+    evt_df = terrain_df.iloc[0:0].copy()
+    evt_df = evt_df.reindex(columns=["acre_id", "JanEVT", "FebEVT", "MarEVT", "AprEVT", "MayEVT", "JunEVT", "JulEVT", "AugEVT", "SeptEVT"])
+
+    try:
+        weather_fetcher = WeatherFetcher(
+            terrain_df=terrain_df,
+        )
+        evt_df = weather_fetcher.fetch_growing_month_evapotranspiration_matrix(
+            start_date=start_date,
+            end_date=end_date,
+            metric="evapotranspiration",
+        )
+    except Exception:
+        logger.exception("EVT dataframe generation failed; continuing without EVT data")
+
+    return terrain_df, evt_df
 
 def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> Dict[str, Any]:
     field.prescription_map_status = Field.STATUS_STARTED
@@ -58,7 +97,15 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
         )
         
         crop = field.crop_type or "WW"
-        terrain_df = create_charai_data(logger, coords, tiff_file_path, crop)
+        terrain_df, evt_df = create_charai_data(
+            logger,
+            coords,
+            tiff_file_path,
+            crop,
+            include_evt_dataframe=True,
+        )
+        logger.debug("Terrain dataframe rows=%s", len(terrain_df))
+        logger.debug("EVT dataframe rows=%s", len(evt_df))
 
         logger.debug("Calculating Yield")
         calculator = YieldCalculator(logger=logger)

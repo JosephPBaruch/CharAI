@@ -1,0 +1,51 @@
+# Engineering Log - Feburary, 2026
+## MArch 31st - April 9th 2026
+March 31, 2026
+- Reviewed the WeatherFetch module goal and mapped what data shape we need from Open-Meteo.
+- Compared GeoParser dataframe output to what WeatherFetch should consume.
+- Wrote a rough plan for ET and ET0 handling.
+
+April 1, 2026
+- Built initial weather fetch call for hourly temp data.
+- Tested basic lat/lon input and date ranges.
+- Noted unit conversion and output formatting issues to fix next.
+
+April 2, 2026
+- Fixed temperature output to Fahrenheit.
+- Added checks for coordinate formatting and cleaner output.
+- Verified command usage in terminal and cleaned up warning-level issues.
+
+April 3, 2026
+- Added monthly ET and ET0 aggregation per area row.
+- Returned separate dataframe output for monthly weather values.
+- Added and ran tests for monthly dataframe structure.
+
+April 4, 2026
+- Added growing-season matrix output with one row per area.
+- Standardized month columns for JanEVT through SeptEVT.
+- Updated tests to verify matrix shape and expected columns.
+
+April 5, 2026
+- Updated cache behavior to use in-memory request caching.
+- Confirmed we are not persisting weather query cache in sqlite.
+- Re-ran tests after cache changes.
+
+April 6, 2026
+- Ran manual checks using sample acres from GeoParser-style data.
+- Verified ET0 values populate matrix when EVT values are unavailable.
+- Exported results to weather_report for review.
+
+April 7, 2026
+- Refactored manual EVT test runner for a synthetic 10-acre area.
+- Cleaned up extra helper scripts and narrowed to core flow.
+- Kept unit tests and updated docs to match current usage.
+
+April 8, 2026
+- Integrated WeatherFetch into Django service flow alongside GeoParser.
+- Added default date-range helper for growing-season pull.
+- Validated service and module syntax.
+
+April 9, 2026
+- Yesterday I scheduled a meeting for today to discuss WeatherFetch integration, testing scope, and PR cleanup.
+- Updated docs and simplified explanations in README.
+- Refactored WeatherFetcher to be dataframe.
