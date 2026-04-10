@@ -346,7 +346,7 @@ test.describe("CharAI.feature.file-parser", () => {
     await chooseFileType(page, "visual");
 
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles(fixture(testInfo, "valid_coordinates.csv"));
+    await fileInput.setInputFiles(fixture(testInfo, "invalid_coordinates.kml"));
 
     // Expect error about geometry or coordinates
     await expect(
