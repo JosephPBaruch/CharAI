@@ -1,11 +1,14 @@
 import { test, expect, Page } from "@playwright/test";
+import * as path from "path";
+import { fileURLToPath } from "url";
 
 // Resolve fixture path relative to this test file's directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const fixture = (filename: string) => {
-  // In Playwright, __dirname is not available, so we construct the path manually
-  // Since this file is at frontend/tests/file-parser.spec.ts,
-  // fixtures are at frontend/tests/fixtures/
-  return `${__dirname}/fixtures/${filename}`;
+  // Resolve fixture path using __dirname derived from import.meta.url
+  return path.join(__dirname, "fixtures", filename);
 };
 
 const baseUrl = process.env.BASE_URL || "http://localhost:5173";
@@ -48,11 +51,19 @@ test.describe("CharAI.feature.file-parser", () => {
   };
 
   const openCoordinateUploadStepper = async (page: Page) => {
+    // Scroll down in the MUI Dialog to find the coordinate upload button
+    const dialogContent = page.locator("[role='dialog']").first();
+    await dialogContent.evaluate((el: Element) => {
+      el.scrollTop = el.scrollHeight;
+    });
+
+    await page.waitForTimeout(300);
+
     // Click button to open coordinate modal
-    // This could be "Edit Coordinates", "Add Coordinates", "Draw Boundaries", etc.
+    // This could be "Edit Coordinates", "Add Coordinates", "Draw Boundaries", "Set Farm Coordinates", etc.
     const coordButton = page
       .getByRole("button")
-      .filter({ hasText: /Coordin|Boundar|Draw|Edit/i })
+      .filter({ hasText: /Coordin|Boundar|Draw|Edit|Set Farm|Upload/i })
       .first();
     await coordButton.click();
 
@@ -185,11 +196,14 @@ test.describe("CharAI.feature.file-parser", () => {
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      "./fixtures/invalid_coordinates_insufficient.csv",
+      fixture("invalid_coordinates_insufficient.csv"),
     );
 
+    // Wait longer for validation error to appear after file processing
+    await page.waitForTimeout(1000);
+
     // Wait for validation error to appear
-    await expect(page.getByText(/at least 3 coordinate points/i)).toBeVisible({
+    await expect(page.getByText(/Farm boundary must have at least 3 coordinate points|at least 3 coordinate points/i)).toBeVisible({
       timeout: 5_000,
     });
 
@@ -208,7 +222,7 @@ test.describe("CharAI.feature.file-parser", () => {
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      "./fixtures/invalid_coordinates_missing_columns.csv",
+      fixture("invalid_coordinates_missing_columns.csv"),
     );
 
     // Expect error about missing columns
@@ -230,7 +244,7 @@ test.describe("CharAI.feature.file-parser", () => {
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      "./fixtures/invalid_coordinates_non_numeric.csv",
+      fixture("invalid_coordinates_non_numeric.csv"),
     );
 
     // Should show validation error
@@ -252,7 +266,7 @@ test.describe("CharAI.feature.file-parser", () => {
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      "./fixtures/invalid_coordinates_insufficient.json",
+      fixture("invalid_coordinates_insufficient.json"),
     );
 
     await expect(page.getByText(/at least 3 coordinate points/i)).toBeVisible({
@@ -271,7 +285,7 @@ test.describe("CharAI.feature.file-parser", () => {
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      "./fixtures/invalid_geojson_no_geometry.geojson",
+      fixture("invalid_geojson_no_geometry.geojson"),
     );
 
     // Expect geometry-related error
@@ -293,7 +307,7 @@ test.describe("CharAI.feature.file-parser", () => {
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      "./fixtures/invalid_geojson_insufficient_coords.geojson",
+      fixture("invalid_geojson_insufficient_coords.geojson"),
     );
 
     await expect(page.getByText(/at least 3 coordinate points/i)).toBeVisible({
@@ -311,7 +325,7 @@ test.describe("CharAI.feature.file-parser", () => {
     await chooseFileType(page, "visual");
 
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles("./fixtures/invalid_coordinates.kml");
+    await fileInput.setInputFiles(fixture("invalid_coordinates.kml"));
 
     // Expect error about geometry or coordinates
     await expect(
