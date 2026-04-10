@@ -66,9 +66,9 @@ export default function FileTypeSeparationScreen({
       {/* File Type Options */}
       <Box
         sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+          display: "flex",
           gap: 2,
+          marginTop: 2,
         }}
       >
         {fileTypeOptions.map((option) => (

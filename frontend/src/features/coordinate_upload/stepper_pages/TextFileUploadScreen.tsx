@@ -124,7 +124,7 @@ export default function TextFileUploadScreen({
                 fontSize: "0.875rem",
               }}
             >
-              .CSV
+              .csv
             </ToggleButton>
             <ToggleButton
               value="json"
@@ -135,7 +135,7 @@ export default function TextFileUploadScreen({
                 fontSize: "0.875rem",
               }}
             >
-              .JSON
+              .json
             </ToggleButton>
           </ToggleButtonGroup>
         </Box>
