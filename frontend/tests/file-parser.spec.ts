@@ -202,10 +202,14 @@ test.describe("CharAI.feature.file-parser", () => {
     // Wait longer for validation error to appear after file processing
     await page.waitForTimeout(1000);
 
-    // Wait for validation error to appear
-    await expect(page.getByText(/Farm boundary must have at least 3 coordinate points|at least 3 coordinate points/i)).toBeVisible({
-      timeout: 5_000,
-    });
+    // Wait for validation error to appear - check for the exact error message
+    const errorAlert = page.locator('[role="alert"] .MuiAlert-message').last();
+    await expect(errorAlert).toContainText(
+      "Farm boundary must have at least 3 coordinate points",
+      {
+        timeout: 5_000,
+      },
+    );
 
     // Next button should remain disabled
     await expect(
@@ -226,9 +230,10 @@ test.describe("CharAI.feature.file-parser", () => {
     );
 
     // Expect error about missing columns
-    await expect(
-      page.getByText(/must contain.*lat.*lng|required.*columns/i),
-    ).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('[role="alert"] .MuiAlert-message').last()).toContainText(
+      "CSV file must contain columns named 'lat' and 'lng'",
+      { timeout: 5_000 },
+    );
 
     await expect(
       page.getByTestId("coordinate-upload-next-button"),
@@ -247,10 +252,11 @@ test.describe("CharAI.feature.file-parser", () => {
       fixture("invalid_coordinates_non_numeric.csv"),
     );
 
-    // Should show validation error
-    await expect(
-      page.getByText(/must contain.*lat.*lng|invalid|numeric/i),
-    ).toBeVisible({ timeout: 5_000 });
+    // Should show validation error about lat/lng columns
+    await expect(page.locator('[role="alert"] .MuiAlert-message').last()).toContainText(
+      "CSV file must contain columns named 'lat' and 'lng'",
+      { timeout: 5_000 },
+    );
 
     await expect(
       page.getByTestId("coordinate-upload-next-button"),
@@ -269,9 +275,10 @@ test.describe("CharAI.feature.file-parser", () => {
       fixture("invalid_coordinates_insufficient.json"),
     );
 
-    await expect(page.getByText(/at least 3 coordinate points/i)).toBeVisible({
-      timeout: 5_000,
-    });
+    await expect(page.locator('[role="alert"] .MuiAlert-message').last()).toContainText(
+      "Farm boundary must have at least 3 coordinate points",
+      { timeout: 5_000 },
+    );
 
     await expect(
       page.getByTestId("coordinate-upload-next-button"),
@@ -288,10 +295,11 @@ test.describe("CharAI.feature.file-parser", () => {
       fixture("invalid_geojson_no_geometry.geojson"),
     );
 
-    // Expect geometry-related error
-    await expect(
-      page.getByText(/geometry|features without geometry|coordinate|null/i),
-    ).toBeVisible({ timeout: 5_000 });
+    // Expect geometry-related error - null geometry results in 0 coordinates
+    await expect(page.locator('[role="alert"] .MuiAlert-message').last()).toContainText(
+      "Farm boundary must have at least 3 coordinate points",
+      { timeout: 5_000 },
+    );
 
     await expect(
       page.getByTestId("coordinate-upload-next-button"),
@@ -310,9 +318,10 @@ test.describe("CharAI.feature.file-parser", () => {
       fixture("invalid_geojson_insufficient_coords.geojson"),
     );
 
-    await expect(page.getByText(/at least 3 coordinate points/i)).toBeVisible({
-      timeout: 5_000,
-    });
+    await expect(page.locator('[role="alert"] .MuiAlert-message').last()).toContainText(
+      "Farm boundary must have at least 3 coordinate points",
+      { timeout: 5_000 },
+    );
 
     await expect(
       page.getByTestId("coordinate-upload-next-button"),
@@ -328,11 +337,10 @@ test.describe("CharAI.feature.file-parser", () => {
     await fileInput.setInputFiles(fixture("invalid_coordinates.kml"));
 
     // Expect error about geometry or coordinates
-    await expect(
-      page.getByText(
-        /features without geometry|at least 3 coordinate points|geometry|coordinate/i,
-      ),
-    ).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('[role="alert"] .MuiAlert-message').last()).toContainText(
+      "features without geometry",
+      { timeout: 5_000 },
+    );
 
     await expect(
       page.getByTestId("coordinate-upload-next-button"),

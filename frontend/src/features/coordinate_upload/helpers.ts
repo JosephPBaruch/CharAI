@@ -56,7 +56,7 @@ const parseCSVFile = (fileContent: string): ParseResult => {
       };
     }
 
-    if (parsedContent.length < 3) {
+    if (!hasMinDistinctPointsGeneric(parsedContent)) {
       return {
         success: false,
         error:
@@ -95,7 +95,7 @@ const parseKMLFile = (fileContent: string): ParseResult => {
 
     const coordsAsJSON = normalizeToJSON(converted);
 
-    if (coordsAsJSON.length < 3) {
+    if (!hasMinDistinctPointsGeneric(converted)) {
       return {
         success: false,
         error:
@@ -135,7 +135,7 @@ const parseSHPFile = async (
     const { fileName, ...filteredGeoJSON } = geojson;
     const coordsAsJSON = normalizeToJSON(filteredGeoJSON);
 
-    if (coordsAsJSON.length < 3) {
+    if (!hasMinDistinctPointsGeneric(coordsAsJSON)) {
       return {
         success: false,
         error:
@@ -176,7 +176,7 @@ const parseJSONFile = (fileContent: string): ParseResult => {
       };
     }
 
-    if (parsedContent.length < 3) {
+    if (!hasMinDistinctPointsGeneric(parsedContent)) {
       return {
         success: false,
         error:
@@ -213,7 +213,7 @@ const parseGeoJSONFile = (fileContent: string): ParseResult => {
 
     const coordsAsJSON = normalizeToJSON(parsedContent);
 
-    if (coordsAsJSON.length < 3) {
+    if (!hasMinDistinctPointsGeneric(coordsAsJSON)) {
       return {
         success: false,
         error:
@@ -238,7 +238,6 @@ const parseGeoJSONFile = (fileContent: string): ParseResult => {
 
 const isLatLngArray = (data: unknown): data is LatLngLiteral[] => {
   if (!Array.isArray(data) || data === null) return false;
-  if (data.length < 3) return false;
 
   return data.every((pair) => {
     if (typeof pair !== "object" || Array.isArray(pair) || pair === null)
@@ -279,4 +278,27 @@ const normalizeToJSON = (geojson: GeoJSON.GeoJSON) => {
     console.error("Error normalizing GeoJSON coordinates:", errorMessage);
     return [];
   }
+};
+
+const hasMinDistinctPointsGeneric = (
+  input: any,
+  minPoints = 3,
+  precision = 6,
+): boolean => {
+  let coords: LatLngLiteral[] = [];
+
+  if (Array.isArray(input)) {
+    coords = input;
+  } else {
+    coords = normalizeToJSON(input);
+  }
+
+  const uniquePoints = new Set(
+    coords.map(
+      (p) =>
+        `${Number(p.lat).toFixed(precision)},${Number(p.lng).toFixed(precision)}`,
+    ),
+  );
+
+  return uniquePoints.size >= minPoints;
 };
