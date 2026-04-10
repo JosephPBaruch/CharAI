@@ -18,6 +18,16 @@ RUN pip install --upgrade pip \
 # Copy project code
 COPY . .
 
+# Train the yield prediction model at build time so it is always embedded in
+# the image and stays in sync with the code/data.  SECRET_KEY is a throwaway
+# value used only to satisfy django.setup(); no database is needed.
+ARG OPENTOPOGRAPHY_API_KEY=keykey
+RUN SECRET_KEY=build-only-key \
+    OPENTOPOGRAPHY_API_KEY=${OPENTOPOGRAPHY_API_KEY} \
+    python -u YieldPredictionModel/CreateAndTrainYieldCalculatorModel.py \
+    && test -f YieldPredictionModel/Models/yield_model.keras \
+    || { echo "ERROR: Model training failed - yield_model.keras not created"; exit 1; }
+
 # Drop root
 RUN useradd -m appuser && chown -R appuser /app
 USER appuser

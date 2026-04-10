@@ -23,6 +23,8 @@ jobs:
           set: |
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
+        env:
+          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
 
       - name: Start services
         run: docker compose up -d --wait
@@ -31,11 +33,6 @@ jobs:
 
       - name: Run database migrations
         run: docker exec django-backend python manage.py migrate
-
-      - name: Train yield prediction model
-        run: >
-          docker exec -w /app/YieldPredictionModel django-backend
-          python CreateAndTrainYieldCalculatorModel.py
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
