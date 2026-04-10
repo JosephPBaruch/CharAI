@@ -1,5 +1,13 @@
 import { test, expect, Page } from "@playwright/test";
 
+// Resolve fixture path relative to this test file's directory
+const fixture = (filename: string) => {
+  // In Playwright, __dirname is not available, so we construct the path manually
+  // Since this file is at frontend/tests/file-parser.spec.ts,
+  // fixtures are at frontend/tests/fixtures/
+  return `${__dirname}/fixtures/${filename}`;
+};
+
 const baseUrl = process.env.BASE_URL || "http://localhost:5173";
 
 // Mirrors scenarios from CharAI.feature.file-parser so Playwright Test UI can display them.
@@ -112,7 +120,7 @@ test.describe("CharAI.feature.file-parser", () => {
 
     // Upload CSV file via dropzone
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles("./fixtures/valid_coordinates.csv");
+    await fileInput.setInputFiles(fixture("valid_coordinates.csv"));
 
     // Wait for file to be processed
     await page.waitForTimeout(500);
@@ -129,7 +137,7 @@ test.describe("CharAI.feature.file-parser", () => {
     await chooseFileType(page, "text");
 
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles("./fixtures/valid_coordinates.json");
+    await fileInput.setInputFiles(fixture("valid_coordinates.json"));
 
     await page.waitForTimeout(500);
 
@@ -144,7 +152,7 @@ test.describe("CharAI.feature.file-parser", () => {
     await chooseFileType(page, "visual");
 
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles("./fixtures/valid_coordinates.geojson");
+    await fileInput.setInputFiles(fixture("valid_coordinates.geojson"));
 
     await page.waitForTimeout(500);
 
@@ -159,7 +167,7 @@ test.describe("CharAI.feature.file-parser", () => {
     await chooseFileType(page, "visual");
 
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles("./fixtures/valid_coordinates.kml");
+    await fileInput.setInputFiles(fixture("valid_coordinates.kml"));
 
     await page.waitForTimeout(500);
 
