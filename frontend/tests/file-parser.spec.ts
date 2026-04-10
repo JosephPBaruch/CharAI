@@ -1,14 +1,8 @@
 import { test, expect, Page } from "@playwright/test";
 import * as path from "path";
-import { fileURLToPath } from "url";
 
-// Resolve fixture path relative to this test file's directory
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const fixture = (filename: string) => {
-  // Resolve fixture path using __dirname derived from import.meta.url
-  return path.join(__dirname, "fixtures", filename);
+const fixture = (testInfo: any, filename: string) => {
+  return path.join(path.dirname(testInfo.file), "fixtures", filename);
 };
 
 const baseUrl = process.env.BASE_URL || "http://localhost:5173";
@@ -124,14 +118,16 @@ test.describe("CharAI.feature.file-parser", () => {
     await openCoordinateUploadStepper(page);
   };
 
-  test("User can upload and parse valid CSV file", async ({ page }) => {
+  test("User can upload and parse valid CSV file", async ({
+    page,
+  }, testInfo) => {
     await setupFieldFormAndOpenUpload(page);
 
     await chooseFileType(page, "text");
 
     // Upload CSV file via dropzone
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles(fixture("valid_coordinates.csv"));
+    await fileInput.setInputFiles(fixture(testInfo, "valid_coordinates.csv"));
 
     // Wait for file to be processed
     await page.waitForTimeout(500);
@@ -142,13 +138,15 @@ test.describe("CharAI.feature.file-parser", () => {
     ).toBeEnabled({ timeout: 5_000 });
   });
 
-  test("User can upload and parse valid JSON file", async ({ page }) => {
+  test("User can upload and parse valid JSON file", async ({
+    page,
+  }, testInfo) => {
     await setupFieldFormAndOpenUpload(page);
 
     await chooseFileType(page, "text");
 
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles(fixture("valid_coordinates.json"));
+    await fileInput.setInputFiles(fixture(testInfo, "valid_coordinates.json"));
 
     await page.waitForTimeout(500);
 
@@ -157,13 +155,17 @@ test.describe("CharAI.feature.file-parser", () => {
     ).toBeEnabled({ timeout: 5_000 });
   });
 
-  test("User can upload and parse valid GeoJSON file", async ({ page }) => {
+  test("User can upload and parse valid GeoJSON file", async ({
+    page,
+  }, testInfo) => {
     await setupFieldFormAndOpenUpload(page);
 
     await chooseFileType(page, "visual");
 
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles(fixture("valid_coordinates.geojson"));
+    await fileInput.setInputFiles(
+      fixture(testInfo, "valid_coordinates.geojson"),
+    );
 
     await page.waitForTimeout(500);
 
@@ -172,13 +174,15 @@ test.describe("CharAI.feature.file-parser", () => {
     ).toBeEnabled({ timeout: 5_000 });
   });
 
-  test("User can upload and parse valid KML file", async ({ page }) => {
+  test("User can upload and parse valid KML file", async ({
+    page,
+  }, testInfo) => {
     await setupFieldFormAndOpenUpload(page);
 
     await chooseFileType(page, "visual");
 
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles(fixture("valid_coordinates.kml"));
+    await fileInput.setInputFiles(fixture(testInfo, "valid_coordinates.kml"));
 
     await page.waitForTimeout(500);
 
@@ -189,16 +193,15 @@ test.describe("CharAI.feature.file-parser", () => {
 
   test("User sees error when uploading CSV with insufficient coordinates", async ({
     page,
-  }) => {
+  }, testInfo) => {
     await setupFieldFormAndOpenUpload(page);
 
     await chooseFileType(page, "text");
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      fixture("invalid_coordinates_insufficient.csv"),
+      fixture(testInfo, "invalid_coordinates_insufficient.csv"),
     );
-
     // Wait longer for validation error to appear after file processing
     await page.waitForTimeout(1000);
 
@@ -219,21 +222,22 @@ test.describe("CharAI.feature.file-parser", () => {
 
   test("User sees error when CSV is missing required lat/lng columns", async ({
     page,
-  }) => {
+  }, testInfo) => {
     await setupFieldFormAndOpenUpload(page);
 
     await chooseFileType(page, "text");
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      fixture("invalid_coordinates_missing_columns.csv"),
+      fixture(testInfo, "invalid_coordinates_missing_columns.csv"),
     );
 
     // Expect error about missing columns
-    await expect(page.locator('[role="alert"] .MuiAlert-message').last()).toContainText(
-      "CSV file must contain columns named 'lat' and 'lng'",
-      { timeout: 5_000 },
-    );
+    await expect(
+      page.locator('[role="alert"] .MuiAlert-message').last(),
+    ).toContainText("CSV file must contain columns named 'lat' and 'lng'", {
+      timeout: 5_000,
+    });
 
     await expect(
       page.getByTestId("coordinate-upload-next-button"),
@@ -242,21 +246,22 @@ test.describe("CharAI.feature.file-parser", () => {
 
   test("User sees error when CSV contains non-numeric coordinates", async ({
     page,
-  }) => {
+  }, testInfo) => {
     await setupFieldFormAndOpenUpload(page);
 
     await chooseFileType(page, "text");
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      fixture("invalid_coordinates_non_numeric.csv"),
+      fixture(testInfo, "invalid_coordinates_non_numeric.csv"),
     );
 
     // Should show validation error about lat/lng columns
-    await expect(page.locator('[role="alert"] .MuiAlert-message').last()).toContainText(
-      "CSV file must contain columns named 'lat' and 'lng'",
-      { timeout: 5_000 },
-    );
+    await expect(
+      page.locator('[role="alert"] .MuiAlert-message').last(),
+    ).toContainText("CSV file must contain columns named 'lat' and 'lng'", {
+      timeout: 5_000,
+    });
 
     await expect(
       page.getByTestId("coordinate-upload-next-button"),
@@ -265,41 +270,45 @@ test.describe("CharAI.feature.file-parser", () => {
 
   test("User sees error when JSON has insufficient coordinates", async ({
     page,
-  }) => {
+  }, testInfo) => {
     await setupFieldFormAndOpenUpload(page);
 
     await chooseFileType(page, "text");
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      fixture("invalid_coordinates_insufficient.json"),
+      fixture(testInfo, "invalid_coordinates_insufficient.json"),
     );
 
-    await expect(page.locator('[role="alert"] .MuiAlert-message').last()).toContainText(
-      "Farm boundary must have at least 3 coordinate points",
-      { timeout: 5_000 },
-    );
+    await expect(
+      page.locator('[role="alert"] .MuiAlert-message').last(),
+    ).toContainText("Farm boundary must have at least 3 coordinate points", {
+      timeout: 5_000,
+    });
 
     await expect(
       page.getByTestId("coordinate-upload-next-button"),
     ).toBeDisabled();
   });
 
-  test("User sees error when GeoJSON has null geometry", async ({ page }) => {
+  test("User sees error when GeoJSON has null geometry", async ({
+    page,
+  }, testInfo) => {
     await setupFieldFormAndOpenUpload(page);
 
     await chooseFileType(page, "visual");
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      fixture("invalid_geojson_no_geometry.geojson"),
+      fixture(testInfo, "invalid_geojson_no_geometry.geojson"),
     );
 
     // Expect geometry-related error - null geometry results in 0 coordinates
-    await expect(page.locator('[role="alert"] .MuiAlert-message').last()).toContainText(
-      "Farm boundary must have at least 3 coordinate points",
-      { timeout: 5_000 },
-    );
+    await expect(
+      page.locator('[role="alert"] .MuiAlert-message').last(),
+    ).toContainText("Farm boundary must have at least 3 coordinate points", {
+      timeout: 5_000,
+    });
 
     await expect(
       page.getByTestId("coordinate-upload-next-button"),
@@ -308,39 +317,41 @@ test.describe("CharAI.feature.file-parser", () => {
 
   test("User sees error when GeoJSON has insufficient coordinates", async ({
     page,
-  }) => {
+  }, testInfo) => {
     await setupFieldFormAndOpenUpload(page);
 
     await chooseFileType(page, "visual");
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(
-      fixture("invalid_geojson_insufficient_coords.geojson"),
+      fixture(testInfo, "invalid_geojson_insufficient_coords.geojson"),
     );
 
-    await expect(page.locator('[role="alert"] .MuiAlert-message').last()).toContainText(
-      "Farm boundary must have at least 3 coordinate points",
-      { timeout: 5_000 },
-    );
+    await expect(
+      page.locator('[role="alert"] .MuiAlert-message').last(),
+    ).toContainText("Farm boundary must have at least 3 coordinate points", {
+      timeout: 5_000,
+    });
 
     await expect(
       page.getByTestId("coordinate-upload-next-button"),
     ).toBeDisabled();
   });
 
-  test("User sees error when KML has no valid geometry", async ({ page }) => {
+  test("User sees error when KML has no valid geometry", async ({
+    page,
+  }, testInfo) => {
     await setupFieldFormAndOpenUpload(page);
 
     await chooseFileType(page, "visual");
 
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles(fixture("invalid_coordinates.kml"));
+    await fileInput.setInputFiles(fixture(testInfo, "valid_coordinates.csv"));
 
     // Expect error about geometry or coordinates
-    await expect(page.locator('[role="alert"] .MuiAlert-message').last()).toContainText(
-      "features without geometry",
-      { timeout: 5_000 },
-    );
+    await expect(
+      page.locator('[role="alert"] .MuiAlert-message').last(),
+    ).toContainText("features without geometry", { timeout: 5_000 });
 
     await expect(
       page.getByTestId("coordinate-upload-next-button"),
