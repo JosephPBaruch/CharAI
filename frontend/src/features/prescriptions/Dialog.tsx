@@ -25,7 +25,7 @@ import { PaybackLegend } from "./PaybackLegend";
 import { GridCanvasLayer } from "./GridCanvasLayer";
 import EmptyPrescriptionState from "./EmptyPrescriptionData";
 
-export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
+export default function FieldDialog({ open, onClose, id, name, description }: FieldDialogProps) {
   const mapContainerRefs = React.useRef<HTMLDivElement | null>(null);
   const mapRef = React.useRef<L.Map | null>(null);
   const gridLayerRef = React.useRef<GridCanvasLayer | null>(null);
@@ -247,21 +247,21 @@ export default function FieldDialog({ open, onClose, id }: FieldDialogProps) {
                     <Typography
                       variant="h4"
                       sx={{
-                        color: COLORS.whiteHigh,
+                        color: "text.primary",
                         fontWeight: 700,
                         display: "flex",
                         alignItems: "center",
                         gap: 1.5,
                       }}
                     >
-                      Prescription Map
+                      {name || "Prescription Map"}
                     </Typography>
                     <Typography
                       variant="body2"
-                      sx={{ color: COLORS.whiteMedium, mt: 0.5 }}
+                      sx={{ color: "text.secondary", mt: 0.5 }}
                     >
-                      Biochar application recommendations based on your field
-                      analysis
+                      {description ||
+                        "Biochar application recommendations based on your field analysis"}
                     </Typography>
                   </Box>
                 </Box>

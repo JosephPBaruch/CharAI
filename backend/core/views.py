@@ -12,12 +12,29 @@ import logging
 import json
 import os
 from .models import Field
-from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer, FieldModelSerializer
+from .crop_types import CROP_TYPE_CHOICES
+from .serializers import RegisterSerializer, UserSerializer, FieldDataSerializer, FieldModelSerializer, ChangePasswordSerializer
 from .services import enqueue_prescription_map_job
 
 logger = logging.getLogger("charai")
 
 # api calls & endpoints
+
+class CropTypesView(APIView):
+    """API endpoint to retrieve valid crop type codes.
+
+    The set of codes is derived at startup from the yield-prediction
+    training CSV so it stays in sync with the ML model automatically.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        crop_types = [
+            {"code": code, "label": label}
+            for code, label in CROP_TYPE_CHOICES
+        ]
+        return Response(crop_types, status=status.HTTP_200_OK)
+    
 class RegisterView(APIView):
     """API endpoint for user registration"""
     permission_classes = [permissions.AllowAny]
@@ -87,6 +104,56 @@ class UserInfoView(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ChangePasswordView(APIView):
+    """API endpoint for changing user password"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = ChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            if not request.user.check_password(serializer.validated_data['current_password']):
+                return Response(
+                    {'current_password': ['Current password is incorrect.']},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            request.user.set_password(serializer.validated_data['new_password'])
+            request.user.save()
+            # Delete old token and create a new one
+            try:
+                request.user.auth_token.delete()
+            except Exception:
+                pass
+            token = Token.objects.create(user=request.user)
+            return Response({
+                'message': 'Password changed successfully.',
+                'token': token.key,
+            }, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DeleteAccountView(APIView):
+    """API endpoint for deleting user account"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request):
+        password = request.data.get('password')
+        if not password:
+            return Response(
+                {'password': ['Password is required to delete account.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not request.user.check_password(password):
+            return Response(
+                {'password': ['Password is incorrect.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        request.user.delete()
+        return Response(
+            {'message': 'Account deleted successfully.'},
+            status=status.HTTP_200_OK,
+        )
 
 
 class FieldDataView(APIView):
@@ -163,7 +230,6 @@ class FieldDataView(APIView):
 
             field_info = validated_data.get('field')
             geojson_data = validated_data.get('data')
-            global_max = validated_data.get('globalMax', '')
             requested_field_id = field_info.get('id')
 
             try:
@@ -183,10 +249,12 @@ class FieldDataView(APIView):
                 created = True
 
             field.crop_type = field_info.get('cropType')
-            field.custom_crop = field_info.get('customCrop', '')
+            field.name = field_info.get('name', '')
+            field.description = field_info.get('description', '')
             field.price = field_info.get('price')
             field.unit = field_info.get('unit')
-            field.global_max = global_max
+            field.biochar_tons_per_hectare = field_info.get('biocharTonsPerHectare', 20)
+            field.biochar_cost_per_ton = field_info.get('biocharCostPerTon')
             field.geojson_data = geojson_data
             field.prescription_map_status = Field.STATUS_PENDING
             field.save()
@@ -199,7 +267,8 @@ class FieldDataView(APIView):
                 'field_id': field.field_id,
                 'crop_type': field.crop_type,
                 'features_count': len(geojson_data.get('features', [])),
-                'global_max': global_max,
+                'biochar_tons_per_hectare': str(field.biochar_tons_per_hectare),
+                'biochar_cost_per_ton': str(field.biochar_cost_per_ton),
                 'prescription_map_status': field.prescription_map_status,
                 'prescription_map_file': field.prescription_map_file,
             }
@@ -249,6 +318,8 @@ class FieldPrescriptionView(APIView):
         # Compress and stream the response to avoid rate-limiting on large payloads
         response_data = {
             'field_id': field.field_id,
+            'name': field.name,
+            'description': field.description,
             'prescription_map_status': field.prescription_map_status,
             'prescription_map': data,
         }

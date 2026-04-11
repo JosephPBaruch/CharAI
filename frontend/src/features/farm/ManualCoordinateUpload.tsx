@@ -90,7 +90,6 @@ export default function ManualCoordinateUpload() {
     // Save to context (which persists to localStorage)
     setCoordinateData(geojson);
 
-    console.log("Submitted coordinates:", markers);
     closeModal();
   };
 

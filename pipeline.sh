@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
-# EXAMPELARY USAGE:
-    # ./pipeline.sh --hosts 127.0.0.1
-    # # or
-    # ./pipeline.sh --hosts=127.0.0.1
-
+# USAGE:
+#   ./pipeline.sh
+#   ./pipeline.sh --hosts your.domain.com
+#   ./pipeline.sh --hosts=your.domain.com
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Parse CLI args (supports: --hosts value  OR  --hosts=value)
+# Parse CLI args
 ALLOWED_HOSTS=""
 while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -28,32 +27,24 @@ while [[ $# -gt 0 ]]; do
 			shift
 			;;
 		*)
-			# ignore unknown args
 			shift
 			;;
 	esac
 done
 
-echo "Starting database..."
-cd "$SCRIPT_DIR/database"
-./pipeline.sh
+cd "$SCRIPT_DIR"
 
-echo "Waiting for Postgres to be ready..."
-timeout 30 bash -c 'until docker exec postgres-test pg_isready -U charai > /dev/null 2>&1; do sleep 1; done'
-
-echo "Starting backend..."
-cd "$SCRIPT_DIR/backend"
+# Export ALLOWED_HOSTS so docker compose picks it up
 if [[ -n "$ALLOWED_HOSTS" ]]; then
-	./pipeline.sh --hosts "$ALLOWED_HOSTS"
-else
-	./pipeline.sh
+	export ALLOWED_HOSTS
 fi
 
-echo "Running backend migrations..."
+echo "Building and starting all services..."
+docker compose up --build -d --wait
+
+echo "Running database migrations..."
 docker exec django-backend python manage.py migrate
 
-echo "Starting frontend..."
-cd "$SCRIPT_DIR/frontend"
-./pipeline.sh
-
-echo "After Containers are running, start reverse-proxy (caddy) and cloudfare tunnel."
+echo "All services are running."
+echo "  Frontend: http://localhost:${FRONTEND_PORT:-80}"
+echo "  Backend:  http://localhost:${BACKEND_PORT:-8000}"

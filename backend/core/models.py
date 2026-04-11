@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from .crop_types import CROP_TYPE_CHOICES
+
 
 class Field(models.Model):
     """Model for storing user field data"""
@@ -16,13 +18,18 @@ class Field(models.Model):
         (STATUS_FAILED, 'Failed'),
     ]
 
+    # Crop types extracted from the yield-prediction training CSV.
+    CROP_TYPE_CHOICES = CROP_TYPE_CHOICES
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fields')
     field_id = models.CharField(max_length=255)
-    crop_type = models.CharField(max_length=255)
-    custom_crop = models.CharField(max_length=255, blank=True)
+    name = models.CharField(max_length=255, blank=True, default='')
+    description = models.TextField(blank=True, default='')
+    crop_type = models.CharField(max_length=2, choices=CROP_TYPE_CHOICES)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     unit = models.CharField(max_length=50)
-    global_max = models.CharField(max_length=255, blank=True)
+    biochar_tons_per_hectare = models.DecimalField(max_digits=10, decimal_places=4, default=20)
+    biochar_cost_per_ton = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     geojson_data = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

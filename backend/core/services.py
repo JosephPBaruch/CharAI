@@ -5,14 +5,6 @@ import os
 from threading import Thread
 from datetime import datetime
 from typing import Any, Dict
-from decimal import Decimal
-import numpy as np
-import pandas as pd
-import math
-from typing import Dict, Any, List, cast
-from shapely.geometry import shape, Point, Polygon, mapping
-from shapely.prepared import prep
-
 from django.conf import settings
 from django.db import close_old_connections
 from .models import Field, PrescriptionMap
@@ -20,6 +12,25 @@ from modules.GeoParser import GeoParser
 from modules.Geotiffgenerator import DEMGeneratorService
 from modules.Calculator import YieldCalculator
 from modules.PrescriptionMapGenerator import PrescriptionMapGenerator
+
+def create_charai_data(logger: logging.Logger, coords, tiff_file_path, crop: str = "WW"):
+    if not isinstance(coords, list):
+        raise TypeError("coords must be a list of (lat, lon) tuples")
+
+    logger.debug("Generating GeoTif")
+    logger.debug(coords)
+    result = DEMGeneratorService(logger=logger).generate_from_coordinates(coords, tiff_file_path)
+    if result.get("success") is False:
+        error_message = result.get("error", "Unknown DEM generation error")
+        raise ValueError(error_message)
+
+    logger.debug("Parsing GeoTif")
+    geotiff_data = GeoParser(logger=logger, path=tiff_file_path).parse()
+    terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
+
+    terrain_df["Crop"] = crop or "WW"
+        
+    return terrain_df
 
 def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> Dict[str, Any]:
     field.prescription_map_status = Field.STATUS_STARTED
@@ -68,21 +79,22 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
         geotiff_data = GeoParser(logger=logger, path=tiff_file_path).parse()
         terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
 
-        logger.info("Fetching Soil Data")
-        fetcher = SoilInfoFetcher(logger=logger)
-        terrain_df = fetcher.add_soil_moisture(terrain_df)
-
-        logger.info("Calculating Yield")
+        logger.debug("Calculating Yield")
         calculator = YieldCalculator(logger=logger)
         yield_results_df = calculator.calculate(terrain_df.copy())
 
-        logger.info("Generating Presciption Map")
+        logger.debug("Generating Presciption Map")
         pmg = PrescriptionMapGenerator(logger=logger)
+
+        cell_size_meters = 10.0
+        cell_area_ha = (cell_size_meters ** 2) / 10_000  # 0.01 ha per 10m cell
+        biochar_tons_per_cell = float(field.biochar_tons_per_hectare) * cell_area_ha
+        biochar_cost_per_cell = biochar_tons_per_cell * float(field.biochar_cost_per_ton)
 
         payback_period_df = pmg.compute_payback_period_grid(
             yield_prediction_df=yield_results_df,
             crop_sales_price=float(field.price),
-            biochar_cost_per_cell=100,
+            biochar_cost_per_cell=biochar_cost_per_cell,
         )
 
         filtered_data_df = pmg.filter_cells_inside_boundary(
@@ -92,8 +104,8 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
 
         prescription_data_geojson = pmg.convert_df_to_geojson_polygons(
             payback_period_df=filtered_data_df,
-            cell_size_meters=10.0,
-            biochar_application_rate=10.0,
+            cell_size_meters=cell_size_meters,
+            biochar_application_rate=biochar_tons_per_cell,
         )
 
         prescription_data_geojson_with_boundary = pmg.parse_and_append_boundary_coordinates(
