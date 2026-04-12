@@ -12,6 +12,7 @@ from modules.GeoParser import GeoParser
 from modules.Geotiffgenerator import DEMGeneratorService
 from modules.Calculator import YieldCalculator
 from modules.PrescriptionMapGenerator import PrescriptionMapGenerator
+from modules.SoilInfoFetcher import SoilInfoFetcher
 
 def create_charai_data(logger: logging.Logger, coords, tiff_file_path, crop: str = "WW"):
     if not isinstance(coords, list):
@@ -78,6 +79,14 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
         logger.info("Parsing GeoTif")
         geotiff_data = GeoParser(logger=logger, path=tiff_file_path).parse()
         terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
+
+        logger.debug("Fetching Soil Data")
+        fetcher = SoilInfoFetcher(logger=logger)
+        try:
+            terrain_df = fetcher.add_soil_moisture(terrain_df)
+            logger.debug("Soil data successfully added to dataframe")
+        except Exception as e:
+            logger.warning(f"Soil data fetch failed, continuing without it: {e}")
 
         logger.debug("Calculating Yield")
         calculator = YieldCalculator(logger=logger)

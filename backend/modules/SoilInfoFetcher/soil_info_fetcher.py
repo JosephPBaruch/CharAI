@@ -8,11 +8,16 @@ import numpy as np
 import pandas as pd
 import requests
 from requests.auth import HTTPBasicAuth
+from dotenv import load_dotenv
+from pathlib import Path
 
+load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
 
 class SoilInfoFetcher:
     SMAP_SHORT_NAME = "SPL3SMP_E"
     SMAP_VERSION    = "006"
+
+    CMR_GRANULE_URL = "https://cmr.earthdata.nasa.gov/search/granules.json"
 
     HDF5_SM_AM  = "Soil_Moisture_Retrieval_Data_AM/soil_moisture"
     HDF5_LAT_AM = "Soil_Moisture_Retrieval_Data_AM/latitude"
