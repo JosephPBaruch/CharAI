@@ -1,6 +1,6 @@
 """SoilInfoFetcher"""
 
-from .SoilInfoFetcher import SoilInfoFetcher  # noqa: F401
+from .soil_info_fetcher import SoilInfoFetcher  # noqa: F401
 
 __all__ = [
     "SoilInfoFetcher",
