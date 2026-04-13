@@ -1,5 +1,6 @@
 import { test, expect, Page } from "@playwright/test";
 import * as path from "path";
+import { registerUser } from "./helpers";
 
 const fixture = (testInfo: any, filename: string) => {
   return path.join(path.dirname(testInfo.file), "fixtures", filename);
@@ -9,41 +10,6 @@ const baseUrl = process.env.BASE_URL || "http://localhost:5173";
 
 // Mirrors scenarios from CharAI.feature.file-parser so Playwright Test UI can display them.
 test.describe("CharAI.feature.file-parser", () => {
-  const registerUser = async (
-    page: Page,
-    username: string,
-    password: string,
-  ) => {
-    await page.goto(baseUrl);
-    await expect(page).toHaveURL(/localhost/);
-
-    // generate unique username and email
-
-    // Navigate to signup page
-    await page.click('[data-testid="signup-button"]');
-    await expect(page).toHaveURL(/\/signup/);
-
-    // Fill in signup form
-    await page.fill('[data-testid="username-input"]', username);
-    await page.fill(
-      '[data-testid="email-input"]',
-      `testuser${username}@example.com`,
-    );
-    await page.fill('input[name="first_name"]', username);
-    await page.fill('input[name="last_name"]', "User");
-    await page.fill('input[name="password"]', password);
-    await page.fill('input[name="password2"]', password);
-
-    // Submit the form
-    await page.click('button[type="submit"]');
-
-    // Look for the text: "Welcome, Test!"
-    await expect(page.locator(`text=Welcome, ${username}!`)).toBeVisible();
-
-    // Verify successful registration (redirects to home page)
-    await expect(page).toHaveURL(baseUrl);
-  };
-
   const openCoordinateUploadStepper = async (page: Page) => {
     // Scroll down in the MUI Dialog to find the coordinate upload button
     const dialogContent = page.locator("[role='dialog']").first();
@@ -97,7 +63,7 @@ test.describe("CharAI.feature.file-parser", () => {
     const uniqueUsername = `testuser${timestamp}`;
     const password = "TestPassword123";
 
-    await registerUser(page, uniqueUsername, password);
+    await registerUser(page, uniqueUsername, password, baseUrl);
     await page.goto(`${baseUrl}/fields`);
     await page.getByRole("button", { name: /Create Farm/ }).click();
 
