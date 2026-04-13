@@ -31,6 +31,14 @@ def create_charai_data(logger: logging.Logger, coords, tiff_file_path, crop: str
 
     terrain_df["Crop"] = crop or "WW"
         
+    logger.debug("Fetching Soil Data")
+    fetcher = SoilInfoFetcher(logger=logger)
+    try:
+        terrain_df = fetcher.add_soil_moisture(terrain_df)
+        logger.debug("Soil data successfully added to dataframe")
+    except Exception as e:
+        logger.warning(f"Soil data fetch failed, continuing without it: {e}")
+        
     return terrain_df
 
 def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> Dict[str, Any]:
@@ -57,36 +65,9 @@ def create_prescription_map_for_field(logger: logging.Logger, field: Field) -> D
             dem_dir,
             f"field_{field.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.tif",
         )
-
-        logger.info("Generating GeoTif")
-        result = DEMGeneratorService(logger=logger).generate_from_coordinates(coords, tiff_file_path)
-        if result.get("success") is False:
-            error_message = result.get("error", "Unknown DEM generation error")
-            field.prescription_map_status = Field.STATUS_FAILED
-            field.save(update_fields=["prescription_map_status", "updated_at"])
-            logger.error(
-                "Handled prescription failure during DEM generation for field_id=%s: %s",
-                field.field_id,
-                error_message,
-            )
-            return {
-                "success": False,
-                "stage": "dem_generation",
-                "error": error_message,
-            }
-
-
-        logger.info("Parsing GeoTif")
-        geotiff_data = GeoParser(logger=logger, path=tiff_file_path).parse()
-        terrain_df = geotiff_data.to_dataframe(cell_size_meters=5.0)
-
-        logger.debug("Fetching Soil Data")
-        fetcher = SoilInfoFetcher(logger=logger)
-        try:
-            terrain_df = fetcher.add_soil_moisture(terrain_df)
-            logger.debug("Soil data successfully added to dataframe")
-        except Exception as e:
-            logger.warning(f"Soil data fetch failed, continuing without it: {e}")
+        
+        crop = field.crop_type or "WW"
+        terrain_df = create_charai_data(logger, coords, tiff_file_path, crop)
 
         logger.debug("Calculating Yield")
         calculator = YieldCalculator(logger=logger)
