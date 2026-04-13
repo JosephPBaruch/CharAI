@@ -22,10 +22,11 @@ COPY . .
 # the image and stays in sync with the code/data.  SECRET_KEY is a throwaway
 # value used only to satisfy django.setup(); no database is needed.
 ARG OPENTOPOGRAPHY_API_KEY=keykey
-RUN SECRET_KEY=build-only-key \
-    OPENTOPOGRAPHY_API_KEY=${OPENTOPOGRAPHY_API_KEY} \
-    python -u YieldPredictionModel/CreateAndTrainYieldCalculatorModel.py \
-    && test -f YieldPredictionModel/Models/yield_model.keras \
+RUN cd YieldPredictionModel \
+    && SECRET_KEY=build-only-key \
+       OPENTOPOGRAPHY_API_KEY=${OPENTOPOGRAPHY_API_KEY} \
+       python -u CreateAndTrainYieldCalculatorModel.py \
+    && test -f Models/yield_model.keras \
     || { echo "ERROR: Model training failed - yield_model.keras not created"; exit 1; }
 
 # Drop root
