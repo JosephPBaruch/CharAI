@@ -23,7 +23,10 @@ COPY . .
 # value used only to satisfy django.setup(); no database is needed.
 # The training script enforces a minimum R-squared threshold and will exit
 # non-zero if the model does not meet the required accuracy.
+# CACHEBUST: pass a unique value (e.g. git SHA, timestamp) to force
+# retraining even when no source files have changed.
 ARG OPENTOPOGRAPHY_API_KEY=keykey
+ARG CACHEBUST
 RUN cd YieldPredictionModel \
     && SECRET_KEY=build-only-key \
        OPENTOPOGRAPHY_API_KEY=${OPENTOPOGRAPHY_API_KEY} \
