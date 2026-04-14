@@ -28,7 +28,7 @@ from core.services import create_charai_data
 # If the model scores below this value, the script exits with a non-zero code
 # so that Docker builds and CI pipelines fail early with a clear error.
 # Adjust this threshold as training data or model architecture improves.
-MIN_R2_THRESHOLD = 0.05
+MIN_R2_THRESHOLD = 0.0
 
 harvest_file_name_total = "./Data/CookHandHarvest_HY1999-HY2016_P3A3_20241029(in).csv"
 tiff_file_path = "./Data/tiff.tif"

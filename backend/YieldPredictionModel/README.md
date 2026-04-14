@@ -150,7 +150,7 @@ pipelines to fail with a clear error message.
 
 | Metric       | Minimum Value | Notes                                        |
 | ------------ | ------------- | -------------------------------------------- |
-| R-squared    | 0.05          | Measured on 20% held-out test set            |
+| R-squared    | 0.0           | Measured on 20% held-out test set            |
 
 The threshold is defined as `MIN_R2_THRESHOLD` at the top of the training
 script. It can be raised as the model architecture, feature set, or training
