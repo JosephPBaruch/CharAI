@@ -172,11 +172,11 @@ class YieldCalculator:
             features["Crop"] = features["Crop"].map(self.CROP_ENCODING)
             unknown = features["Crop"].isna()
             if unknown.any():
-                self.logger.warning(
-                    "Unknown crop codes detected (%d rows); defaulting to -1",
-                    int(unknown.sum()),
+                bad_codes = df.loc[unknown.values, "Crop"].unique().tolist()
+                raise ValueError(
+                    f"Unknown crop code(s): {bad_codes}. "
+                    f"Valid codes: {sorted(self.CROP_ENCODING.keys())}"
                 )
-                features["Crop"] = features["Crop"].fillna(-1)
 
         features = features.to_numpy(dtype=np.float32)
         expected_dim = self.model.input_shape[-1]

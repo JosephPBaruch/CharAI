@@ -18,7 +18,15 @@ def encode(df):
     if isinstance(crop_values, pd.DataFrame):
         crop_values = crop_values.iloc[:, 0]
 
-    df["Crop"] = crop_values.astype(str).map(YieldCalculator.CROP_ENCODING)
+    encoded = crop_values.astype(str).map(YieldCalculator.CROP_ENCODING)
+    unknown = encoded.isna()
+    if unknown.any():
+        bad_codes = crop_values[unknown].unique().tolist()
+        raise ValueError(
+            f"Unknown crop code(s): {bad_codes}. "
+            f"Valid codes: {sorted(YieldCalculator.CROP_ENCODING.keys())}"
+        )
+    df["Crop"] = encoded
     
 def Create_Model(input_dim):
     model = keras.models.Sequential()
