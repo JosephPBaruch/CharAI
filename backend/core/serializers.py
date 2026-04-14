@@ -53,6 +53,22 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
+class ChangePasswordSerializer(serializers.Serializer):
+    """Serializer for password change"""
+    current_password = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(
+        required=True, write_only=True, validators=[validate_password]
+    )
+    new_password2 = serializers.CharField(required=True, write_only=True)
+
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['new_password2']:
+            raise serializers.ValidationError(
+                {"new_password": "New password fields didn't match."}
+            )
+        return attrs
+
+
 class LoginSerializer(serializers.Serializer):
     """Serializer for user login"""
     username = serializers.CharField(required=True)
@@ -69,6 +85,8 @@ class FieldPropertiesSerializer(serializers.Serializer):
 class FieldSerializer(serializers.Serializer):
     """Serializer for field metadata"""
     id = serializers.CharField(required=True)
+    name = serializers.CharField(required=False, default='', allow_blank=True, max_length=255)
+    description = serializers.CharField(required=False, default='', allow_blank=True)
     cropType = serializers.ChoiceField(choices=Field.CROP_TYPE_CHOICES, required=True)
     price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True, min_value=Decimal('0'))
     unit = serializers.CharField(required=True)
@@ -93,6 +111,8 @@ class FieldModelSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'field_id',
+            'name',
+            'description',
             'crop_type',
             'price',
             'unit',

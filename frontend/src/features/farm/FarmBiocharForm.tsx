@@ -22,6 +22,8 @@ import { v4 as uuidv4 } from "uuid";
 
 const DEFAULT_FIELD = (): FieldEntry => ({
   id: `main-field-${uuidv4()}`,
+  name: "",
+  description: "",
   cropType: "WW",
   price: 7,
   unit: "bushel",
@@ -132,9 +134,6 @@ export default function FarmBiocharForm({
                 },
                 data,
               };
-              console.debug(
-                `Sending the following field payload to the backend: ${JSON.stringify(payload)}`,
-              );
               try {
                 await POSTFieldData(payload);
                 setFormSubmitted(true);

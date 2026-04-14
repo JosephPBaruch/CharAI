@@ -31,4 +31,6 @@ export type FieldDialogProps = {
   open: boolean;
   onClose: () => void;
   id: string;
+  name?: string;
+  description?: string;
 };

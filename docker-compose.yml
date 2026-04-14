@@ -15,7 +15,10 @@ services:
       retries: 15
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      args:
+        OPENTOPOGRAPHY_API_KEY: ${OPENTOPOGRAPHY_API_KEY:-keykey}
     image: django-backend
     container_name: django-backend
     depends_on:

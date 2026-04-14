@@ -64,6 +64,7 @@ test.describe("CharAI.feature", () => {
     await page.goto(baseUrl);
     await expect(page).toHaveURL(/localhost/);
 
+    await page.click('[data-testid="profile-menu-button"]');
     await page.click('[data-testid="logout-button"]');
     await expect(page).toHaveURL(baseUrl);
 
@@ -124,6 +125,10 @@ test.describe("CharAI.feature", () => {
     // Set crop selling price = 12
     await page.getByLabel("Price").fill("12");
 
+    // Fill in field name and description
+    await page.getByTestId("field-name-input").locator("input").fill("Test North Field");
+    await page.getByTestId("field-description-input").locator("textarea").first().fill("Northern section for testing");
+
     // Click "Draw Boundaries" / "Edit Coordinates" to open the coordinate modal
     await page.getByTestId("open-manual-coordinates").click();
 
@@ -170,6 +175,9 @@ test.describe("CharAI.feature", () => {
     await expect(page.locator("table")).toBeVisible({ timeout: 15_000 });
     await expect(page.locator("td", { hasText: "WW" })).toBeVisible({ timeout: 15_000 });
 
+    // Verify name and description are visible in the table
+    await expect(page.locator("td", { hasText: "Test North Field" })).toBeVisible({ timeout: 5_000 });
+
     // Poll for the status to become "complete" — check every 3 seconds for up to 2 minutes
     await expect(async () => {
       await page.reload();
@@ -177,7 +185,7 @@ test.describe("CharAI.feature", () => {
         .locator("tr")
         .filter({ hasText: "WW" })
         .locator("td")
-        .nth(3);
+        .nth(5);
       await expect(statusCell).toHaveText("Complete");
     }).toPass({ intervals: [3_000], timeout: 120_000 });
 
@@ -185,8 +193,9 @@ test.describe("CharAI.feature", () => {
     const fieldRow = page.locator("tr").filter({ hasText: "WW" });
     await fieldRow.getByRole("button", { name: "Get Map" }).click();
 
-    // Verify the prescription map dialog is displayed
-    await expect(page.getByText("Prescription Map")).toBeVisible();
+    // Verify the prescription map dialog is displayed with field name and description
+    await expect(page.getByText("Test North Field")).toBeVisible();
+    await expect(page.getByText("Northern section for testing")).toBeVisible();
     await expect(page.locator(".leaflet-container")).toBeVisible();
 
     // Verify Analysis Summary shows correct total grid cells
@@ -299,6 +308,10 @@ test.describe("CharAI.feature", () => {
     // Set crop selling price
     await page.getByLabel("Price").fill("10");
 
+    // Fill in field name and description
+    await page.getByTestId("field-name-input").locator("input").fill("Auto Test Field");
+    await page.getByTestId("field-description-input").locator("textarea").first().fill("Auto test description");
+
     // Open coordinate modal and add markers
     await page.getByTestId("open-manual-coordinates").click();
 
@@ -344,9 +357,106 @@ test.describe("CharAI.feature", () => {
       timeout: 15_000,
     });
 
+    // Verify name and description columns are visible in the table
+    await expect(page.locator("td", { hasText: "Auto Test Field" })).toBeVisible({ timeout: 5_000 });
+
     // Verify the dialog is closed
     await expect(
       page.getByRole("heading", { name: "Create New Field" }),
     ).not.toBeVisible();
+  });
+
+  test("User can view profile information", async ({ page }) => {
+    const timestamp = Date.now();
+    const uniqueUsername = `testuser${timestamp}`;
+    const password = "TestPassword123";
+
+    await registerUser(page, uniqueUsername, password);
+
+    // Open profile menu
+    await page.click('[data-testid="profile-menu-button"]');
+
+    // Click Profile link
+    await page.click('[data-testid="profile-link"]');
+    await expect(page).toHaveURL(/\/profile/);
+
+    // Verify profile information is displayed
+    await expect(page.getByTestId("profile-username")).toHaveText(uniqueUsername);
+    await expect(page.getByTestId("profile-name")).toContainText(uniqueUsername);
+    await expect(page.getByTestId("profile-email")).toContainText(
+      `testuser${uniqueUsername}@example.com`,
+    );
+  });
+
+  test("User can change password", async ({ page }) => {
+    const timestamp = Date.now();
+    const uniqueUsername = `testuser${timestamp}`;
+    const password = "TestPassword123";
+    const newPassword = "NewPassword456!";
+
+    await registerUser(page, uniqueUsername, password);
+
+    // Navigate to profile
+    await page.click('[data-testid="profile-menu-button"]');
+    await page.click('[data-testid="profile-link"]');
+    await expect(page).toHaveURL(/\/profile/);
+
+    // Fill in password change form
+    await page.fill('[data-testid="current-password-input"]', password);
+    await page.fill('[data-testid="new-password-input"]', newPassword);
+    await page.fill('[data-testid="confirm-new-password-input"]', newPassword);
+
+    // Submit password change
+    await page.click('[data-testid="change-password-button"]');
+
+    // Verify success
+    await expect(page.getByTestId("password-success-alert")).toBeVisible({
+      timeout: 10_000,
+    });
+
+    // Logout and login with new password to verify it works
+    await page.click('[data-testid="profile-menu-button"]');
+    await page.click('[data-testid="logout-button"]');
+    await expect(page.locator('[data-testid="login-button"]')).toBeVisible();
+
+    await loginUser(page, uniqueUsername, newPassword);
+  });
+
+  test("User can delete account", async ({ page }) => {
+    const timestamp = Date.now();
+    const uniqueUsername = `testuser${timestamp}`;
+    const password = "TestPassword123";
+
+    await registerUser(page, uniqueUsername, password);
+
+    // Navigate to profile
+    await page.click('[data-testid="profile-menu-button"]');
+    await page.click('[data-testid="profile-link"]');
+    await expect(page).toHaveURL(/\/profile/);
+
+    // Click delete account button
+    await page.click('[data-testid="delete-account-button"]');
+
+    // Verify confirmation dialog appears
+    await expect(page.getByText("Confirm Account Deletion")).toBeVisible();
+
+    // Enter password and confirm
+    await page.fill('[data-testid="delete-confirm-password-input"]', password);
+    await page.click('[data-testid="delete-confirm-button"]');
+
+    // Verify redirected to landing page and logged out
+    await expect(page.locator('[data-testid="login-button"]')).toBeVisible({
+      timeout: 10_000,
+    });
+
+    // Verify cannot login with deleted account
+    await page.click('[data-testid="login-button"]');
+    await expect(page).toHaveURL(/\/login/);
+    await page.fill('input[name="username"]', uniqueUsername);
+    await page.fill('input[name="password"]', password);
+    await page.click('button[type="submit"]');
+
+    // Should see an error
+    await expect(page.locator(".MuiAlert-root")).toBeVisible({ timeout: 5_000 });
   });
 });

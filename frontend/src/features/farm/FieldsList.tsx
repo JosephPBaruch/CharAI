@@ -18,6 +18,8 @@ import type { CropType } from "../../types/fetch";
 
 export interface FieldEntry {
   id: string;
+  name: string;
+  description: string;
   cropType: string;
   price: number | "";
   unit: "ton" | "kg" | "bushel";
@@ -94,6 +96,63 @@ export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
             direction={{ xs: "column", lg: "row" }}
             spacing={2}
             alignItems="stretch"
+          >
+            {/* Field Name */}
+            <Stack spacing={1} sx={{ minWidth: 220, flex: 1 }}>
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "text.primary", fontWeight: 500 }}
+              >
+                Field name
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ color: "text.secondary", mb: 0.5 }}
+              >
+                Give your field a recognizable name.
+              </Typography>
+              <TextField
+                placeholder="Name"
+                size="small"
+                value={field.name}
+                onChange={(e) => onUpdateField({ name: e.target.value })}
+                data-testid="field-name-input"
+                slotProps={{ htmlInput: { maxLength: 255 } }}
+              />
+            </Stack>
+
+            {/* Field Description */}
+            <Stack spacing={1} sx={{ minWidth: 220, flex: 1 }}>
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "text.primary", fontWeight: 500 }}
+              >
+                Description
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ color: "text.secondary", mb: 0.5 }}
+              >
+                A short description of this field (optional).
+              </Typography>
+              <TextField
+                placeholder="Description"
+                size="small"
+                multiline
+                minRows={1}
+                maxRows={3}
+                value={field.description}
+                onChange={(e) => onUpdateField({ description: e.target.value })}
+                data-testid="field-description-input"
+              />
+            </Stack>
+          </Stack>
+
+          <Stack
+            direction={{ xs: "column", lg: "row" }}
+            spacing={2}
+            alignItems="stretch"
+            sx={{ mt: 2 }}
           >
             {/* Crop Type */}
             <Stack spacing={1} sx={{ minWidth: 220, flex: 1 }}>
