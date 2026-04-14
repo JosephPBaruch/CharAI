@@ -159,11 +159,10 @@ data improves.
 ### Why R-squared?
 
 R-squared (coefficient of determination) measures the proportion of variance in
-the target variable (`GrainYieldAirDry`) explained by the model. The current
-model uses only four terrain features (`elev_mean_m`, `slope_mean_deg`,
-`aspect_eastness`, `aspect_northness`), so R-squared is expected to be modest.
-The threshold is a floor to catch broken training runs rather than a quality
-target.
+the target variable (`GrainYieldAirDry`) explained by the model. The model uses
+crop type and four terrain features (`Crop`, `elev_mean_m`, `slope_mean_deg`,
+`aspect_eastness`, `aspect_northness`). The threshold is a floor to catch
+broken training runs rather than a quality target.
 
 ### What Happens on Failure
 
@@ -193,7 +192,7 @@ Every training run prints an accuracy report to stdout/stderr:
   Min R2 Threshold: <value>
   Training rows   : <count>
   Test rows       : <count>
-  Features        : elev_mean_m, slope_mean_deg, aspect_eastness, aspect_northness
+  Features        : Crop, elev_mean_m, slope_mean_deg, aspect_eastness, aspect_northness
 --- End Accuracy Report ---
 ```
 
@@ -206,6 +205,28 @@ The training script cleans the Cook Farm harvest data before training:
   `HarvestYear`) are dropped.
 - **Zero-yield rows are removed.** These represent planting failures or
   unharvested samples and would bias the model toward predicting lower yields.
+
+### Model Features
+
+The model uses five features (defined in `YieldCalculator.MODEL_FEATURE_COLUMNS`):
+
+| Feature            | Type        | Range         | Source         |
+| ------------------ | ----------- | ------------- | -------------- |
+| `Crop`             | Categorical | 0-11 (encoded)| Harvest data   |
+| `elev_mean_m`      | Continuous  | ~750-800      | DEM/GeoParser  |
+| `slope_mean_deg`   | Continuous  | ~0-20         | DEM/GeoParser  |
+| `aspect_eastness`  | Continuous  | -1 to 1       | DEM/GeoParser  |
+| `aspect_northness` | Continuous  | -1 to 1       | DEM/GeoParser  |
+
+**Crop encoding** uses a fixed alphabetical mapping defined in
+`YieldCalculator.CROP_ENCODING`. This must stay consistent between training and
+inference. Do not use `sklearn.LabelEncoder` directly as it produces different
+encodings depending on which values it sees.
+
+**Feature scaling** is handled by a `BatchNormalization` layer at the front of
+the neural network. The learned normalization parameters are stored inside the
+`.keras` model file, so inference automatically applies the same scaling without
+a separate scaler artifact.
 
 ## Model Artifacts in CI
 
