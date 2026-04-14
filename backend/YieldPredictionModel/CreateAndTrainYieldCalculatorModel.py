@@ -24,6 +24,12 @@ from modules.Calculator import YieldCalculator
 from helpers import Create_Model, encode, save_to_csv
 from core.services import create_charai_data
 
+# Minimum R-squared the trained model must achieve on the held-out test set.
+# If the model scores below this value, the script exits with a non-zero code
+# so that Docker builds and CI pipelines fail early with a clear error.
+# Adjust this threshold as training data or model architecture improves.
+MIN_R2_THRESHOLD = 0.0
+
 harvest_file_name_total = "./Data/CookHandHarvest_HY1999-HY2016_P3A3_20241029(in).csv"
 tiff_file_path = "./Data/tiff.tif"
 
@@ -41,23 +47,32 @@ logging.basicConfig(
 )
 
 # ---------- Cook Harvest Prep ----------
-logger.info("getting harvest")
+logger.info("Loading harvest data")
 harvest = pd.read_csv(harvest_file_name_total)
+logger.info("Raw harvest rows: %d, columns: %d", *harvest.shape)
 
-# print(harvest["Crop"].unique())
-
-# drop any columns that are more than 1000 missing values
+# Drop columns where more than 1000 values are missing -- these columns
+# are too sparse to be useful for training.
 harvest = harvest.loc[:, harvest.isna().sum() <= 1000]
 
-# Drop unnecessary "SampleID" Column
+# Drop unnecessary "SampleID" column
 harvest.drop(columns=["SampleID"], inplace=True)
 
-# Drop rows with missing "Crop" or "GrainYieldAirDry" Values
+# Drop rows with any remaining missing values (Crop, GrainYieldAirDry, etc.)
 harvest = harvest.dropna()
-harvest.isna().sum()
 
-# Drop columns: QCCoverage, QCFlags, CropExists
+# Drop metadata columns not used for training
 harvest.drop(columns=["QCCoverage", "QCFlags", "CropExists", "ID2", "HarvestYear"], inplace=True)
+
+# Remove rows where the crop failed or was not harvested (zero yield).
+# These represent planting failures, not valid yield observations, and
+# would bias the model toward predicting lower yields.
+zero_yield_count = (harvest["GrainYieldAirDry"] <= 0).sum()
+if zero_yield_count > 0:
+    logger.info("Removing %d rows with zero/negative yield (failed crops)", zero_yield_count)
+    harvest = harvest[harvest["GrainYieldAirDry"] > 0]
+
+logger.info("Cleaned harvest rows: %d", len(harvest))
 
 # ---------- Get CharAI Generated Data ----------
 
@@ -146,50 +161,33 @@ mse = mean_squared_error(y_test, y_pred)
 rmse = mse ** 0.5
 r2 = r2_score(y_test, y_pred)
 
-# date = date
-# time = time
+# ---------- Accuracy Report ----------
+logger.info("--- Model Accuracy Report ---")
+logger.info("  Test Loss (MSE) : %.4f", test_loss)
+logger.info("  Test MAE        : %.4f", test_mae)
+logger.info("  RMSE            : %.4f", rmse)
+logger.info("  R-squared (R2)  : %.4f", r2)
+logger.info("  Min R2 Threshold: %.4f", MIN_R2_THRESHOLD)
+logger.info("  Training rows   : %d", len(X_train))
+logger.info("  Test rows       : %d", len(X_test))
+logger.info("  Features        : %s", ", ".join(YieldCalculator.MODEL_FEATURE_COLUMNS))
+logger.info("--- End Accuracy Report ---")
+
+# ---------- Accuracy Gate ----------
+if r2 < MIN_R2_THRESHOLD:
+    logger.error(
+        "ACCURACY CHECK FAILED: R2=%.4f is below the minimum threshold of %.4f. "
+        "The model does not meet the required accuracy for deployment. "
+        "Review training data, feature engineering, or model architecture. "
+        "To adjust the threshold, update MIN_R2_THRESHOLD in this script.",
+        r2,
+        MIN_R2_THRESHOLD,
+    )
+    sys.exit(1)
+
+logger.info("Accuracy check passed (R2=%.4f >= %.4f)", r2, MIN_R2_THRESHOLD)
 
 Path("./Models").mkdir(parents=True, exist_ok=True)
 model.save("./Models/yield_model.keras")
 logger.info("Model saved to ./Models/yield_model.keras")
-
-# model.save("./Models/yield_model{date}_{time}.keras")
-
-# ---------- Feature Sensitivity Analysis ----------
-# For each feature, perturb it by a small delta and measure how predicted
-# yield changes.  This tells us the direction and magnitude of each
-# feature's influence, which informs the biochar feature adjustments in
-# _calculate_biochar_yield.
-
-logger.info("--- Feature Sensitivity Analysis ---")
-
-feature_columns = YieldCalculator.MODEL_FEATURE_COLUMNS
-baseline_features = X_test.to_numpy(dtype=np.float32)
-baseline_preds = model.predict(baseline_features, verbose=0).flatten()
-
-# Use 1 % of each feature's standard deviation as the perturbation step.
-# For features with zero std (constant), fall back to 1 % of the mean or 0.01.
-PERTURBATION_FRACTION = 0.01
-
-for i, col in enumerate(feature_columns):
-    std = X_test[col].std()
-    mean = X_test[col].mean()
-    delta = std * PERTURBATION_FRACTION if std > 0 else abs(mean) * PERTURBATION_FRACTION or 0.01
-
-    perturbed = baseline_features.copy()
-    perturbed[:, i] += delta
-
-    perturbed_preds = model.predict(perturbed, verbose=0).flatten()
-    mean_yield_change = (perturbed_preds - baseline_preds).mean()
-    sensitivity = mean_yield_change / delta  # yield change per unit feature change
-
-    direction = "INCREASE" if sensitivity > 0 else "DECREASE"
-
-    logger.info(
-        f"  {col:25s} | std={std:.4f} mean={mean:.4f} delta={delta:.6f} "
-        f"| avg yield Δ = {mean_yield_change:+.4f} | sensitivity = {sensitivity:+.4f}/unit "
-        f"| To boost yield: {direction} this feature"
-    )
-
-logger.info("--- End Sensitivity Analysis ---")
 
