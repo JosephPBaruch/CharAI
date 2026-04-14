@@ -208,6 +208,35 @@ test.describe("CharAI.feature", () => {
       .last();
     await expect(gridCellsValue).toHaveText("11,043");
 
+    // Verify the Export Data button is visible
+    await expect(page.getByTestId("export-prescription-data")).toBeVisible();
+
+    // Click Export Data and verify a JSON file is downloaded
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByTestId("export-prescription-data").click();
+    const download = await downloadPromise;
+
+    // Verify the filename is a JSON file
+    expect(download.suggestedFilename()).toMatch(/^prescription-map-.*\.json$/);
+
+    // Read and validate the downloaded content
+    const filePath = await download.path();
+    const fs = await import("fs");
+    const content = fs.readFileSync(filePath!, "utf-8");
+    const parsed = JSON.parse(content);
+
+    // Verify it is a GeoJSON FeatureCollection with raw map data
+    expect(parsed.type).toBe("FeatureCollection");
+    expect(Array.isArray(parsed.features)).toBe(true);
+    expect(parsed.features.length).toBeGreaterThan(0);
+
+    // Verify features contain expected raw data properties
+    const gridCells = parsed.features.filter(
+      (f: { properties: { featureType: string } }) => f.properties.featureType === "gridCell",
+    );
+    expect(gridCells.length).toBeGreaterThan(0);
+    expect(gridCells[0].properties).toHaveProperty("paybackPeriod");
+
     // Wait for render then attach a screenshot to the HTML report
     await page.waitForTimeout(1000);
     const screenshot = await page.screenshot({ fullPage: true });
