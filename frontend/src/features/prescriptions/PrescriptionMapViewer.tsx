@@ -32,14 +32,14 @@ export default function PrescriptionMapViewer() {
     GETFields().then((fields) => {
       console.log("Fields from backend:", fields);
 
-      const fieldId = fields["fields"][0]["field_id"].toString();
-      if (!fieldId) {
+      const id = fields["fields"][0]["field_id"].toString();
+      if (!id) {
         setIsLoading(false);
         return;
       }
-      setFieldId(fieldId);
+      setFieldId(id);
 
-      GETPrescriptionMap(fieldId)
+      GETPrescriptionMap(id)
         .then((data) => {
           console.log("Prescription map data from backend:", data);
 
