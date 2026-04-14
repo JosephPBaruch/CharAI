@@ -1,10 +1,9 @@
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { COLORS } from "../../styles/colors";
 import React from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import { GETFields, GETPrescriptionMap } from "../../api/fetch";
 import LoadingProgress from "../../components/LoadingProgress";
 import type { GeoJSONFeatureCollection, GridCell } from "./types";
@@ -25,21 +24,19 @@ export default function PrescriptionMapViewer() {
   const [prescriptionData, setPrescriptionData] =
     React.useState<GeoJSONFeatureCollection | null>(null);
   const [cells, setCells] = React.useState<GridCell[]>([]);
-  const [fieldId, setFieldId] = React.useState<string>("");
 
   // Fetch backend data
   React.useEffect(() => {
     GETFields().then((fields) => {
       console.log("Fields from backend:", fields);
 
-      const id = fields["fields"][0]["field_id"].toString();
-      if (!id) {
+      const fieldId = fields["fields"][0]["field_id"].toString();
+      if (!fieldId) {
         setIsLoading(false);
         return;
       }
-      setFieldId(id);
 
-      GETPrescriptionMap(id)
+      GETPrescriptionMap(fieldId)
         .then((data) => {
           console.log("Prescription map data from backend:", data);
 
@@ -181,20 +178,6 @@ export default function PrescriptionMapViewer() {
     };
   }, [isLoading]);
 
-  const handleExport = () => {
-    if (!prescriptionData) return;
-    const json = JSON.stringify(prescriptionData, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `prescription-map-${fieldId}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
   // Loading state
   if (isLoading) return <LoadingProgress />;
 
@@ -243,15 +226,6 @@ export default function PrescriptionMapViewer() {
             Biochar application recommendations based on your field analysis
           </Typography>
         </Box>
-        <Button
-          variant="outlined"
-          startIcon={<FileDownloadOutlinedIcon />}
-          onClick={handleExport}
-          data-testid="export-prescription-data"
-          sx={{ color: COLORS.whiteHigh, borderColor: COLORS.whiteMedium }}
-        >
-          Export Data
-        </Button>
       </Box>
 
       {/* Main content */}
