@@ -1,6 +1,11 @@
 import { test, expect, Page } from "@playwright/test";
 
 const baseUrl = process.env.BASE_URL || "http://localhost:5173";
+const defaultFieldCoordinates = [
+  { lat: "46.75520514295208", lng: "-116.97727203369142" },
+  { lat: "46.75214798439814", lng: "-116.94499969482423" },
+  { lat: "46.74591554718295", lng: "-116.96405410766603" },
+];
 
 // Mirrors scenarios from CharAI.feature so Playwright Test UI can display them.
 test.describe("CharAI.feature", () => {
@@ -71,6 +76,61 @@ test.describe("CharAI.feature", () => {
     await expect(page.locator('[data-testid="login-button"]')).toBeVisible();
   };
 
+  const createField = async (
+    page: Page,
+    fieldName: string,
+    description: string,
+    price = "12",
+  ) => {
+    await page.goto(`${baseUrl}/fields`);
+
+    await page
+      .getByRole("button", { name: /Create Farm/ })
+      .click();
+
+    await page.getByTestId("biochar-rate-input").locator("input").fill("20");
+    await page.getByTestId("biochar-cost-input").locator("input").fill("150");
+    await page.getByLabel("Price").fill(price);
+
+    await page.getByTestId("field-name-input").locator("input").fill(fieldName);
+    await page
+      .getByTestId("field-description-input")
+      .locator("textarea")
+      .first()
+      .fill(description);
+
+    await page.getByTestId("open-manual-coordinates").click();
+
+    for (const [index, coordinate] of defaultFieldCoordinates.entries()) {
+      await page.getByTestId("add-marker-button").click();
+      await page
+        .getByTestId(`marker-lat-${index}`)
+        .locator("input")
+        .fill(coordinate.lat);
+      await page
+        .getByTestId(`marker-lng-${index}`)
+        .locator("input")
+        .fill(coordinate.lng);
+    }
+
+    await page.getByTestId("save-boundaries-button").click();
+    await page.getByRole("button", { name: "Submit request" }).click();
+
+    await expect(page.locator("table")).toBeVisible({ timeout: 15_000 });
+    const fieldRow = page.locator("tr").filter({ hasText: fieldName });
+    await expect(fieldRow).toBeVisible({ timeout: 15_000 });
+
+    return fieldRow;
+  };
+
+  const waitForFieldStatusComplete = async (page: Page, fieldName: string) => {
+    await expect(async () => {
+      await page.reload();
+      const fieldRow = page.locator("tr").filter({ hasText: fieldName });
+      await expect(fieldRow).toContainText("Complete");
+    }).toPass({ intervals: [3_000], timeout: 120_000 });
+  };
+
   test("User creates an account", async ({ page }) => {
     const timestamp = Date.now();
     const uniqueUsername = `testuser${timestamp}`;
@@ -107,95 +167,24 @@ test.describe("CharAI.feature", () => {
     const timestamp = Date.now();
     const uniqueUsername = `testuser${timestamp}`;
     const password = "TestPassword123";
+    const fieldName = `Test North Field ${timestamp}`;
+    const fieldDescription = "Northern section for testing";
 
     await registerUser(page, uniqueUsername, password);
 
-    // Navigate to `/fields`
-    await page.goto(`${baseUrl}/fields`);
-
-    // Click "Create Farm"
-    await page
-      .getByRole("button", { name: /Create Farm/ })
-      .click();
-
-    // Enter biochar settings: application rate (t/ha) and cost per ton
-    await page.getByTestId("biochar-rate-input").locator("input").fill("20");
-    await page.getByTestId("biochar-cost-input").locator("input").fill("150");
-
-    // Set crop selling price = 12
-    await page.getByLabel("Price").fill("12");
-
-    // Fill in field name and description
-    await page.getByTestId("field-name-input").locator("input").fill("Test North Field");
-    await page.getByTestId("field-description-input").locator("textarea").first().fill("Northern section for testing");
-
-    // Click "Draw Boundaries" / "Edit Coordinates" to open the coordinate modal
-    await page.getByTestId("open-manual-coordinates").click();
-
-    // Add first marker
-    await page.getByTestId("add-marker-button").click();
-    await page
-      .getByTestId("marker-lat-0")
-      .locator("input")
-      .fill("46.75520514295208");
-    await page
-      .getByTestId("marker-lng-0")
-      .locator("input")
-      .fill("-116.97727203369142");
-
-    // Add second marker
-    await page.getByTestId("add-marker-button").click();
-    await page
-      .getByTestId("marker-lat-1")
-      .locator("input")
-      .fill("46.75214798439814");
-    await page
-      .getByTestId("marker-lng-1")
-      .locator("input")
-      .fill("-116.94499969482423");
-
-    // Add third marker
-    await page.getByTestId("add-marker-button").click();
-    await page
-      .getByTestId("marker-lat-2")
-      .locator("input")
-      .fill("46.74591554718295");
-    await page
-      .getByTestId("marker-lng-2")
-      .locator("input")
-      .fill("-116.96405410766603");
-
-    // Click "Save Boundaries"
-    await page.getByTestId("save-boundaries-button").click();
-
-    // Click "Submit request"
-    await page.getByRole("button", { name: "Submit request" }).click();
-
-    // Verify the new field appears in the table automatically (no manual page reload)
-    await expect(page.locator("table")).toBeVisible({ timeout: 15_000 });
-    await expect(page.locator("td", { hasText: "WW" })).toBeVisible({ timeout: 15_000 });
-
-    // Verify name and description are visible in the table
-    await expect(page.locator("td", { hasText: "Test North Field" })).toBeVisible({ timeout: 5_000 });
-
-    // Poll for the status to become "complete" — check every 3 seconds for up to 2 minutes
-    await expect(async () => {
-      await page.reload();
-      const statusCell = page
-        .locator("tr")
-        .filter({ hasText: "WW" })
-        .locator("td")
-        .nth(5);
-      await expect(statusCell).toHaveText("Complete");
-    }).toPass({ intervals: [3_000], timeout: 120_000 });
+    await createField(page, fieldName, fieldDescription);
+    await expect(page.locator("td", { hasText: fieldName })).toBeVisible({
+      timeout: 5_000,
+    });
+    await waitForFieldStatusComplete(page, fieldName);
 
     // Click "Get Map" for that row
-    const fieldRow = page.locator("tr").filter({ hasText: "WW" });
+    const fieldRow = page.locator("tr").filter({ hasText: fieldName });
     await fieldRow.getByRole("button", { name: "Get Map" }).click();
 
     // Verify the prescription map dialog is displayed with field name and description
-    await expect(page.getByText("Test North Field")).toBeVisible();
-    await expect(page.getByText("Northern section for testing")).toBeVisible();
+    await expect(page.getByText(fieldName)).toBeVisible();
+    await expect(page.getByText(fieldDescription)).toBeVisible();
     await expect(page.locator(".leaflet-container")).toBeVisible();
 
     // Verify Analysis Summary shows correct total grid cells
@@ -316,6 +305,8 @@ test.describe("CharAI.feature", () => {
     const timestamp = Date.now();
     const uniqueUsername = `testuser${timestamp}`;
     const password = "TestPassword123";
+    const fieldName = `Auto Test Field ${timestamp}`;
+    const fieldDescription = "Auto test description";
 
     await registerUser(page, uniqueUsername, password);
 
@@ -327,72 +318,93 @@ test.describe("CharAI.feature", () => {
       page.locator("text=No fields found"),
     ).toBeVisible({ timeout: 5_000 });
 
-    // Click "Create Farm"
-    await page.getByRole("button", { name: /Create Farm/ }).click();
-
-    // Enter biochar settings
-    await page.getByTestId("biochar-rate-input").locator("input").fill("20");
-    await page.getByTestId("biochar-cost-input").locator("input").fill("150");
-
-    // Set crop selling price
-    await page.getByLabel("Price").fill("10");
-
-    // Fill in field name and description
-    await page.getByTestId("field-name-input").locator("input").fill("Auto Test Field");
-    await page.getByTestId("field-description-input").locator("textarea").first().fill("Auto test description");
-
-    // Open coordinate modal and add markers
-    await page.getByTestId("open-manual-coordinates").click();
-
-    await page.getByTestId("add-marker-button").click();
-    await page
-      .getByTestId("marker-lat-0")
-      .locator("input")
-      .fill("46.75520514295208");
-    await page
-      .getByTestId("marker-lng-0")
-      .locator("input")
-      .fill("-116.97727203369142");
-
-    await page.getByTestId("add-marker-button").click();
-    await page
-      .getByTestId("marker-lat-1")
-      .locator("input")
-      .fill("46.75214798439814");
-    await page
-      .getByTestId("marker-lng-1")
-      .locator("input")
-      .fill("-116.94499969482423");
-
-    await page.getByTestId("add-marker-button").click();
-    await page
-      .getByTestId("marker-lat-2")
-      .locator("input")
-      .fill("46.74591554718295");
-    await page
-      .getByTestId("marker-lng-2")
-      .locator("input")
-      .fill("-116.96405410766603");
-
-    // Save boundaries
-    await page.getByTestId("save-boundaries-button").click();
-
-    // Submit the field
-    await page.getByRole("button", { name: "Submit request" }).click();
-
-    // Verify the field appears in the table automatically WITHOUT page.goto or page.reload
-    await expect(page.locator("table")).toBeVisible({ timeout: 15_000 });
-    await expect(page.locator("td", { hasText: "WW" })).toBeVisible({
-      timeout: 15_000,
-    });
+    await createField(page, fieldName, fieldDescription, "10");
 
     // Verify name and description columns are visible in the table
-    await expect(page.locator("td", { hasText: "Auto Test Field" })).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator("td", { hasText: fieldName })).toBeVisible({
+      timeout: 5_000,
+    });
 
     // Verify the dialog is closed
     await expect(
       page.getByRole("heading", { name: "Create New Field" }),
     ).not.toBeVisible();
+  });
+
+  test("User can access previous prescription maps after signing in", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+
+    const timestamp = Date.now();
+    const uniqueUsername = `testuser${timestamp}`;
+    const password = "TestPassword123";
+    const fieldName = `Previous Map Field ${timestamp}`;
+    const fieldDescription = "Prescription map retained after sign in";
+
+    await registerUser(page, uniqueUsername, password);
+    await createField(page, fieldName, fieldDescription);
+    await waitForFieldStatusComplete(page, fieldName);
+
+    await logoutUser(page);
+    await loginUser(page, uniqueUsername, password);
+
+    await page.goto(`${baseUrl}/fields`);
+    const fieldRow = page.locator("tr").filter({ hasText: fieldName });
+    await expect(fieldRow).toBeVisible({ timeout: 15_000 });
+
+    await fieldRow.getByRole("button", { name: "Get Map" }).click();
+    await expect(page.getByText(fieldName)).toBeVisible();
+    await expect(page.getByText(fieldDescription)).toBeVisible();
+    await expect(page.locator(".leaflet-container")).toBeVisible();
+    await expect(page.getByTestId("export-prescription-data")).toBeVisible();
+  });
+
+  test("System supports multiple users", async ({ browser }) => {
+    test.setTimeout(120_000);
+
+    const timestamp = Date.now();
+    const firstUsername = `testusera${timestamp}`;
+    const secondUsername = `testuserb${timestamp}`;
+    const password = "TestPassword123";
+    const firstFieldName = `First User Field ${timestamp}`;
+    const firstFieldDescription = "Owned by the first user";
+
+    const firstContext = await browser.newContext();
+    const secondContext = await browser.newContext();
+    const firstPage = await firstContext.newPage();
+    const secondPage = await secondContext.newPage();
+
+    try {
+      await registerUser(firstPage, firstUsername, password);
+      await createField(firstPage, firstFieldName, firstFieldDescription);
+
+      await registerUser(secondPage, secondUsername, password);
+
+      await firstPage.goto(`${baseUrl}/fields`);
+      await secondPage.goto(`${baseUrl}/fields`);
+
+      await expect(
+        firstPage.getByRole("heading", { name: "Your Fields" }),
+      ).toBeVisible();
+      await expect(
+        secondPage.getByRole("heading", { name: "Your Fields" }),
+      ).toBeVisible();
+      await expect(firstPage.getByTestId("profile-menu-button")).toBeVisible();
+      await expect(secondPage.getByTestId("profile-menu-button")).toBeVisible();
+      await expect(
+        firstPage.locator("tr").filter({ hasText: firstFieldName }),
+      ).toBeVisible({ timeout: 15_000 });
+      await expect(
+        secondPage.locator("tr").filter({ hasText: firstFieldName }),
+      ).toHaveCount(0);
+      await expect(
+        secondPage.locator("text=No fields found. Create a farm to get started."),
+      ).toBeVisible({ timeout: 15_000 });
+    } finally {
+      await firstContext.close();
+      await secondContext.close();
+    }
   });
 
   test("User can view profile information", async ({ page }) => {

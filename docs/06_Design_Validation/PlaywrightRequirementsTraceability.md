@@ -1,4 +1,4 @@
-# Playwright Requirements Traceability DVP&R
+# DVP&R
 
 ## Purpose
 
@@ -33,14 +33,14 @@ the executable Playwright coverage in `frontend/tests/charai.spec.ts`.
 
 | Requirement / intent | Source requirement | Related scenario(s) | Playwright evidence | Status | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Users can create authenticated access to the system. | `docs/01_Problem_Definition/Requirements.md` (`## System Requirements` -> `### Accessibility`) | `User creates an account`; `User signs in` | `frontend/tests/charai.spec.ts`: `User creates an account` (line 74), `User logs in` (line 92), `User logs out` (line 82) | Covered | Confirms account creation, sign-in, and sign-out flows required for authenticated access. |
-| Users can manually enter land coordinates in the system and see them handled through the interactive field workflow. | `docs/01_Problem_Definition/Requirements.md` (`## Functional Requirements` -> `### User-Facing Input/Output`) | `Manually enter coordinates`; `User requests prescription maps` | `frontend/tests/charai.spec.ts`: `User creates field and views prescription map` (line 104) | Covered | The test opens manual coordinate entry, adds markers, saves boundaries, submits the request, and proceeds to map retrieval. |
-| Users can obtain a biochar prescription map from submitted field data. | `docs/01_Problem_Definition/Requirements.md` (`## Functional Requirements` -> `### User-Facing Input/Output`) | `User requests prescription maps` | `frontend/tests/charai.spec.ts`: `User creates field and views prescription map` (line 104); `Field appears in table automatically after submission` (line 311) | Covered | Confirms a submitted field is created, reaches `Complete`, and can be opened with `Get Map`. |
-| Prescription-map output exposes ROI-oriented map data rather than only raw form submission success. | `docs/01_Problem_Definition/Requirements.md` (`## Functional Requirements` -> `### User-Facing Input/Output`) | `User requests prescription maps`; `Export prescription maps` | `frontend/tests/charai.spec.ts`: `User creates field and views prescription map` (line 104) | Covered | The test validates `Analysis Summary`, `Total Grid Cells`, and exported GeoJSON grid cells containing a `paybackPeriod` property, which is the ROI-oriented field used by the product. |
-| Users can export prescription-map results. | `docs/01_Problem_Definition/Requirements.md` (`## Functional Requirements` -> `### User-Facing Input/Output`) | `Export prescription maps` | `frontend/tests/charai.spec.ts`: `User creates field and views prescription map` (line 104) | Covered | Verifies download of a JSON file and parses the downloaded content. |
+| Users can create authenticated access to the system. | `docs/01_Problem_Definition/Requirements.md` (`## System Requirements` -> `### Accessibility`) | `User creates an account`; `User signs in` | `frontend/tests/charai.spec.ts`: `User creates an account`, `User logs in`, `User logs out` | Covered | Confirms account creation, sign-in, and sign-out flows required for authenticated access. |
+| Users can manually enter land coordinates in the system and see them handled through the interactive field workflow. | `docs/01_Problem_Definition/Requirements.md` (`## Functional Requirements` -> `### User-Facing Input/Output`) | `Manually enter coordinates`; `User requests prescription maps` | `frontend/tests/charai.spec.ts`: `User creates field and views prescription map` | Covered | The test opens manual coordinate entry, adds markers, saves boundaries, submits the request, and proceeds to map retrieval. |
+| Users can obtain a biochar prescription map from submitted field data. | `docs/01_Problem_Definition/Requirements.md` (`## Functional Requirements` -> `### User-Facing Input/Output`) | `User requests prescription maps` | `frontend/tests/charai.spec.ts`: `User creates field and views prescription map`; `Field appears in table automatically after submission` | Covered | Confirms a submitted field is created, reaches `Complete`, and can be opened with `Get Map`. |
+| Prescription-map output exposes ROI-oriented map data rather than only raw form submission success. | `docs/01_Problem_Definition/Requirements.md` (`## Functional Requirements` -> `### User-Facing Input/Output`) | `User requests prescription maps`; `Export prescription maps` | `frontend/tests/charai.spec.ts`: `User creates field and views prescription map` | Covered | The test validates `Analysis Summary`, `Total Grid Cells`, and exported GeoJSON grid cells containing a `paybackPeriod` property, which is the ROI-oriented field used by the product. |
+| Users can export prescription-map results. | `docs/01_Problem_Definition/Requirements.md` (`## Functional Requirements` -> `### User-Facing Input/Output`) | `Export prescription maps` | `frontend/tests/charai.spec.ts`: `User creates field and views prescription map` | Covered | Verifies download of a JSON file and parses the downloaded content. |
 | Users can provide land area by uploading a file. | `docs/01_Problem_Definition/Requirements.md` (`## Functional Requirements` -> `### User-Facing Input/Output`) | `User enters land area using an uploaded file` | No current Playwright spec in `frontend/tests/charai.spec.ts` | Gap | The behavior is documented in both feature files, but there is not yet an executable Playwright test covering the upload path. |
-| A signed-in user can access previous prescription-map data. | `docs/01_Problem_Definition/CharAI.feature` only | `User signs in` | No current Playwright assertion specifically proving retrieval of a previously created map after a new sign-in session | Gap | Authentication is covered, but this scenario detail is not yet explicitly automated. |
-| The system supports multiple users concurrently. | `docs/01_Problem_Definition/CharAI.feature` only | `System supports multiple users` | No current Playwright spec in `frontend/tests/charai.spec.ts` | Gap | This scenario is documented but not yet represented as a Playwright test. |
+| A signed-in user can access previous prescription-map data. | `docs/01_Problem_Definition/CharAI.feature` only | `User signs in` | `frontend/tests/charai.spec.ts`: `User can access previous prescription maps after signing in` | Covered | Verifies a user can sign back in, see a previously created field, and reopen its prescription map. |
+| The system supports multiple users concurrently. | `docs/01_Problem_Definition/CharAI.feature` only | `System supports multiple users` | `frontend/tests/charai.spec.ts`: `System supports multiple users` | Covered | Verifies two separate authenticated browser contexts can use the application at the same time and that field data stays scoped to the correct user. |
 | The system anonymizes user data and does not train on-system. | `docs/01_Problem_Definition/CharAI.feature` only | `System anonymizes user data` | No current Playwright spec in `frontend/tests/charai.spec.ts` | Gap / non-UI validation needed | This is primarily a backend/data-handling requirement and is not directly observable through the current browser tests. |
 
 ## Supplemental Playwright Regression Coverage
@@ -49,11 +49,11 @@ The Playwright suite also contains additional regression tests that are
 useful for requirement confidence even though they are not called out as
 standalone requirements in `Requirements.md`:
 
-- `Crop type dropdown contains all valid options` (line 249)
-- `User can select a crop type and it persists in the form` (line 288)
-- `User can view profile information` (line 398)
-- `User can change password` (line 420)
-- `User can delete account` (line 454)
+- `Crop type dropdown contains all valid options`
+- `User can select a crop type and it persists in the form`
+- `User can view profile information`
+- `User can change password`
+- `User can delete account`
 
 These tests strengthen confidence in the authenticated workflow around
 field creation and account lifecycle management.

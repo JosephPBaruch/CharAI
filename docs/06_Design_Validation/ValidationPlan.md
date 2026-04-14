@@ -32,4 +32,8 @@ Just like virtual tests, our manual validation plan is documented in Gherkin for
 
 ## Model Requirements
 
-The trained model must achieve at least 90% accuracy on the validation dataset. This metric ensures that the model performs reliably and provides accurate predictions within the target domain.
+The trained regression model shall be validated using the R² metric
+during model creation in the pipeline. Keep this document aligned with
+the specific pipeline criterion as the model-validation implementation
+evolves. This validation occurs during model creation in the pipeline
+rather than through the Playwright functional test suite.
