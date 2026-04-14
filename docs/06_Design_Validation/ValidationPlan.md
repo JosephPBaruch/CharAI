@@ -32,8 +32,15 @@ Just like virtual tests, our manual validation plan is documented in Gherkin for
 
 ## Model Requirements
 
-The trained regression model shall be validated using the R² metric
-during model creation in the pipeline. Keep this document aligned with
-the specific pipeline criterion as the model-validation implementation
-evolves. This validation occurs during model creation in the pipeline
-rather than through the Playwright functional test suite.
+The trained regression model is validated using R² (coefficient of
+determination) during every CI build. The training script
+(`backend/YieldPredictionModel/CreateAndTrainYieldCalculatorModel.py`)
+evaluates the model on a 20 % held-out test set and enforces a minimum
+R² threshold of **0.2** (`MIN_R2_THRESHOLD`). If the model scores below
+this threshold, the training script exits with a non-zero code, the
+Docker image build fails, and the CI pipeline aborts.
+
+The R² accuracy report is printed to the Docker build log on every run,
+making the result visible in the GitHub Actions build output. See
+`docs/06_Design_Validation/DVPR.md` for full details on the CI
+enforcement mechanism and threshold history.

@@ -4,8 +4,9 @@
 
 This Design Verification Plan and Report (DVP&R) links the product
 requirements in `docs/01_Problem_Definition/Requirements.md` to the
-behavior scenarios in `docs/01_Problem_Definition/CharAI.feature` and
-the executable Playwright coverage in `frontend/tests/charai.spec.ts`.
+behavior scenarios in `docs/01_Problem_Definition/CharAI.feature`,
+the executable Playwright coverage in `frontend/tests/charai.spec.ts`,
+and the model accuracy gate enforced during the CI Docker build.
 
 ## Referenced Files
 
@@ -16,6 +17,9 @@ the executable Playwright coverage in `frontend/tests/charai.spec.ts`.
 - Playwright configuration: `frontend/tests/playwright.config.ts`
 - Playwright usage notes: `frontend/tests/README.md`
 - CI workflow: `.github/workflows/ci.yaml`
+- Model training script: `backend/YieldPredictionModel/CreateAndTrainYieldCalculatorModel.py`
+- Model accuracy documentation: `backend/YieldPredictionModel/README.md`
+- Dockerfile (model build gate): `backend/Dockerfile`
 
 ## Validation Approach
 
@@ -28,6 +32,11 @@ the executable Playwright coverage in `frontend/tests/charai.spec.ts`.
    report remains aligned with the documented scenarios.
 4. The Playwright suite runs against the deployed application surface in
    CI, validating the application as a black-box system.
+5. The yield-prediction model is trained during the Docker image build.
+   The training script enforces a minimum R² (coefficient of
+   determination) threshold on the held-out test set. If the model does
+   not meet the threshold the build fails, preventing deployment of an
+   under-performing model.
 
 ## Requirements-to-Test Traceability Matrix
 
@@ -42,6 +51,70 @@ the executable Playwright coverage in `frontend/tests/charai.spec.ts`.
 | A signed-in user can access previous prescription-map data. | `docs/01_Problem_Definition/CharAI.feature` only | `User signs in` | `frontend/tests/charai.spec.ts`: `User can access previous prescription maps after signing in` | Covered | Verifies a user can sign back in, see a previously created field, and reopen its prescription map. |
 | The system supports multiple users concurrently. | `docs/01_Problem_Definition/CharAI.feature` only | `System supports multiple users` | `frontend/tests/charai.spec.ts`: `System supports multiple users` | Covered | Verifies two separate authenticated browser contexts can use the application at the same time and that field data stays scoped to the correct user. |
 | The system anonymizes user data and does not train on-system. | `docs/01_Problem_Definition/CharAI.feature` only | `System anonymizes user data` | No current Playwright spec in `frontend/tests/charai.spec.ts` | Gap / non-UI validation needed | This is primarily a backend/data-handling requirement and is not directly observable through the current browser tests. |
+| Yield-prediction model meets minimum accuracy. | `docs/01_Problem_Definition/Requirements.md` (`## Model Requirements`) | N/A -- validated during Docker build | CI build log: accuracy report printed by training script | Covered | The training script computes R² on a 20 % held-out test set and exits non-zero if R² < 0.2. See [Model R² Validation in CI](#model-r-validation-in-ci) below. |
+
+## Model R² Validation in CI
+
+The yield-prediction model is retrained from source data on every CI
+build. An R² accuracy gate in the training script ensures the model
+meets a minimum quality bar before the Docker image is produced.
+
+### How It Works
+
+1. `.github/workflows/ci.yaml` builds the backend Docker image using
+   `docker/bake-action`. The build passes `CACHEBUST=${{ github.sha }}`
+   to force a fresh training run on every push.
+2. `backend/Dockerfile` runs
+   `backend/YieldPredictionModel/CreateAndTrainYieldCalculatorModel.py`
+   at build time. The script:
+   - Loads and cleans the Cook Farm harvest data.
+   - Splits the data 80/20 into training and test sets.
+   - Trains a neural-network regression model using Keras.
+   - Evaluates the model on the held-out test set and computes R².
+3. The script compares the computed R² against `MIN_R2_THRESHOLD`
+   (currently **0.2**, defined at the top of the training script).
+4. If R² < 0.2 the script logs an `ERROR`-level message and exits with
+   code 1, which causes the Docker build step to fail and the entire CI
+   workflow to abort.
+5. If R² >= 0.2 the model is saved to
+   `YieldPredictionModel/Models/yield_model.keras` inside the image and
+   the build continues.
+
+### Accuracy Report
+
+Every training run prints a structured accuracy report to the build
+log:
+
+```
+--- Model Accuracy Report ---
+  Test Loss (MSE) : <value>
+  Test MAE        : <value>
+  RMSE            : <value>
+  R-squared (R2)  : <value>
+  Min R2 Threshold: 0.2000
+  Training rows   : <count>
+  Test rows       : <count>
+  Features        : Crop, elev_mean_m, slope_mean_deg, aspect_eastness, aspect_northness
+--- End Accuracy Report ---
+```
+
+This report is visible in the GitHub Actions build log for every push.
+
+### Threshold History
+
+| Date       | Threshold | Reason                                     |
+| ---------- | --------- | ------------------------------------------ |
+| 2026-04-14 | 0.2       | Raised to enforce meaningful model quality |
+
+### Key Files
+
+| File | Role |
+| --- | --- |
+| `backend/YieldPredictionModel/CreateAndTrainYieldCalculatorModel.py` | Defines `MIN_R2_THRESHOLD` and enforces the gate |
+| `backend/Dockerfile` | Runs the training script at build time |
+| `.github/workflows/ci.yaml` | Triggers the Docker build with `CACHEBUST` |
+| `docker-compose.yml` | Passes `CACHEBUST` build arg to the backend service |
+| `backend/YieldPredictionModel/README.md` | Documents accuracy requirements and features |
 
 ## Supplemental Playwright Regression Coverage
 
@@ -102,9 +175,14 @@ section should be updated with the new report path and workflow step.
   - `frontend/tests/CharAI.feature`
   - `frontend/tests/charai.spec.ts`
   - `.github/workflows/ci.yaml`
+  - `backend/YieldPredictionModel/CreateAndTrainYieldCalculatorModel.py`
+  - `backend/Dockerfile`
 - Keep the scenario names in `frontend/tests/charai.spec.ts` aligned
   with the documented feature names wherever practical.
 - When a documented scenario is added to Playwright, update the matrix
   from `Gap` to `Covered` and record the exact spec name.
 - If reporting changes from the HTML reporter to another format, update
   the CI execution and result-location sections above.
+- When `MIN_R2_THRESHOLD` is changed, update the threshold value in the
+  [Model R² Validation in CI](#model-r-validation-in-ci) section and
+  add a row to the Threshold History table.
