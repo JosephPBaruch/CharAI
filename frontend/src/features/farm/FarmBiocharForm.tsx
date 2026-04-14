@@ -7,36 +7,42 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogActions,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { COLORS } from "../../styles/colors";
-import BudgetSettings from "./BudgetSettings";
+import BiocharSettings from "./BudgetSettings";
 import FieldsList from "./FieldsList";
 import type { FieldEntry } from "./FieldsList";
 import FileUploadSection from "./FileUploadSection";
 import SubmitSection from "./SubmitSection";
 import { useCoordinates } from "../../contexts/CoordinateContext";
 import { POSTFieldData } from "../../api/fetch";
+import { useNavigate } from "react-router";
+import { v4 as uuidv4 } from "uuid";
 
 const DEFAULT_FIELD = (): FieldEntry => ({
-  id: "main-field",
-  cropType: "Wheat",
-  customCrop: "",
-  price: "",
+  id: `main-field-${uuidv4()}`,
+  name: "",
+  description: "",
+  cropType: "WW",
+  price: 7,
   unit: "bushel",
+  biocharTonsPerHectare: 20,
+  biocharCostPerTon: 120,
 });
 
-export default function FarmBiocharForm() {
-  const {
-    data,
-    hasCoordinates,
-    hasPendingCoordinates,
-    setFormSubmitted,
-    commitPendingCoordinates,
-  } = useCoordinates();
+interface FarmBiocharFormProps {
+  onFieldCreated?: () => void;
+}
+
+export default function FarmBiocharForm({
+  onFieldCreated,
+}: FarmBiocharFormProps) {
+  const { data, hasCoordinates, setFormSubmitted } = useCoordinates();
   const [field, setField] = React.useState<FieldEntry>(DEFAULT_FIELD());
-  const [globalMax, setGlobalMax] = React.useState<number | "">("");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  const navigate = useNavigate();
 
   const updateField = (patch: Partial<FieldEntry>) => {
     setField((prev) => ({ ...prev, ...patch }));
@@ -47,116 +53,105 @@ export default function FarmBiocharForm() {
 
   // If coordinates already exist in context (from upload or manual draw), mark as ready
   React.useEffect(() => {
-    if (hasCoordinates || hasPendingCoordinates) {
+    if (hasCoordinates) {
       setCoordUploaded(true);
     }
-  }, [hasCoordinates, hasPendingCoordinates]);
-
-  const handleCoordSelect = (file: File | null) => {
-    setCoordUploaded(!!file);
-  };
-
-  const handleCoordUploaded = () => {
-    setCoordUploaded(true);
-  };
-
-  const handleYieldSelect = () => {
-    // yield file is optional, no action needed on select
-  };
-
-  const handleYieldUploaded = () => {
-    // yield file is optional, no action needed on upload completion
-  };
+  }, [hasCoordinates]);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  const coordsReady = coordUploaded || hasPendingCoordinates || hasCoordinates;
+  const coordsReady = coordUploaded || hasCoordinates;
   const isPriceValid = field.price !== "" && field.price > 0;
+  const isBiocharCostValid =
+    field.biocharCostPerTon !== "" && field.biocharCostPerTon > 0;
+  const canSubmit = coordsReady && isPriceValid && isBiocharCostValid;
 
   return (
     <>
       {/* Modal Trigger Button */}
-      <Button
-        variant="contained"
-        onClick={openModal}
-        sx={{
-          backgroundColor: COLORS.indigo,
-          "&:hover": { backgroundColor: COLORS.indigoHover },
-        }}
-      >
-        {hasCoordinates ? "Edit Farm Configuration" : "Configure Farm"}
+      <Button variant="contained" onClick={openModal}>
+        Create Farm
       </Button>
 
       {/* Modal Dialog */}
-      <Dialog
-        open={isModalOpen}
-        onClose={closeModal}
-        maxWidth="lg"
-        fullWidth
-        PaperProps={{
-          sx: {
-            backgroundColor: COLORS.blackFull,
-            backgroundImage: "none",
-            color: COLORS.whiteHigh,
-            maxHeight: "90vh",
-            overflowY: "auto",
-          },
-        }}
-      >
-        <DialogTitle sx={{ display: "flex", justifyContent: "flex-end", p: 1 }}>
-          <IconButton onClick={closeModal} sx={{ color: COLORS.whiteMedium }}>
+      <Dialog open={isModalOpen} onClose={closeModal} maxWidth="md" fullWidth>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="h5" component="span" sx={{ fontWeight: 700 }}>
+            Create New Field
+          </Typography>
+          <IconButton onClick={closeModal} sx={{ color: "text.secondary" }}>
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ pt: 0, pb: 3 }}>
+        <DialogContent sx={{ pt: 0, pb: 0 }}>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            {/* Title Section */}
-            <Box>
-              <Typography
-                variant="h5"
-                sx={{ color: COLORS.whiteHigh, fontWeight: 700, mb: 0.5 }}
-              >
-                Farm Configuration
-              </Typography>
-              <Typography variant="body2" sx={{ color: COLORS.whiteMedium }}>
-                Configure your field's crop and selling price, set your biochar
-                budget, and upload boundary coordinates to calculate optimal
-                application rates.
-              </Typography>
-            </Box>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              Configure your crop type and selling price, set your biochar
+              application rate and cost per ton, then draw or upload your field
+              boundary to generate a prescription map.
+            </Typography>
 
-            {/* Budget Settings */}
-            <BudgetSettings globalMax={globalMax} onChange={setGlobalMax} />
+            {/* Biochar Settings */}
+            <BiocharSettings
+              biocharTonsPerHectare={field.biocharTonsPerHectare}
+              biocharCostPerTon={field.biocharCostPerTon}
+              onChangeTonsPerHectare={(v) =>
+                updateField({ biocharTonsPerHectare: v })
+              }
+              onChangeCostPerTon={(v) => updateField({ biocharCostPerTon: v })}
+            />
 
             {/* Field Configuration */}
             <FieldsList field={field} onUpdateField={updateField} />
 
             {/* File Upload Section */}
-            <FileUploadSection
-              onCoordSelect={handleCoordSelect}
-              onCoordUploaded={handleCoordUploaded}
-              onYieldSelect={handleYieldSelect}
-              onYieldUploaded={handleYieldUploaded}
-            />
-
-            {/* Submit Section */}
-            <SubmitSection
-              coordsReady={coordsReady && isPriceValid}
-              onSubmit={() => {
-                if (!isPriceValid) {
-                  alert("Please enter a valid crop selling price.");
-                  return;
-                }
-                commitPendingCoordinates();
-                const payload = { globalMax, field, data };
-                POSTFieldData(payload);
-                setFormSubmitted(true);
-                closeModal();
-              }}
-            />
+            <FileUploadSection />
           </Box>
         </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, pt: 1 }}>
+          <SubmitSection
+            coordsReady={canSubmit}
+            onSubmit={async () => {
+              if (!isPriceValid) {
+                alert("Please enter a valid crop selling price.");
+                return;
+              }
+              if (!isBiocharCostValid) {
+                alert("Please enter a valid biochar cost per ton.");
+                return;
+              }
+              const payload = {
+                field: {
+                  ...field,
+                  biocharCostPerTon: field.biocharCostPerTon as number,
+                },
+                data,
+              };
+              try {
+                await POSTFieldData(payload);
+                setFormSubmitted(true);
+                closeModal();
+                // Reset form for next creation
+                setField(DEFAULT_FIELD());
+                // Reload field list before navigation to avoid race condition
+                if (onFieldCreated) {
+                  onFieldCreated();
+                }
+                navigate("/fields");
+              } catch (err) {
+                console.debug("Field submission failed:", err);
+                alert("Failed to submit field. Please try again.");
+              }
+            }}
+          />
+        </DialogActions>
       </Dialog>
     </>
   );

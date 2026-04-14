@@ -2,15 +2,16 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { Link as RouterLink } from "react-router";
 import { Box, Button, Typography, CircularProgress } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useAuth } from "../contexts/AuthContext";
-import type { FieldErrors, RegisterRequest } from "../types/auth";
-import { COLORS } from "../styles/colors";
+import type { DjangoErrorResponse, FieldErrors, RegisterRequest } from "../types/auth";
 import { normalizeSignupErrors } from "../utils/errors";
 import { FormTextField } from "../components/FormTextField";
 
 const SignupPage = () => {
   const navigate = useNavigate();
   const { register, isLoading } = useAuth();
+  const theme = useTheme();
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formData, setFormData] = useState<RegisterRequest>({
     username: "",
@@ -30,7 +31,8 @@ const SignupPage = () => {
     // Clear the error for this field
     setErrors((prev) => {
       if (!(name in prev)) return prev; // no error to clear
-      const { [name]: _, ...rest } = prev; // remove this field from errors
+      const rest = { ...prev };
+      delete rest[name];
       return rest;
     });
   };
@@ -40,10 +42,15 @@ const SignupPage = () => {
     try {
       await register(formData);
       navigate("/");
-    } catch (err: any) {
-      setErrors(normalizeSignupErrors(err));
+    } catch (err: unknown) {
+      setErrors(normalizeSignupErrors(err as DjangoErrorResponse));
     }
   };
+
+  const gradientBg =
+    theme.palette.mode === "dark"
+      ? `linear-gradient(180deg, #0a0a0a 0%, ${theme.palette.background.default} 100%)`
+      : `linear-gradient(180deg, #f0f0f5 0%, ${theme.palette.background.default} 100%)`;
 
   return (
     <Box
@@ -54,22 +61,26 @@ const SignupPage = () => {
         justifyContent: "center",
         minHeight: "calc(100vh - 64px)",
         padding: 2,
+        background: gradientBg,
       }}
     >
       <Box
         sx={{
           width: "100%",
           maxWidth: 500,
-          backgroundColor: COLORS.bgCard,
+          backgroundColor: "background.paper",
           padding: 3,
           borderRadius: 2,
-          boxShadow: `0 4px 12px ${COLORS.blackMedium}`,
+          border: `1px solid ${theme.palette.divider}`,
+          boxShadow: theme.palette.mode === "dark"
+            ? "0 4px 12px rgba(0,0,0,0.5)"
+            : "0 4px 12px rgba(0,0,0,0.1)",
         }}
       >
         <Typography
           variant="h5"
           component="h2"
-          sx={{ marginBottom: 2, textAlign: "center" }}
+          sx={{ marginBottom: 2, textAlign: "center", color: "text.primary" }}
         >
           Sign Up
         </Typography>
@@ -150,11 +161,11 @@ const SignupPage = () => {
           </Button>
         </Box>
         <Box sx={{ mt: 2, textAlign: "center" }}>
-          <Typography variant="body2" sx={{ color: COLORS.whiteHigh }}>
+          <Typography variant="body2" sx={{ color: "text.primary" }}>
             Already have an account?{" "}
             <RouterLink
               to="/login"
-              style={{ color: COLORS.indigo, textDecoration: "none" }}
+              style={{ color: theme.palette.primary.main, textDecoration: "none" }}
             >
               Log in here
             </RouterLink>

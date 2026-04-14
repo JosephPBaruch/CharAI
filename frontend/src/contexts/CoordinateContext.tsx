@@ -3,20 +3,16 @@ import type { ReactNode } from "react";
 import type { FeatureCollection } from "geojson";
 
 const STORAGE_KEY = "charai_coordinate_data"; // committed/approved coordinates
-const PENDING_STORAGE_KEY = "charai_coordinate_pending"; // latest user input (manual or upload) before submit
 const SUBMIT_STORAGE_KEY = "charai_farm_submitted";
 
 type LatLng = { lat: number; lng: number };
 
 interface CoordinateContextType {
   data: FeatureCollection | null;
-  pendingData: FeatureCollection | null;
   isLoading: boolean;
   hasCoordinates: boolean;
-  hasPendingCoordinates: boolean;
   formSubmitted: boolean;
   setCoordinateData: (data: FeatureCollection | LatLng[]) => void; // accepts GeoJSON or raw lat/lng array
-  commitPendingCoordinates: () => void; // promote pending -> committed and mark submitted
   setFormSubmitted: (submitted: boolean) => void;
   clearCoordinateData: () => void;
 }
@@ -27,9 +23,6 @@ const CoordinateContext = createContext<CoordinateContextType | undefined>(
 
 export function CoordinateProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<FeatureCollection | null>(null);
-  const [pendingData, setPendingData] = useState<FeatureCollection | null>(
-    null,
-  );
   const [isLoading, setIsLoading] = useState(true);
   const [formSubmitted, setFormSubmittedState] = useState<boolean>(false);
 
@@ -71,11 +64,6 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
         setData(JSON.parse(stored));
       }
 
-      const storedPending = localStorage.getItem(PENDING_STORAGE_KEY);
-      if (storedPending) {
-        setPendingData(JSON.parse(storedPending));
-      }
-
       const storedSubmitted = localStorage.getItem(SUBMIT_STORAGE_KEY);
       if (storedSubmitted) {
         setFormSubmittedState(storedSubmitted === "true");
@@ -95,41 +83,11 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
       fc = newData;
     }
     if (!fc) return;
-    setPendingData(fc);
+    setData(fc);
     try {
-      localStorage.setItem(PENDING_STORAGE_KEY, JSON.stringify(fc));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(fc));
     } catch (err) {
       console.error("Failed to save pending coordinates to localStorage:", err);
-    }
-  };
-
-  const commitPendingCoordinates = () => {
-    if (!pendingData) return;
-    // Ensure temporary default properties exist for hover purposes
-    const committed: FeatureCollection = {
-      type: "FeatureCollection",
-      features: pendingData.features.map((f) => ({
-        ...f,
-        properties: {
-          applicationRate: f.properties?.applicationRate ?? 5,
-          paybackPeriod: f.properties?.paybackPeriod ?? 3,
-          ...f.properties,
-        },
-      })),
-    };
-
-    console.log(
-      "Committed Coordinates GeoJSON:",
-      JSON.stringify(committed, null, 2),
-    );
-
-    setData(committed);
-    setFormSubmittedState(true);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(committed));
-      localStorage.setItem(SUBMIT_STORAGE_KEY, "true");
-    } catch (err) {
-      console.error("Failed to commit coordinates to localStorage:", err);
     }
   };
 
@@ -144,11 +102,9 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
 
   const clearCoordinateData = () => {
     setData(null);
-    setPendingData(null);
     setFormSubmittedState(false);
     try {
       localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(PENDING_STORAGE_KEY);
       localStorage.setItem(SUBMIT_STORAGE_KEY, "false");
     } catch (err) {
       console.error("Failed to clear coordinates from localStorage:", err);
@@ -157,13 +113,10 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
 
   const value: CoordinateContextType = {
     data,
-    pendingData,
     isLoading,
     hasCoordinates: !!data,
-    hasPendingCoordinates: !!pendingData,
     formSubmitted,
     setCoordinateData,
-    commitPendingCoordinates,
     setFormSubmitted,
     clearCoordinateData,
   };

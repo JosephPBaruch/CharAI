@@ -23,7 +23,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 DEBUG = env("DEBUG")
 SECRET_KEY = env("SECRET_KEY")
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["127.0.0.1", "localhost"])
 
 
 # Application definition
@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "core", 
-    "geotiffgenerator",
 ]
 
 MIDDLEWARE = [
@@ -143,6 +142,55 @@ SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Vite default port
     "http://127.0.0.1:5173",
+    "http://localhost",  # Frontend container
+    "http://127.0.0.1",  # Frontend container via IP
 ]
+
+# Add ALLOWED_HOSTS to CORS_ALLOWED_ORIGINS with http and https
+for host in ALLOWED_HOSTS:
+    CORS_ALLOWED_ORIGINS.append(f"http://{host}")
+    CORS_ALLOWED_ORIGINS.append(f"https://{host}")
+
 CORS_ALLOW_CREDENTIALS = True
 
+# Logging configuration
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {name} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'charai.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'charai': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}

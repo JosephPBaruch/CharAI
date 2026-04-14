@@ -38,6 +38,25 @@ export interface LogoutResponse {
   message: string;
 }
 
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+  new_password2: string;
+}
+
+export interface ChangePasswordResponse {
+  message: string;
+  token: string;
+}
+
+export interface DeleteAccountRequest {
+  password: string;
+}
+
+export interface DeleteAccountResponse {
+  message: string;
+}
+
 export type DjangoErrorResponse = {
   [key: string]: string[] | undefined;
 };

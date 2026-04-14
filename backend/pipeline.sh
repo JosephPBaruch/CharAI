@@ -1,27 +1,20 @@
 #!/usr/bin/env bash
 set -e
 
-IMAGE_NAME="django-backend"
-CONTAINER_NAME="django-backend"
-INTERNAL_PORT=8000   # Port exposed by Django in the container
-EXTERNAL_PORT=8000   # Default host port (can be overridden by env files)
+# USAGE:
+#   ./pipeline.sh
+#   ./pipeline.sh --hosts your.domain.com
+#   ./pipeline.sh --opentopokey=YOUR_KEY
 
-# Resolve script directory and cd into project root
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+# Parse CLI args and export for docker compose
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --hosts) shift; export ALLOWED_HOSTS="$1"; shift ;;
+    --hosts=*) export ALLOWED_HOSTS="${1#*=}"; shift ;;
+    --opentopokey=*) export OPENTOPOGRAPHY_API_KEY="${1#*=}"; shift ;;
+    *) shift ;;
+  esac
+done
 
-build_image() {
-  echo ">>> Building Docker image: ${IMAGE_NAME}..."
-  docker build -t "${IMAGE_NAME}" .
-}
-
-run_container() {
-  docker run -d \
-    -p "${EXTERNAL_PORT}:${INTERNAL_PORT}" \
-    --name "${CONTAINER_NAME}" \
-    "${IMAGE_NAME}"
-}
-
-build_image
-
-run_container
+# Start only the backend (and its dependency: postgres) via docker compose
+cd "$(dirname "${BASH_SOURCE[0]}")/.." && docker compose up --build -d --wait backend

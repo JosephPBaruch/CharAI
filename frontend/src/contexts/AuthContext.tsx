@@ -39,8 +39,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(userData);
         }
       }
-    } catch (err: any) {
+    } catch {
       console.debug("No active session or token invalid");
+      authService.removeAuthToken();
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -54,7 +55,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response && response.user) {
         setUser(response.user);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      authService.removeAuthToken();
       setUser(null);
       throw err;
     } finally {
@@ -69,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response && response.user) {
         setUser(response.user);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setUser(null);
       throw err;
     } finally {
@@ -81,11 +83,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       await authService.logout();
-      setUser(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn("Logout error:", err);
-      setUser(null);
     } finally {
+      setUser(null);
+      // Clear all application-stored data on logout
+      try {
+        localStorage.removeItem("charai_coordinate_data");
+        localStorage.removeItem("charai_farm_submitted");
+      } catch {
+        // ignore storage errors
+      }
+      // Clear any cookies set by the backend
+      document.cookie.split(";").forEach((c) => {
+        const name = c.split("=")[0].trim();
+        if (name) {
+          document.cookie = `${name}=;expires=${new Date(0).toUTCString()};path=/`;
+        }
+      });
       setIsLoading(false);
     }
   };

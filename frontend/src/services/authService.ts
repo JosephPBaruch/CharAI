@@ -4,14 +4,24 @@ import {
   type AuthResponse,
   type UserResponse,
   type LogoutResponse,
+  type ChangePasswordRequest,
+  type ChangePasswordResponse,
+  type DeleteAccountRequest,
+  type DeleteAccountResponse,
 } from "../types/auth";
 
-const DEFAULT_API = "http://localhost:8000/api";
-const API_URL = (
-  (import.meta.env.VITE_API_URL || DEFAULT_API) + "/auth"
-).replace(/\/$/, "");
-
+const AUTH_URL = getApiUrl() + "/auth";
 const TOKEN_KEY = "authToken";
+
+function getApiUrl() {
+  const env = import.meta.env;
+
+  if (env.VITE_BACKEND_URL) {
+    return `${env.VITE_BACKEND_URL.replace(/\/$/, "")}/api`;
+  }
+
+  return "/api";
+}
 
 function storeToken(token: string) {
   try {
@@ -24,7 +34,7 @@ function storeToken(token: string) {
 function getToken(): string | null {
   try {
     return localStorage.getItem(TOKEN_KEY);
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -32,18 +42,18 @@ function getToken(): string | null {
 function clearToken() {
   try {
     localStorage.removeItem(TOKEN_KEY);
-  } catch (e) {
+  } catch {
     // ignore
   }
 }
 
 async function handleResponse(response: Response) {
   const text = await response.text();
-  let data: any = null;
+  let data = null;
   if (text) {
     try {
       data = JSON.parse(text);
-    } catch (e) {
+    } catch {
       data = text;
     }
   }
@@ -58,12 +68,7 @@ async function handleResponse(response: Response) {
 export const register = async (
   data: RegisterRequest,
 ): Promise<AuthResponse> => {
-  // Prevent already-authenticated users from registering
-  if (getToken()) {
-    throw { detail: "You are already logged in" };
-  }
-
-  const response = await fetch(`${API_URL}/register/`, {
+  const response = await fetch(`${AUTH_URL}/register/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -82,12 +87,7 @@ export const register = async (
 export const login = async (
   credentials: LoginRequest,
 ): Promise<AuthResponse> => {
-  // Prevent already-authenticated users from logging in
-  if (getToken()) {
-    throw { detail: "You are already logged in" };
-  }
-
-  const response = await fetch(`${API_URL}/login/`, {
+  const response = await fetch(`${AUTH_URL}/login/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -112,7 +112,7 @@ export const getUser = async (): Promise<UserResponse> => {
     headers["Authorization"] = `Token ${token}`;
   }
 
-  const response = await fetch(`${API_URL}/user/`, {
+  const response = await fetch(`${AUTH_URL}/user/`, {
     method: "GET",
     headers,
     credentials: "include",
@@ -123,6 +123,31 @@ export const getUser = async (): Promise<UserResponse> => {
 };
 
 export const logout = async (): Promise<LogoutResponse> => {
+  try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    const token = getToken();
+    if (token) {
+      headers["Authorization"] = `Token ${token}`;
+    }
+
+    const response = await fetch(`${AUTH_URL}/logout/`, {
+      method: "POST",
+      headers,
+      credentials: "include",
+    });
+
+    const result = await handleResponse(response);
+    return result as LogoutResponse;
+  } finally {
+    clearToken();
+  }
+};
+
+export const changePassword = async (
+  data: ChangePasswordRequest,
+): Promise<ChangePasswordResponse> => {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -131,25 +156,45 @@ export const logout = async (): Promise<LogoutResponse> => {
     headers["Authorization"] = `Token ${token}`;
   }
 
-  const response = await fetch(`${API_URL}/logout/`, {
+  const response = await fetch(`${AUTH_URL}/change-password/`, {
     method: "POST",
     headers,
     credentials: "include",
+    body: JSON.stringify(data),
+  });
+
+  const result = await handleResponse(response);
+
+  if (result && result.token) {
+    storeToken(result.token);
+  }
+
+  return result as ChangePasswordResponse;
+};
+
+export const deleteAccount = async (
+  data: DeleteAccountRequest,
+): Promise<DeleteAccountResponse> => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  const token = getToken();
+  if (token) {
+    headers["Authorization"] = `Token ${token}`;
+  }
+
+  const response = await fetch(`${AUTH_URL}/delete-account/`, {
+    method: "DELETE",
+    headers,
+    credentials: "include",
+    body: JSON.stringify(data),
   });
 
   const result = await handleResponse(response);
   clearToken();
-  return result as LogoutResponse;
+  return result as DeleteAccountResponse;
 };
 
 export const getAuthToken = getToken;
 export const removeAuthToken = clearToken;
-
-// Notes:
-// - Token-based authentication: Each user gets a unique token on register/login
-// - Token stored in localStorage and included in Authorization header for API requests
-// - Session cookies set by backend for session-based authentication (credentials: 'include')
-// - Passwords hashed by Django using PBKDF2
-// - Field-specific validation errors from Django are included in error responses
-// - Ensure CORS is configured on backend to allow requests from frontend origin
-// - CORS_ALLOW_CREDENTIALS = True allows credentials/cookies to be sent
+export const getApiUrlForApi = getApiUrl;

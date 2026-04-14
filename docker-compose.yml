@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres-charai
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-charai_test}
+      POSTGRES_USER: ${POSTGRES_USER:-charai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-testpass}
+    networks:
+      - charai-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-charai}"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  backend:
+    build:
+      context: ./backend
+      args:
+        OPENTOPOGRAPHY_API_KEY: ${OPENTOPOGRAPHY_API_KEY:-keykey}
+    image: django-backend
+    container_name: django-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-ci-test-key}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-charai}:${POSTGRES_PASSWORD:-testpass}@postgres:5432/${POSTGRES_DB:-charai_test}
+      OPENTOPOGRAPHY_API_KEY: ${OPENTOPOGRAPHY_API_KEY:-keykey}
+      DEBUG: ${DEBUG:-True}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,frontend}
+      MODEL_LOCATION: ./YieldPredictionModel/Models/yield_model.keras
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    networks:
+      - charai-net
+
+  frontend:
+    build: ./frontend
+    image: char-ai-frontend
+    container_name: char-ai-frontend
+    depends_on:
+      - backend
+    environment:
+      BACKEND_URL: backend:8000
+      LOG_LEVEL: ${LOG_LEVEL:-DEBUG}
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    networks:
+      - charai-net
+
+networks:
+  charai-net:

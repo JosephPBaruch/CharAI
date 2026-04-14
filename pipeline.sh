@@ -1,20 +1,50 @@
 #!/usr/bin/env bash
 set -e
 
+# USAGE:
+#   ./pipeline.sh
+#   ./pipeline.sh --hosts your.domain.com
+#   ./pipeline.sh --hosts=your.domain.com
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-FRONTEND_DIR="${SCRIPT_DIR}/frontend"
-FRONTEND_SCRIPT="pipeline.sh"
+# Parse CLI args
+ALLOWED_HOSTS=""
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--hosts)
+			shift
+			if [[ -n "$1" ]]; then
+				ALLOWED_HOSTS="$1"
+				shift
+			else
+				echo "Error: --hosts requires a value" >&2
+				exit 1
+			fi
+			;;
+		--hosts=*)
+			ALLOWED_HOSTS="${1#*=}"
+			shift
+			;;
+		*)
+			shift
+			;;
+	esac
+done
 
-BACKEND_DIR="${SCRIPT_DIR}/backend"
-BACKEND_SCRIPT="pipeline.sh"  # rename if your backend script is named differently
+cd "$SCRIPT_DIR"
 
-cd $FRONTEND_DIR
+# Export ALLOWED_HOSTS so docker compose picks it up
+if [[ -n "$ALLOWED_HOSTS" ]]; then
+	export ALLOWED_HOSTS
+fi
 
-./pipeline.sh
+echo "Building and starting all services..."
+docker compose up --build -d --wait
 
-cd $BACKEND_DIR
+echo "Running database migrations..."
+docker exec django-backend python manage.py migrate
 
-./pipeline.sh
-
-echo "After Containers are running, start reverse-proxy (caddy) and cloudfare tunnel."
+echo "All services are running."
+echo "  Frontend: http://localhost:${FRONTEND_PORT:-80}"
+echo "  Backend:  http://localhost:${BACKEND_PORT:-8000}"

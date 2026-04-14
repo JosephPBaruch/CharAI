@@ -4,106 +4,68 @@ on:
   push:
     branches:
       - "**"
-  pull_request:
-    branches: [main]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build images with cache
+        uses: docker/bake-action@v6
+        with:
+          files: docker-compose.yml
+          load: true
+          set: |
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
+        env:
+          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+
+      - name: Start services
+        run: docker compose up -d --wait
+        env:
+          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+
+      - name: Run database migrations
+        run: docker exec django-backend python manage.py migrate
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "18"
+          cache: npm
+          cache-dependency-path: frontend/tests/package-lock.json
 
-      - name: Build backend Docker image
+      - name: Get Playwright version
+        id: playwright-version
         run: |
-          cd backend
-          docker build -t django-backend .
+          echo "version=$(node -p "require('./frontend/tests/package.json').devDependencies['@playwright/test']")" >> "$GITHUB_OUTPUT"
 
-      - name: Build frontend Docker image
-        run: |
-          cd frontend
-          docker build -t char-ai-frontend .
-          docker build \
-            --build-arg VITE_API_URL="http://localhost:8000/api" \
-            --build-arg VITE_APP_URL="http://localhost:5173" \
-            -t char-ai-frontend .
-
-      - name: Run backend container
-        run: |
-          docker run -d \
-            -p 8000:8000 \
-            -e DEBUG=True \
-            -e SECRET_KEY=ci-test-key \
-            -e ALLOWED_HOSTS=localhost,127.0.0.1 \
-            -e DATABASE_URL=sqlite:///db.sqlite3 \
-            --name django-backend \
-            django-backend
-
-      - name: Run frontend container
-        run: |
-          docker run -d \
-            -p 5173:5173 \
-            --name char-ai-frontend \
-            char-ai-frontend
-
-      - name: Wait for services to be ready
-        run: |
-          echo "Waiting for backend to be ready..."
-          timeout 60 bash -c 'until curl -f http://localhost:8000 2>/dev/null; do sleep 2; done' || true
-          sleep 5
-
-          echo "Waiting for frontend to be ready..."
-          timeout 60 bash -c 'until curl -f http://localhost:5173 2>/dev/null; do sleep 2; done' || true
-          sleep 5
-
-      - name: Validate backend endpoint
-        run: |
-          echo "Testing backend endpoint..."
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000 || echo "000")
-          echo "Backend response code: $response"
-          if [ "$response" = "000" ]; then
-            echo "Backend endpoint is not accessible"
-            exit 1
-          else
-            echo "Backend endpoint is accessible (HTTP $response)"
-          fi
-
-      - name: Validate frontend endpoint
-        run: |
-          echo "Testing frontend endpoint..."
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173 || echo "000")
-          echo "Frontend response code: $response"
-          if [ "$response" = "000" ]; then
-            echo "Frontend endpoint is not accessible"
-            exit 1
-          else
-            echo "Frontend endpoint is accessible (HTTP $response)"
-          fi
-
-      - name: Additional wait for Playwright
-        run: |
-          echo "Waiting additional time for services to stabilize..."
-          sleep 10
-          echo "Testing frontend reachability one more time..."
-          curl -v http://localhost:5173 || true
-          echo "\nDocker container status:"
-          docker ps
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-browsers-${{ steps.playwright-version.outputs.version }}
 
       - name: Install Playwright dependencies
         run: |
           cd frontend/tests
-          npm install
-          npx playwright install --with-deps
+          npm ci
+          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" != "true" ]; then
+            npx playwright install --with-deps
+          else
+            npx playwright install-deps
+          fi
 
       - name: Run Playwright tests
         env:
-          BASE_URL: http://localhost:5173
+          BASE_URL: http://localhost
         run: |
           cd frontend/tests
           echo "Running tests against BASE_URL=$BASE_URL"
@@ -125,8 +87,30 @@ jobs:
           echo "=== Frontend logs ==="
           docker logs char-ai-frontend || true
 
-      - name: Cleanup containers
+      - name: Cleanup
         if: always()
-        run: |
-          docker stop django-backend char-ai-frontend || true
-          docker rm django-backend char-ai-frontend || true
+        run: docker compose down
+
+      # - name: Login to Azure Container Registry
+      #   if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+      #   run: |
+      #     echo "${{ secrets.AZURE_REGISTRY_PASSWORD }}" | docker login \
+      #       -u "${{ secrets.AZURE_REGISTRY_USERNAME }}" \
+      #       --password-stdin \
+      #       ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}
+
+      # - name: Push backend image to Azure Container Registry
+      #   if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+      #   run: |
+      #     docker tag django-backend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:${{ github.sha }}
+      #     docker tag django-backend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:latest
+      #     docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:${{ github.sha }}
+      #     docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:latest
+
+      # - name: Push frontend image to Azure Container Registry
+      #   if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+      #   run: |
+      #     docker tag char-ai-frontend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:${{ github.sha }}
+      #     docker tag char-ai-frontend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:latest
+      #     docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:${{ github.sha }}
+      #     docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:latest
