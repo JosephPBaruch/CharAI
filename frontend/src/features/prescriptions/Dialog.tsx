@@ -7,6 +7,7 @@ import {
   DialogTitle,
   Typography,
 } from "@mui/material";
+import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import { COLORS } from "../../styles/colors";
 import React from "react";
 import L from "leaflet";
@@ -213,6 +214,20 @@ export default function FieldDialog({ open, onClose, id, name, description }: Fi
     };
   }, [isLoading, prescriptionData]);
 
+  const handleExport = () => {
+    if (!prescriptionData) return;
+    const json = JSON.stringify(prescriptionData, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `prescription-map-${id}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
       <DialogTitle>Field Dialog</DialogTitle>
@@ -333,6 +348,15 @@ export default function FieldDialog({ open, onClose, id, name, description }: Fi
         )}
       </DialogContent>
       <DialogActions>
+        {prescriptionData && (
+          <Button
+            onClick={handleExport}
+            startIcon={<FileDownloadOutlinedIcon />}
+            data-testid="export-prescription-data"
+          >
+            Export Data
+          </Button>
+        )}
         <Button onClick={onClose}>Close</Button>
       </DialogActions>
     </Dialog>
