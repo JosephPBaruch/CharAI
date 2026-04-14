@@ -1,5 +1,10 @@
 import { test, expect, Page } from "@playwright/test";
-import { loginUser, logoutUser, registerUser } from "./helpers";
+import {
+  loginUser,
+  logoutUser,
+  registerUser,
+  setupBasicFieldInfo,
+} from "./helpers";
 
 const baseUrl = process.env.BASE_URL || "http://localhost:5173";
 const defaultFieldCoordinates = [
@@ -49,29 +54,7 @@ test.describe("CharAI.feature", () => {
 
     await registerUser(page, uniqueUsername, password, baseUrl);
 
-    // Navigate to `/fields`
-    await page.goto(`${baseUrl}/fields`);
-
-    // Click "Create Farm"
-    await page.getByRole("button", { name: /Create Farm/ }).click();
-
-    // Enter biochar settings: application rate (t/ha) and cost per ton
-    await page.getByTestId("biochar-rate-input").locator("input").fill("20");
-    await page.getByTestId("biochar-cost-input").locator("input").fill("150");
-
-    // Set crop selling price = 12
-    await page.getByLabel("Price").fill("12");
-
-    // Fill in field name and description
-    await page
-      .getByTestId("field-name-input")
-      .locator("input")
-      .fill("Test North Field");
-    await page
-      .getByTestId("field-description-input")
-      .locator("textarea")
-      .first()
-      .fill("Northern section for testing");
+    await setupBasicFieldInfo(page, baseUrl);
 
     // Click "Draw Boundaries" / "Edit Coordinates" to open the coordinate modal
     await page.getByTestId("open-manual-coordinates").click();
