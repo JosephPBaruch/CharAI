@@ -358,6 +358,13 @@ test.describe("CharAI.feature", () => {
     await expect(page.getByText(fieldDescription)).toBeVisible();
     await expect(page.locator(".leaflet-container")).toBeVisible();
     await expect(page.getByTestId("export-prescription-data")).toBeVisible();
+    await expect(page.getByText("Analysis Summary")).toBeVisible();
+    const gridCellsValue = page
+      .locator("text=Total Grid Cells")
+      .locator("..")
+      .locator("p")
+      .last();
+    await expect(gridCellsValue).toHaveText("11,043");
   });
 
   test("System supports multiple users", async ({ browser }) => {
