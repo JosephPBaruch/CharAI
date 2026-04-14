@@ -1,17 +1,30 @@
 import logging
 import tempfile
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 
 import h5py
 import numpy as np
 import pandas as pd
 import requests
-from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
 from pathlib import Path
 
 load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
+
+# Maps season name -> (month, day) tuples to sample within that season.
+SEASON_SAMPLE_DATES = {
+    "spring": [(3, 15), (4, 15), (5, 15)],    # Mar–May
+    "summer": [(6, 15), (7, 15), (8, 15)],    # Jun–Aug
+    "fall":   [(9, 15), (10, 15), (11, 15)],  # Sep–Nov
+    "winter": [(12, 15), (1, 15), (2, 15)],   # Dec–Feb (Dec = year, Jan/Feb = year+1)
+}
+
+SEASONS = ("spring", "summer", "fall", "winter")
+
+_MAX_WORKERS = 8
+
 
 class SoilInfoFetcher:
     SMAP_SHORT_NAME = "SPL3SMP_E"
@@ -25,14 +38,25 @@ class SoilInfoFetcher:
 
     FILL_VALUE = -9999.0
 
-    def __init__(self, logger: logging.Logger):
+    def __init__(self, logger: logging.Logger, max_workers: int = _MAX_WORKERS):
         self.logger = logger
+        self.max_workers = max_workers
         self._session = self._build_earthdata_session()
-        self.logger.info("SoilInfoFetcher initialised with Earthdata credentials")
+        self.logger.info(
+            f"SoilInfoFetcher initialised (max_workers={max_workers})"
+        )
 
-    # Call this. Soil moisture is added as a percentage. (0.241435 = 24.1425%)
+    # ------------------------------------------------------------------ #
+    #  Public API                                                          #
+    # ------------------------------------------------------------------ #
+
     def add_soil_moisture(self, grid_df: pd.DataFrame) -> pd.DataFrame:
-        required_cols = ["centroid_lat", "centroid_lon"]
+        """
+        Adds four seasonal soil-moisture columns to the dataframe:
+            soil_moisture_spring, soil_moisture_summer,
+            soil_moisture_fall,   soil_moisture_winter
+        """
+        required_cols = ["centroid_lat", "centroid_lon", "year"]
         missing = [c for c in required_cols if c not in grid_df.columns]
         if missing:
             raise ValueError(f"Missing required columns: {missing}")
@@ -41,53 +65,173 @@ class SoilInfoFetcher:
 
         lat = float(grid_df.iloc[0]["centroid_lat"])
         lon = float(grid_df.iloc[0]["centroid_lon"])
-        self.logger.debug(f"Fetching SMAP soil moisture for ({lat:.4f}, {lon:.4f})")
+        raw_year = int(grid_df.iloc[0]["year"])
 
-        soil_moisture = self._fetch_smap_soil_moisture(lat, lon)
+        current_year = datetime.utcnow().year
+        fetch_year = raw_year - 1 if raw_year >= current_year else raw_year
+
+        self.logger.info(
+            f"Fetching seasonal SMAP for ({lat:.4f}, {lon:.4f}), "
+            f"crop year={raw_year}, fetching year={fetch_year}"
+        )
+
+        seasonal_values = self._fetch_all_seasons_parallel(lat, lon, fetch_year)
 
         result_df = grid_df.copy()
-        result_df["soil_moisture"] = soil_moisture
-        self._log_statistics(result_df, soil_moisture)
+        for season, value in seasonal_values.items():
+            col = f"soil_moisture_{season}"
+            result_df[col] = value
+            self.logger.info(f"  {col}: {value}")
+
         return result_df
 
-    # Connect
+    def fetch_historical_soil_moisture(
+        self, lat: float, lon: float, year: int
+    ) -> dict[str, float | None]:
+        """
+        Standalone method used by CreateAndTrainYieldCalculatorModel to fetch
+        seasonal soil moisture for a specific historical year without a DataFrame.
+        All four seasons are fetched in parallel.
+
+        Returns
+        -------
+        dict with keys: spring, summer, fall, winter  (values in m³/m³ or None)
+        """
+        self.logger.info(
+            f"Historical soil moisture fetch for ({lat:.4f}, {lon:.4f}), year={year}"
+        )
+        return self._fetch_all_seasons_parallel(lat, lon, year)
+
+    #  Parallel threading of API calls. Doesn't change time that much, but will if we get multiple API endpoints.
+
+    def _fetch_all_seasons_parallel(
+        self, lat: float, lon: float, year: int
+    ) -> dict[str, float | None]:
+        """
+        Fetches all four seasons concurrently. Within each season, the
+        sample dates are also fetched in parallel.
+        Returns a dict keyed by season name in consistent SEASONS order.
+        """
+        results: dict[str, float | None] = {}
+
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            future_to_season = {
+                executor.submit(
+                    self._fetch_seasonal_average, lat, lon, year, season
+                ): season
+                for season in SEASONS
+            }
+
+            for future in as_completed(future_to_season):
+                season = future_to_season[future]
+                try:
+                    results[season] = future.result()
+                except Exception as exc:
+                    self.logger.error(f"Season {season} fetch raised: {exc}")
+                    results[season] = None
+
+        # Return in consistent SEASONS order regardless of completion order
+        return {s: results.get(s) for s in SEASONS}
+
+    # ------------------------------------------------------------------ #
+    #  Seasonal logic                                                      #
+    # ------------------------------------------------------------------ #
+
+    def _fetch_seasonal_average(
+        self, lat: float, lon: float, year: int, season: str
+    ) -> float | None:
+        """
+        Fetches all sample dates for a season in parallel and returns
+        the average of whichever readings succeed.
+        """
+        month_day_pairs = SEASON_SAMPLE_DATES[season]
+        now = datetime.utcnow()
+
+        # Build date list, skipping any future dates
+        date_strings: list[str] = []
+        for month, day in month_day_pairs:
+            sample_year = year + 1 if (season == "winter" and month in (1, 2)) else year
+            date_str = f"{sample_year}-{month:02d}-{day:02d}"
+            if datetime.strptime(date_str, "%Y-%m-%d") > now:
+                self.logger.debug(f"Skipping future date {date_str}")
+                continue
+            date_strings.append(date_str)
+
+        if not date_strings:
+            self.logger.warning(f"All sample dates for {season} {year} are in the future")
+            return None
+
+        readings: list[float] = []
+
+        # Each sample date is independent — fetch them concurrently
+        with ThreadPoolExecutor(max_workers=min(len(date_strings), self.max_workers)) as executor:
+            future_to_date = {
+                executor.submit(
+                    self._try_fetch_date_with_fallback, lat, lon, date_str
+                ): date_str
+                for date_str in date_strings
+            }
+
+            for future in as_completed(future_to_date):
+                date_str = future_to_date[future]
+                try:
+                    value = future.result()
+                    if value is not None:
+                        readings.append(value)
+                except Exception as exc:
+                    self.logger.warning(f"Sample date {date_str} raised: {exc}")
+
+        if not readings:
+            self.logger.warning(
+                f"No valid SMAP readings for {season} {year} at ({lat:.4f}, {lon:.4f})"
+            )
+            return None
+
+        avg = float(np.mean(readings))
+        self.logger.debug(
+            f"{season} {year}: {len(readings)} reading(s) averaged -> {avg:.4f} m³/m³"
+        )
+        return avg
+
+    def _try_fetch_date_with_fallback(
+        self, lat: float, lon: float, date_str: str, window: int = 5
+    ) -> float | None:
+        """
+        Tries `date_str` first, then scans up to `window` days earlier
+        to handle gaps in SMAP coverage.
+        """
+        target = datetime.strptime(date_str, "%Y-%m-%d")
+        candidates = [target] + [
+            target - timedelta(days=d) for d in range(1, window + 1)
+        ]
+
+        for dt in candidates:
+            ds = dt.strftime("%Y-%m-%d")
+            url = self._find_granule_url(ds, lat, lon)
+            if url is None:
+                continue
+            try:
+                value = self._download_and_extract(url, lat, lon)
+                if value is not None:
+                    self.logger.debug(f"Got SMAP reading on {ds}: {value:.4f}")
+                    return value
+            except Exception as exc:
+                self.logger.warning(f"Extraction failed for {ds}: {exc}")
+
+        return None
+
+    # ------------------------------------------------------------------ #
+    #  NASA / SMAP internals                                               #
+    # ------------------------------------------------------------------ #
+
     def _build_earthdata_session(self) -> requests.Session:
         api_key = os.environ.get("EARTH_DATA_API_KEY")
         if not api_key:
             raise ValueError("EARTH_DATA_API_KEY environment variable is not set")
-        
         session = requests.Session()
-        session.headers.update({
-            "Authorization": f"Bearer {api_key}"
-        })
+        session.headers.update({"Authorization": f"Bearer {api_key}"})
         return session
 
-    # Gets soil based of earliest fetched date
-    def _fetch_smap_soil_moisture(self, lat: float, lon: float) -> float:
-        for days_back in range(3, 10):
-            target_date = datetime.utcnow() - timedelta(days=days_back)
-            date_str    = target_date.strftime("%Y-%m-%d")
-            self.logger.debug(f"Trying SMAP date {date_str}")
-
-            download_url = self._find_granule_url(date_str, lat, lon)
-            if download_url is None:
-                continue
-
-            try:
-                sm_value = self._download_and_extract(download_url, lat, lon)
-                if sm_value is not None:
-                    self.logger.info(
-                        f"SMAP soil moisture ({date_str}): {sm_value:.4f} m³/m³"
-                    )
-                    return sm_value
-            except Exception as exc:
-                self.logger.warning(f"Extraction failed for {date_str}: {exc}")
-                continue
-
-        raise ValueError(
-            "No valid SMAP data found for the requested location in the last 7 days."
-        )
-    # Verifies if SMAP avaiable for a date. Uses NASA CMR search API
     def _find_granule_url(self, date_str: str, lat: float, lon: float) -> str | None:
         delta = 0.1
         w, s  = lon - delta, lat - delta
@@ -127,20 +271,13 @@ class SoilInfoFetcher:
         self.logger.debug("Granule found but no .h5 download link present")
         return None
 
-    # Downloads HDF5 file from NSIDC temporarily. (soil moisture data)
     def _download_and_extract(
         self, url: str, target_lat: float, target_lon: float
     ) -> float | None:
         self.logger.debug(f"Downloading HDF5: {url}")
 
-        with self._session.get(
-            url,
-            stream=True,
-            timeout=120,
-            allow_redirects=True,
-        ) as resp:
+        with self._session.get(url, stream=True, timeout=120, allow_redirects=True) as resp:
             resp.raise_for_status()
-
             with tempfile.NamedTemporaryFile(suffix=".h5", delete=False) as tmp:
                 for chunk in resp.iter_content(chunk_size=1 << 20):
                     tmp.write(chunk)
@@ -151,7 +288,6 @@ class SoilInfoFetcher:
         finally:
             os.unlink(tmp_path)
 
-    # uses the HDF5 file to read moisture content. Uses lat/lon array.
     def _extract_pixel(
         self, h5_path: str, target_lat: float, target_lon: float
     ) -> float | None:
@@ -175,7 +311,3 @@ class SoilInfoFetcher:
             return None
 
         return value
-
-    def _log_statistics(self, df: pd.DataFrame, soil_value: float):
-        self.logger.debug(f"Soil moisture applied to {len(df)} grid cells")
-        self.logger.debug(f"Soil moisture value (SMAP): {soil_value:.4f} m³/m³")
