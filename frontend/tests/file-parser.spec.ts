@@ -22,7 +22,7 @@ test.describe("CharAI.feature.file-parser", () => {
       page,
       testInfo,
       fixture,
-      "valid_coordinates.csv",
+      "csv_valid.csv",
       baseUrl,
       "text",
     );
@@ -44,7 +44,7 @@ test.describe("CharAI.feature.file-parser", () => {
       page,
       testInfo,
       fixture,
-      "valid_coordinates.json",
+      "json_valid.json",
       baseUrl,
       "text",
     );
@@ -66,7 +66,7 @@ test.describe("CharAI.feature.file-parser", () => {
       page,
       testInfo,
       fixture,
-      "valid_coordinates.geojson",
+      "geojson_valid.geojson",
       baseUrl,
       "visual",
     );
@@ -87,7 +87,7 @@ test.describe("CharAI.feature.file-parser", () => {
       page,
       testInfo,
       fixture,
-      "valid_coordinates.kml",
+      "kml_valid.kml",
       baseUrl,
       "visual",
     );
@@ -109,7 +109,7 @@ test.describe("CharAI.feature.file-parser", () => {
       page,
       testInfo,
       fixture,
-      "valid_coordinates.shp",
+      "shp_valid.zip",
       baseUrl,
       "visual",
     );
@@ -133,7 +133,7 @@ test.describe("CharAI.feature.file-parser", () => {
       "text",
       fixture,
       testInfo,
-      "invalid_coordinates_insufficient.csv",
+      "csv_invalid_not_a_polygon.csv",
     );
 
     // Wait longer for validation error to appear after file processing
@@ -163,7 +163,7 @@ test.describe("CharAI.feature.file-parser", () => {
       "text",
       fixture,
       testInfo,
-      "invalid_coordinates_missing_columns.csv",
+      "csv_invalid_missing_columns.csv",
     );
 
     // Expect error about missing columns
@@ -187,7 +187,7 @@ test.describe("CharAI.feature.file-parser", () => {
       "text",
       fixture,
       testInfo,
-      "invalid_coordinates_non_numeric.csv",
+      "csv_invalid_non_numeric.csv",
     );
     // Should show validation error about lat/lng columns
     await expect(
@@ -210,33 +210,9 @@ test.describe("CharAI.feature.file-parser", () => {
       "text",
       fixture,
       testInfo,
-      "invalid_coordinates_insufficient.json",
+      "json_invalid_coordinates_insufficient.json",
     );
 
-    await expect(
-      page.locator('[role="alert"] .MuiAlert-message').last(),
-    ).toContainText("Farm boundary must have at least 3 coordinate points", {
-      timeout: 5_000,
-    });
-
-    await expect(
-      page.getByTestId("coordinate-upload-next-button"),
-    ).toBeDisabled();
-  });
-
-  test("User sees error when GeoJSON has null geometry", async ({
-    page,
-  }, testInfo) => {
-    await uploadCoordinateFile(
-      page,
-      baseUrl,
-      "visual",
-      fixture,
-      testInfo,
-      "invalid_geojson_no_geometry.geojson",
-    );
-
-    // Expect geometry-related error - null geometry results in 0 coordinates
     await expect(
       page.locator('[role="alert"] .MuiAlert-message').last(),
     ).toContainText("Farm boundary must have at least 3 coordinate points", {
@@ -257,7 +233,30 @@ test.describe("CharAI.feature.file-parser", () => {
       "visual",
       fixture,
       testInfo,
-      "invalid_geojson_insufficient_coords.geojson",
+      "geojson_invalid_not_a_polygon.geojson",
+    );
+
+    await expect(
+      page.locator('[role="alert"] .MuiAlert-message').last(),
+    ).toContainText("Farm boundary must have at least 3 coordinate points", {
+      timeout: 5_000,
+    });
+
+    await expect(
+      page.getByTestId("coordinate-upload-next-button"),
+    ).toBeDisabled();
+  });
+
+  test("User sees error when GeoJSON has insufficient coordinates (variant 2)", async ({
+    page,
+  }, testInfo) => {
+    await uploadCoordinateFile(
+      page,
+      baseUrl,
+      "visual",
+      fixture,
+      testInfo,
+      "geojson_invalid_not_a_polygon_2.geojson",
     );
 
     await expect(
@@ -280,13 +279,60 @@ test.describe("CharAI.feature.file-parser", () => {
       "visual",
       fixture,
       testInfo,
-      "invalid_coordinates.kml",
+      "kml_invalid_not_a_polygon.kml",
     );
 
     // Expect error about geometry or coordinates
     await expect(
       page.locator('[role="alert"] .MuiAlert-message').last(),
     ).toContainText("features without geometry", { timeout: 5_000 });
+
+    await expect(
+      page.getByTestId("coordinate-upload-next-button"),
+    ).toBeDisabled();
+  });
+
+  test("User sees error when SHP zip contains multiple layers", async ({
+    page,
+  }, testInfo) => {
+    await uploadCoordinateFile(
+      page,
+      baseUrl,
+      "visual",
+      fixture,
+      testInfo,
+      "shp_invalid_multiple_layers.zip",
+    );
+
+    await expect(
+      page.locator('[role="alert"] .MuiAlert-message').last(),
+    ).toContainText(
+      "Shapefile must contain a single layer. Your file contains multiple layers.",
+      { timeout: 5_000 },
+    );
+
+    await expect(
+      page.getByTestId("coordinate-upload-next-button"),
+    ).toBeDisabled();
+  });
+
+  test("User sees error when SHP zip does not contain a polygon", async ({
+    page,
+  }, testInfo) => {
+    await uploadCoordinateFile(
+      page,
+      baseUrl,
+      "visual",
+      fixture,
+      testInfo,
+      "shp_invalid_not_a_polygon.zip",
+    );
+
+    await expect(
+      page.locator('[role="alert"] .MuiAlert-message').last(),
+    ).toContainText("Farm boundary must have at least 3 coordinate points", {
+      timeout: 5_000,
+    });
 
     await expect(
       page.getByTestId("coordinate-upload-next-button"),
