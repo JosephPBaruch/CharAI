@@ -80,7 +80,7 @@ const DEFAULT_FIELD = (): FieldEntry => ({
 const LandingPage = () => {
   const { isAuthenticated } = useAuth();
   const theme = useTheme();
-  const { data, hasCoordinates, setFormSubmitted } = useCoordinates();
+  const { data, hasCoordinates } = useCoordinates();
   const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -387,7 +387,6 @@ const LandingPage = () => {
                 };
                 try {
                   await POSTFieldData(payload);
-                  setFormSubmitted(true);
                   setIsModalOpen(false);
                   navigate("/fields");
                 } catch (err) {

@@ -81,15 +81,6 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const setFormSubmitted = (submitted: boolean) => {
-    setFormSubmittedState(submitted);
-    try {
-      localStorage.setItem(SUBMIT_STORAGE_KEY, submitted ? "true" : "false");
-    } catch (err) {
-      console.error("Failed to save submission flag to localStorage:", err);
-    }
-  };
-
   const clearCoordinateData = () => {
     setData(null);
     setFormSubmittedState(false);
@@ -107,7 +98,6 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
     hasCoordinates: !!data,
     formSubmitted,
     setCoordinateData,
-    setFormSubmitted,
     clearCoordinateData,
   };
 

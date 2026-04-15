@@ -41,7 +41,6 @@ export interface CoordinateContextType {
   hasCoordinates: boolean;
   formSubmitted: boolean;
   setCoordinateData: (data: FeatureCollection | LatLngLiteral[]) => void; // accepts GeoJSON or raw lat/lng array
-  setFormSubmitted: (submitted: boolean) => void;
   clearCoordinateData: () => void;
 }
 
