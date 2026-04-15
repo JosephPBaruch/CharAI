@@ -70,7 +70,7 @@ export default function VisualFileUploadScreen({
             </Typography>
             <Typography variant="caption">
               <strong>Shapefile (.shp, .dbf, .shx):</strong> Upload as a ZIP
-              archive containing all required files
+              folder containing all required files
             </Typography>
           </Alert>
         </Box>
