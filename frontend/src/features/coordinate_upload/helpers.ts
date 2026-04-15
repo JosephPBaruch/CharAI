@@ -5,6 +5,7 @@ import shp from "shpjs";
 import type { ParseResult } from "./types";
 import { coordAll } from "@turf/turf";
 import type { LatLngLiteral } from "leaflet";
+import fs from "fs";
 
 export const parseFile = async (file: File): Promise<ParseResult> => {
   if (file === null)
@@ -20,7 +21,7 @@ export const parseFile = async (file: File): Promise<ParseResult> => {
     if (fileExtension === "kml") return parseKMLFile(await file.text());
     if (fileExtension === "json") return parseJSONFile(await file.text());
     if (fileExtension === "geojson") return parseGeoJSONFile(await file.text());
-    if (fileExtension === "zip") return parseSHPFile(await file.arrayBuffer());
+    if (fileExtension === "zip") return parseSHPFile(await file.text());
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     return {
@@ -118,11 +119,23 @@ const parseKMLFile = (fileContent: string): ParseResult => {
   }
 };
 
-const parseSHPFile = async (
-  fileArrayBuffer: ArrayBuffer,
-): Promise<ParseResult> => {
+const parseSHPFile = async (fileContent: string): Promise<ParseResult> => {
   try {
-    const geojson = await shp(fileArrayBuffer);
+    const fileBuffer = Buffer.from(fileContent);
+    const object: any = {};
+    await fs.readFile(fileBuffer, "utf-8", (err: any, data) => {
+      if (err) {
+        return {
+          success: false,
+          error:
+            "An error occurred while reading the .shp file. Ensure the file is properly formatted.",
+        };
+      } else {
+        console.log(`buffer data! ${fileBuffer}`);
+        object.shp = data;
+      }
+    });
+    const geojson = await shp(fileBuffer);
 
     if (Array.isArray(geojson)) {
       return {
