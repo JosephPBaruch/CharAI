@@ -12,10 +12,10 @@ const acceptedTextFileTypeObject = {
 const acceptedVisualFileTypeObject = {
   "application/vnd": [".kml"],
   "application/geo+json": [".geojson"],
-  "appplication/zip-compressed": [".zip"],
+  "application/zip-compressed": [".zip"],
 };
 
-const MAX_NUMBER_OF_BYTES = 1024 * 1024 * 5; // 5 MB
+const MAX_NUMBER_OF_BYTES = 1024 * 1024 * 20; // 20 MB
 
 export default function CoordinateFileUploadScreen({
   setCoordinates,

@@ -102,6 +102,28 @@ test.describe("CharAI.feature.file-parser", () => {
     });
   });
 
+  test("User can upload and parse valid SHP file", async ({
+    page,
+  }, testInfo) => {
+    await submitCoordinateFile(
+      page,
+      testInfo,
+      fixture,
+      "valid_coordinates.shp",
+      baseUrl,
+      "visual",
+    );
+
+    // Wait for render then attach a screenshot to the HTML report
+    await page.waitForTimeout(1000);
+    const screenshot = await page.screenshot({ fullPage: true });
+
+    await test.info().attach("prescription-map", {
+      body: screenshot,
+      contentType: "image/png",
+    });
+  });
+
   test("User sees error when uploading CSV with insufficient coordinates", async ({
     page,
   }, testInfo) => {
