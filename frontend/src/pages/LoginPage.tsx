@@ -12,6 +12,7 @@ import { useTheme } from "@mui/material/styles";
 import { useAuth } from "../contexts/AuthContext";
 import type { LoginRequest } from "../types/auth";
 import { FormTextField } from "../components/FormTextField";
+import { getPageGradientBg } from "../utils/theme";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -41,10 +42,7 @@ const LoginPage = () => {
     }
   };
 
-  const gradientBg =
-    theme.palette.mode === "dark"
-      ? `linear-gradient(180deg, #0a0a0a 0%, ${theme.palette.background.default} 100%)`
-      : `linear-gradient(180deg, #f0f0f5 0%, ${theme.palette.background.default} 100%)`;
+  const gradientBg = getPageGradientBg(theme);
 
   return (
     <Box

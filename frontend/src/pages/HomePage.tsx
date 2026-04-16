@@ -4,6 +4,7 @@ import { Link as RouterLink } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
 import AgricultureIcon from "@mui/icons-material/Agriculture";
 import TableChartIcon from "@mui/icons-material/TableChart";
+import { getPageGradientBg } from "../utils/theme";
 
 const HomePage = () => {
   const { user } = useAuth();
@@ -13,10 +14,7 @@ const HomePage = () => {
     <Box
       sx={{
         minHeight: "calc(100vh - 64px)",
-        background:
-          theme.palette.mode === "dark"
-            ? `linear-gradient(180deg, #0a0a0a 0%, ${theme.palette.background.default} 100%)`
-            : `linear-gradient(180deg, #f0f0f5 0%, ${theme.palette.background.default} 100%)`,
+        background: getPageGradientBg(theme),
       }}
     >
       <Container maxWidth="lg">

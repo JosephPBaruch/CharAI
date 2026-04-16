@@ -17,6 +17,7 @@ import FieldsList from "../features/farm/FieldsList";
 import type { FieldEntry } from "../features/farm/FieldsList";
 import FileUploadSection from "../features/farm/FileUploadSection";
 import SubmitSection from "../features/farm/SubmitSection";
+import { getPageGradientBg } from "../utils/theme";
 
 interface FeatureCardProps {
   icon: React.ReactNode;
@@ -92,10 +93,7 @@ const LandingPage = () => {
     field.biocharCostPerTon !== "" && field.biocharCostPerTon > 0;
   const canSubmit = coordsReady && isPriceValid && isBiocharCostValid;
 
-  const gradientBg =
-    theme.palette.mode === "dark"
-      ? `linear-gradient(180deg, #0a0a0a 0%, ${theme.palette.background.default} 100%)`
-      : `linear-gradient(180deg, #f0f0f5 0%, ${theme.palette.background.default} 100%)`;
+  const gradientBg = getPageGradientBg(theme);
 
   return (
     <Box sx={{ minHeight: "calc(100vh - 64px)", background: gradientBg }}>

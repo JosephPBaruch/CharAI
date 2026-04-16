@@ -1,193 +1,195 @@
-# CharAI Frontend Setup
+# CharAI Frontend
 
-This guide outlines how to initialize and manage the CharAI frontend using **Vite**, **React**, **TypeScript**, and **Material UI**.
+React + TypeScript SPA for the CharAI precision-agriculture platform. Users draw or upload field boundaries, configure crop and biochar settings, and view AI-generated prescription maps.
 
 ---
 
-## Recreate Project from `package.json`
+## Quick Start
 
 ```bash
 # Install dependencies
+cd frontend
 npm install
-# or if using yarn
-yarn install
 
 # Start development server
-npm run dev
-```
-
----
-
-## Initialization (New Project)
-
-```bash
-# Create new Vite project with React and TypeScript
-npm create vite@latest charai-frontend -- --template react-ts
-
-# Navigate to project directory
-cd charai-frontend
-
-# Install core dependencies
-npm install   # Windows/Linux/macOS: same command
-```
-
----
-
-## Development Server
-
-```bash
-# Start the development server
 npm run dev
 
 # Build for production
 npm run build
 
-# Preview production build
-npm run preview
+# Type check
+npx tsc --noEmit
+
+# Lint
+npm run lint
 ```
 
 ---
 
-## Project Structure
+## Stack
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| React | 19 | UI framework |
+| TypeScript | 5.9 | Type safety |
+| Vite (rolldown) | latest | Build tool / dev server |
+| Material UI | 7 | Component library |
+| React Router | 7 | Client-side routing |
+| Leaflet + react-leaflet | latest | Interactive maps |
+| @turf/turf | latest | Client-side geospatial operations |
+| Playwright | latest | End-to-end testing |
+
+---
+
+## Directory Structure
 
 ```
 frontend/
 ├── src/
-│   ├── components/        # Reusable UI components (Header, ProtectedRoute, PublicRoute, AppRoutes)
-│   ├── pages/            # Route-level components (LoginPage, SignupPage, HomePage, App)
-│   ├── services/         # API client and auth service (authService.ts)
-│   ├── contexts/         # React context for state management (AuthContext)
-│   ├── types/            # TypeScript type definitions (auth.ts)
-│   ├── utils/            # Utility functions
-│   ├── App.tsx           # Root component
-│   ├── main.tsx          # Entry point
-│   └── index.css         # Global styles
-├── public/               # Static assets
-├── index.html            # HTML template
-├── package.json          # Dependencies and scripts
-├── tsconfig.json         # TypeScript configuration
-├── vite.config.ts        # Vite configuration
-└── README.md             # This file
+│   ├── main.tsx                    # App entry point — mounts context providers
+│   ├── index.css                   # Global styles
+│   │
+│   ├── api/
+│   │   └── fetch.ts                # All backend API calls (POSTFieldData, GETFields, etc.)
+│   │
+│   ├── components/                 # Shared, reusable UI components
+│   │   ├── AppRoutes.tsx           # Route definitions
+│   │   ├── Header.tsx              # Navigation bar with theme toggle and auth menu
+│   │   ├── FormTextField.tsx       # Controlled MUI text field wrapper
+│   │   └── LoadingProgress.tsx     # Full-page spinner
+│   │
+│   ├── contexts/                   # React context providers (global state)
+│   │   ├── AuthContext.tsx         # Authentication state (user, login, logout, register)
+│   │   ├── CoordinateContext.tsx   # Field boundary GeoJSON shared across components
+│   │   ├── ThemeContext.tsx        # Light/dark mode toggle (persisted to localStorage)
+│   │   └── ToastContext.tsx        # App-wide notification toasts
+│   │
+│   ├── features/                   # Feature-based modules (barrel-exported via index.ts)
+│   │   ├── auth/                   # Route guards
+│   │   │   ├── ProtectedRoute.tsx  # Redirects unauthenticated users to /login
+│   │   │   ├── PublicRoute.tsx     # Redirects authenticated users away from /login and /signup
+│   │   │   └── index.ts
+│   │   ├── farm/                   # Field creation workflow (modal form)
+│   │   │   ├── FarmBiocharForm.tsx # Full modal form orchestrating the field creation flow
+│   │   │   ├── FieldsList.tsx      # Field metadata inputs (name, description, crop type, price)
+│   │   │   ├── FileUploadSection.tsx # Upload tab container (wraps ManualCoordinateUpload)
+│   │   │   ├── ManualCoordinateUpload.tsx # Interactive Leaflet map for drawing field boundaries
+│   │   │   ├── BudgetSettings.tsx  # Biochar cost/rate inputs
+│   │   │   ├── SubmitSection.tsx   # Submit button with validation state
+│   │   │   └── index.ts
+│   │   ├── fieldtable/             # Field list with status polling and prescription viewer
+│   │   │   └── FieldTable.tsx
+│   │   ├── map/                    # Standalone interactive Leaflet map widget
+│   │   │   ├── InteractiveFarmMap.tsx
+│   │   │   └── index.ts
+│   │   ├── prescriptions/          # Prescription map viewer
+│   │   │   ├── PrescriptionMapViewer.tsx # Main map viewer (Leaflet + canvas layer)
+│   │   │   ├── Dialog.tsx          # Field detail modal that hosts the viewer
+│   │   │   ├── StatsPanel.tsx      # Grid statistics summary
+│   │   │   ├── PaybackLegend.tsx   # Payback-period color legend
+│   │   │   ├── EmptyPrescriptionData.tsx # Empty-state placeholder
+│   │   │   ├── GridCanvasLayer.ts  # Custom Leaflet canvas layer for prescription grid
+│   │   │   ├── helpers.ts          # Utility functions for prescription data
+│   │   │   ├── types.ts            # TypeScript interfaces for prescription data
+│   │   │   └── index.ts
+│   │   └── index.ts                # Re-exports all feature modules
+│   │
+│   ├── pages/                      # Route-level page components (thin wrappers)
+│   │   ├── LandingPage.tsx         # Public landing page with hero, features, and field creation CTA
+│   │   ├── HomePage.tsx            # Authenticated dashboard with quick-action cards
+│   │   ├── LoginPage.tsx           # Login form
+│   │   ├── SignupPage.tsx          # Registration form
+│   │   ├── ProfilePage.tsx         # User profile, password change, account deletion
+│   │   └── FieldPage.tsx           # Fields list page (wraps FieldTable)
+│   │
+│   ├── services/                   # Business-logic helpers (non-UI)
+│   │   ├── authService.ts          # Auth API calls and token management
+│   │   └── coordinateService.ts    # parseFileToGeoJSON — converts uploaded files to GeoJSON
+│   │
+│   ├── styles/                     # MUI theme and color constants
+│   │   ├── theme.ts                # createAppTheme(mode) — MUI theme factory
+│   │   └── colors.ts               # Named color palette constants (COLORS)
+│   │
+│   ├── types/                      # TypeScript type definitions
+│   │   ├── auth.ts                 # Auth-related interfaces (User, LoginRequest, FieldErrors, etc.)
+│   │   └── fetch.ts                # API response types (CropType, etc.)
+│   │
+│   └── utils/                      # Shared utility functions
+│       ├── errors.ts               # normalizeSignupErrors, normalizeErrors
+│       ├── format.ts               # formatTimestamp, formatPrice, truncateId, capitalize
+│       └── theme.ts                # getPageGradientBg(theme) — standard page background helper
+│
+├── tests/
+│   ├── charai.spec.ts              # Playwright E2E tests
+│   └── playwright.config.ts        # Playwright configuration
+│
+├── public/                         # Static assets
+├── index.html                      # HTML entry template
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── README.md
 ```
+
+---
+
+## Routes
+
+| Path | Auth | Component |
+|------|------|-----------|
+| `/` | Adaptive | `HomePage` (authenticated) or `LandingPage` (anonymous) |
+| `/login` | Public only | `LoginPage` |
+| `/signup` | Public only | `SignupPage` |
+| `/profile` | Protected | `ProfilePage` |
+| `/fields` | Protected | `FieldPage` → `FieldTable` |
+| `*` | Adaptive | Same as `/` |
 
 ---
 
 ## Authentication
 
-The frontend integrates with Django REST Framework using **TokenAuthentication** and **SessionAuthentication**:
-
-- **Token Storage**: Auth tokens are stored in `localStorage` under the key `authToken`
-- **Session Support**: Requests include `credentials: 'include'` to support session-based auth
-- **Protected Routes**: Routes are guarded by `ProtectedRoute` and `PublicRoute` components
-- **Auth Context**: Centralized auth state via `AuthContext` (provides `login`, `register`, `logout`, `checkAuth`, `isAuthenticated`, `user`, `isLoading`)
-- **Error Handling**: Errors from auth attempts are logged to console only; no UI error messages are displayed
-
-### Authentication Flow
-
-1. User submits login/signup form
-2. Frontend calls `authService.login()` or `authService.register()`
-3. Backend validates and returns token (+ user data)
-4. Frontend stores token locally
-5. Subsequent requests include `Authorization: Token <token>` header
-6. On logout, token is cleared and user is redirected to login
-
-### Key Files
-
-- `src/services/authService.ts` - API calls and token management
-- `src/contexts/AuthContext.tsx` - Auth state and methods
-- `src/types/auth.ts` - TypeScript types for auth
-- `src/components/ProtectedRoute.tsx` - Guards authenticated pages
-- `src/components/PublicRoute.tsx` - Prevents logged-in users from seeing login/signup
-- `src/pages/LoginPage.tsx` - Login form
-- `src/pages/SignupPage.tsx` - Registration form
-- `src/pages/HomePage.tsx` - Protected home page (shown only to authenticated users)
+- **Token storage**: Auth token stored in `localStorage` under `authToken`
+- **Protected routes**: Guarded by `ProtectedRoute` / `PublicRoute` components in `features/auth/`
+- **Auth context**: Centralized state via `AuthContext` (`login`, `logout`, `register`, `checkAuth`, `isAuthenticated`, `user`, `isLoading`)
+- **API auth**: All authenticated requests include `Authorization: Token <token>` header
 
 ---
 
-## TypeScript Compilation & Linting
+## Coding Conventions
+
+- **Feature-based organization**: Group related components, hooks, and types under `features/<name>/` with barrel `index.ts` exports
+- **Pages are thin**: Page components compose feature components. Business logic stays in features/services/contexts
+- **Context for global state**: `AuthContext`, `CoordinateContext`, `ThemeContext`, `ToastContext` — no Redux
+- **API layer**: All backend calls go through `src/api/fetch.ts` using native `fetch()`
+- **TypeScript strict mode**: All types defined in `src/types/`. Avoid `any`
+- **MUI theming**: Use MUI components and `@emotion/styled`. Avoid raw CSS where MUI handles it
+- **`data-testid` attributes**: Add to all interactive elements — Playwright E2E tests depend on them
+- **Logging**: Use `console.debug` for dev-only output. No `console.log` in production paths
+
+---
+
+## Testing
+
+E2E tests use Playwright in `frontend/tests/`. Selectors rely on `data-testid` attributes.
 
 ```bash
-# Type check and build
-npm run build
+# Run headless
+cd tests && npx playwright test
 
-# Lint the codebase
-npm run lint
+# Run headed (for debugging)
+cd tests && HEADLESS=false npx playwright test
 ```
 
-The following scripts are available in `package.json`:
-
-```json
-{
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  }
-}
-```
+Always update `charai.spec.ts` when changing `data-testid` values, form inputs, API payload shapes, or UI flow.
 
 ---
 
-## Freeze Dependencies
+## Theme
 
-To capture current dependencies for other developers:
+The app supports light and dark modes, toggled from the header. The selected mode is persisted to `localStorage`.
 
-```bash
-# Create package.json.lock (npm)
-npm install
+- Theme is created by `createAppTheme(mode)` in `src/styles/theme.ts`
+- Color constants live in `src/styles/colors.ts`
+- `ThemeContext` wraps the app and provides the toggle
+- Page-level background gradients use `getPageGradientBg(theme)` from `src/utils/theme.ts`
 
-# or yarn.lock (yarn)
-yarn install
-```
-
-Commit both `package.json` and the lock file to version control.
-
----
-
-## Summary
-
-- **Package manager**: `npm`
-- **Framework**: React 18+ with TypeScript
-- **UI Library**: Material UI (MUI)
-- **Routing**: React Router v6
-- **Package manager**: `npm`
-- **Project root**: `src/`
-- **Main commands**:
-  - `npm run dev` - start development server
-  - `npm run build` - build for production and type check
-  - `npm run preview` - preview production build
-  - `npm run lint` - lint codebase
-- **Configuration**:
-  - TypeScript: `tsconfig.json`
-  - Vite: `vite.config.ts`
-  - Environment: `.env`
-
----
-
-## Getting Started
-
-1. **Install dependencies**:
-
-   ```bash
-   npm install
-   ```
-
-2. **Ensure backend is running**:
-
-   ```bash
-   # In the backend directory
-   python manage.py runserver
-   ```
-
-3. **Start the dev server**:
-
-   ```bash
-   npm run dev
-   ```
-
-4. **Open the app**:
-   - Navigate to configured frontend server URL
-   - Sign up or log in to see the protected home page
-
----

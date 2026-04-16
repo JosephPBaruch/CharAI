@@ -24,6 +24,7 @@ import { DeleteField, GETFields } from "../../api/fetch";
 import FieldDialog from "../prescriptions/Dialog";
 import { FarmBiocharForm } from "..";
 import { formatTimestamp, formatPrice, truncateId } from "../../utils/format";
+import { getPageGradientBg } from "../../utils/theme";
 
 type FieldRecord = {
   id: number;
@@ -138,10 +139,7 @@ export default function FieldTable() {
     <Box
       sx={{
         minHeight: "calc(100vh - 64px)",
-        background:
-          theme.palette.mode === "dark"
-            ? `linear-gradient(180deg, #0a0a0a 0%, ${theme.palette.background.default} 100%)`
-            : `linear-gradient(180deg, #f0f0f5 0%, ${theme.palette.background.default} 100%)`,
+        background: getPageGradientBg(theme),
       }}
     >
     <Container maxWidth="lg" sx={{ py: 4 }}>

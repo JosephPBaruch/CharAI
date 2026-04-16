@@ -22,25 +22,9 @@ import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
 import { FormTextField } from "../components/FormTextField";
 import * as authService from "../services/authService";
-import type { FieldErrors, DjangoErrorResponse } from "../types/auth";
-
-function normalizeErrors(err: unknown): FieldErrors {
-  const errors: FieldErrors = {};
-  if (err && typeof err === "object") {
-    for (const [key, value] of Object.entries(err as DjangoErrorResponse)) {
-      if (Array.isArray(value)) {
-        errors[key] = value.join(" ");
-      } else if (typeof value === "string") {
-        errors[key] = value;
-      }
-    }
-  }
-  if (Object.keys(errors).length === 0) {
-    errors.general = "An unexpected error occurred.";
-  }
-  return errors;
-}
-
+import type { FieldErrors } from "../types/auth";
+import { normalizeErrors } from "../utils/errors";
+import { getPageGradientBg } from "../utils/theme";
 const ProfilePage = () => {
   const { user, logout } = useAuth();
   const { showToast } = useToast();
@@ -112,10 +96,7 @@ const ProfilePage = () => {
     }
   };
 
-  const gradientBg =
-    theme.palette.mode === "dark"
-      ? `linear-gradient(180deg, #0a0a0a 0%, ${theme.palette.background.default} 100%)`
-      : `linear-gradient(180deg, #f0f0f5 0%, ${theme.palette.background.default} 100%)`;
+  const gradientBg = getPageGradientBg(theme);
 
   return (
     <Box

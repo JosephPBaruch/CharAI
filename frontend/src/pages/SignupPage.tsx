@@ -7,6 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 import type { DjangoErrorResponse, FieldErrors, RegisterRequest } from "../types/auth";
 import { normalizeSignupErrors } from "../utils/errors";
 import { FormTextField } from "../components/FormTextField";
+import { getPageGradientBg } from "../utils/theme";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -47,10 +48,7 @@ const SignupPage = () => {
     }
   };
 
-  const gradientBg =
-    theme.palette.mode === "dark"
-      ? `linear-gradient(180deg, #0a0a0a 0%, ${theme.palette.background.default} 100%)`
-      : `linear-gradient(180deg, #f0f0f5 0%, ${theme.palette.background.default} 100%)`;
+  const gradientBg = getPageGradientBg(theme);
 
   return (
     <Box
