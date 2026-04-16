@@ -1,5 +1,6 @@
 import { Box, Button, Paper, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import DescriptionIcon from "@mui/icons-material/Description";
 import MapIcon from "@mui/icons-material/Map";
 import type { FileTypes, FileTypeSeparationScreenProps } from "../types";
@@ -88,14 +89,14 @@ export default function FileTypeSeparationScreen({
                   fileType === option.type
                     ? "primary.main"
                     : isDark
-                      ? "rgba(255,255,255,0.1)"
-                      : "#e5e7eb"
+                      ? alpha(theme.palette.common.white, 0.1)
+                      : theme.palette.divider
                 }`,
                 background:
                   fileType === option.type
                     ? isDark
-                      ? "rgba(100, 108, 255, 0.08)"
-                      : "rgba(100, 108, 255, 0.03)"
+                      ? alpha(theme.palette.primary.main, 0.08)
+                      : alpha(theme.palette.primary.main, 0.03)
                     : "transparent",
                 transition: "all 0.2s ease",
                 borderRadius: 2,
@@ -109,11 +110,11 @@ export default function FileTypeSeparationScreen({
                   background:
                     fileType === option.type
                       ? isDark
-                        ? "rgba(100, 108, 255, 0.12)"
-                        : "rgba(100, 108, 255, 0.05)"
+                        ? alpha(theme.palette.primary.main, 0.12)
+                        : alpha(theme.palette.primary.main, 0.05)
                       : isDark
-                        ? "rgba(100, 108, 255, 0.05)"
-                        : "rgba(100, 108, 255, 0.02)",
+                        ? alpha(theme.palette.primary.main, 0.05)
+                        : alpha(theme.palette.primary.main, 0.02),
                 },
               }}
             >
@@ -156,8 +157,8 @@ export default function FileTypeSeparationScreen({
                     variant="caption"
                     sx={{
                       backgroundColor: isDark
-                        ? "rgba(255,255,255,0.05)"
-                        : "rgba(0,0,0,0.04)",
+                        ? alpha(theme.palette.common.white, 0.05)
+                        : alpha(theme.palette.common.black, 0.04),
                       color: "text.secondary",
                       px: 1,
                       py: 0.5,

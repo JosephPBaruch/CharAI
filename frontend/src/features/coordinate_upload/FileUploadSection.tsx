@@ -1,5 +1,6 @@
 import { Box, Stack, Typography, Paper } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import ManualCoordinateUpload from "./ManualCoordinateUpload";
 import CoordinateFileUploadModal from "./CoordinateFileUploadModal";
 import { useCoordinates } from "../../contexts/CoordinateContext";
@@ -19,8 +20,8 @@ export default function FileUploadSection() {
         border: `1px dashed ${theme.palette.primary.main}`,
         borderRadius: 2,
         backgroundColor: isDark
-          ? "rgba(100, 108, 255, 0.08)"
-          : "rgba(100, 108, 255, 0.04)",
+          ? alpha(theme.palette.primary.main, 0.08)
+          : alpha(theme.palette.primary.main, 0.04),
       }}
     >
       <Typography
@@ -41,19 +42,19 @@ export default function FileUploadSection() {
           elevation={0}
           sx={{
             p: 2,
-            border: `1px solid ${isDark ? "rgba(100, 108, 255, 0.3)" : "rgba(100, 108, 255, 0.2)"}`,
+            border: `1px solid ${isDark ? alpha(theme.palette.primary.main, 0.3) : alpha(theme.palette.primary.main, 0.2)}`,
             borderRadius: 1.5,
             backgroundColor: isDark
-              ? "rgba(100, 108, 255, 0.05)"
-              : "rgba(100, 108, 255, 0.02)",
+              ? alpha(theme.palette.primary.main, 0.05)
+              : alpha(theme.palette.primary.main, 0.02),
             transition: "all 0.2s ease",
             "&:hover": {
               borderColor: isDark
-                ? "rgba(100, 108, 255, 0.6)"
-                : "rgba(100, 108, 255, 0.4)",
+                ? alpha(theme.palette.primary.main, 0.6)
+                : alpha(theme.palette.primary.main, 0.4),
               backgroundColor: isDark
-                ? "rgba(100, 108, 255, 0.08)"
-                : "rgba(100, 108, 255, 0.04)",
+                ? alpha(theme.palette.primary.main, 0.08)
+                : alpha(theme.palette.primary.main, 0.04),
             },
           }}
         >
@@ -99,26 +100,26 @@ export default function FileUploadSection() {
           elevation={0}
           sx={{
             p: 2,
-            border: `1px solid ${isDark ? "rgba(34, 197, 94, 0.3)" : "rgba(34, 197, 94, 0.2)"}`,
+            border: `1px solid ${isDark ? alpha(theme.palette.success.main, 0.3) : alpha(theme.palette.success.main, 0.2)}`,
             borderRadius: 1.5,
             backgroundColor: isDark
-              ? "rgba(34, 197, 94, 0.05)"
-              : "rgba(34, 197, 94, 0.02)",
+              ? alpha(theme.palette.success.main, 0.05)
+              : alpha(theme.palette.success.main, 0.02),
             transition: "all 0.2s ease",
             "&:hover": {
               borderColor: isDark
-                ? "rgba(34, 197, 94, 0.6)"
-                : "rgba(34, 197, 94, 0.4)",
+                ? alpha(theme.palette.success.main, 0.6)
+                : alpha(theme.palette.success.main, 0.4),
               backgroundColor: isDark
-                ? "rgba(34, 197, 94, 0.08)"
-                : "rgba(34, 197, 94, 0.04)",
+                ? alpha(theme.palette.success.main, 0.08)
+                : alpha(theme.palette.success.main, 0.04),
             },
           }}
         >
           <Stack direction="row" spacing={1.5} alignItems="flex-start">
             <DrawIcon
               sx={{
-                color: "#22c55e",
+                color: theme.palette.success.main,
                 fontSize: "1.5rem",
                 mt: 0.25,
                 flexShrink: 0,

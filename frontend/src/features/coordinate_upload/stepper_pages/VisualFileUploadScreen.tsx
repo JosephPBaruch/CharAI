@@ -1,5 +1,6 @@
 import { Alert, Box, Paper, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import Dropzone from "react-dropzone";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import type { FileUploadScreenProps } from "../types";
@@ -134,9 +135,9 @@ export default function VisualFileUploadScreen({
             alignItems: "flex-start",
             gap: 2,
             backgroundColor: isDark
-              ? "rgba(34, 197, 94, 0.05)"
-              : "rgba(34, 197, 94, 0.02)",
-            border: `1px solid rgba(34, 197, 94, 0.3)`,
+              ? alpha(theme.palette.success.main, 0.05)
+              : alpha(theme.palette.success.main, 0.02),
+            border: `1px solid ${alpha(theme.palette.success.main, 0.3)}`,
             borderRadius: 1,
           }}
         >

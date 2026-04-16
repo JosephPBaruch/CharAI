@@ -12,6 +12,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
@@ -131,8 +132,8 @@ export default function ManualCoordinateUpload() {
                 color: "text.primary",
                 "&:hover": {
                   backgroundColor: isDark
-                    ? "rgba(255, 255, 255, 0.08)"
-                    : "rgba(0, 0, 0, 0.04)",
+                    ? alpha(theme.palette.common.white, 0.08)
+                    : alpha(theme.palette.common.black, 0.04),
                 },
               }}
             >
@@ -163,7 +164,7 @@ export default function ManualCoordinateUpload() {
                 overflow: "hidden",
                 border: `1px solid ${theme.palette.divider}`,
                 boxShadow: `0 4px 12px ${
-                  isDark ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.1)"
+                  isDark ? alpha(theme.palette.common.black, 0.5) : alpha(theme.palette.common.black, 0.1)
                 }`,
               }}
             >
@@ -189,12 +190,12 @@ export default function ManualCoordinateUpload() {
                 elevation={0}
                 sx={{
                   backgroundColor: isDark
-                    ? "rgba(100, 108, 255, 0.1)"
-                    : "rgba(100, 108, 255, 0.06)",
+                    ? alpha(theme.palette.primary.main, 0.1)
+                    : alpha(theme.palette.primary.main, 0.06),
                   border: `1px solid ${
                     isDark
-                      ? "rgba(99, 102, 241, 0.3)"
-                      : "rgba(100, 108, 255, 0.4)"
+                      ? alpha(theme.palette.primary.main, 0.3)
+                      : alpha(theme.palette.primary.main, 0.4)
                   }`,
                   borderRadius: 2,
                   p: 2,
@@ -315,8 +316,8 @@ export default function ManualCoordinateUpload() {
                       "&:hover": {
                         borderColor: "primary.light",
                         backgroundColor: isDark
-                          ? "rgba(100, 108, 255, 0.1)"
-                          : "rgba(100, 108, 255, 0.06)",
+                          ? alpha(theme.palette.primary.main, 0.1)
+                          : alpha(theme.palette.primary.main, 0.06),
                       },
                     }}
                   >
@@ -406,8 +407,8 @@ export default function ManualCoordinateUpload() {
                       "&:hover": {
                         borderColor: "warning.main",
                         backgroundColor: isDark
-                          ? "rgba(251, 191, 36, 0.08)"
-                          : "rgba(251, 191, 36, 0.06)",
+                          ? alpha(theme.palette.warning.main, 0.08)
+                          : alpha(theme.palette.warning.main, 0.06),
                       },
                       "&:disabled": {
                         borderColor: "action.disabled",
@@ -430,8 +431,8 @@ export default function ManualCoordinateUpload() {
                       "&:hover": {
                         borderColor: "error.main",
                         backgroundColor: isDark
-                          ? "rgba(239, 68, 68, 0.08)"
-                          : "rgba(239, 68, 68, 0.06)",
+                          ? alpha(theme.palette.error.main, 0.08)
+                          : alpha(theme.palette.error.main, 0.06),
                       },
                       "&:disabled": {
                         borderColor: "action.disabled",

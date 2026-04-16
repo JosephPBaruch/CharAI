@@ -1,5 +1,6 @@
 import { Alert, Box, Paper, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import EditIcon from "@mui/icons-material/Edit";
 import { InteractiveFarmMap } from "../../map";
 import type { CoordinateScreenProps } from "../types";
@@ -42,10 +43,10 @@ export default function CoordinateVisualizationScreen({
       <Paper
         elevation={0}
         sx={{
-          border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "#e5e7eb"}`,
+          border: `1px solid ${isDark ? alpha(theme.palette.common.white, 0.1) : theme.palette.divider}`,
           borderRadius: 2,
           overflow: "hidden",
-          backgroundColor: isDark ? "rgba(255,255,255,0.02)" : "#f9fafb",
+          backgroundColor: isDark ? alpha(theme.palette.common.white, 0.02) : theme.palette.background.default,
         }}
       >
         <Box
@@ -54,7 +55,7 @@ export default function CoordinateVisualizationScreen({
             height: 400,
             display: "flex",
             flexDirection: "column",
-            backgroundColor: "#e0e0e0",
+            backgroundColor: theme.palette.grey[300],
           }}
         >
           <InteractiveFarmMap

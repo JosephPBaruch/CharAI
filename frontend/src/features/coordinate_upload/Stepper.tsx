@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import React, { useState, useRef, useEffect } from "react";
 import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import CoordinateFileUploadScreen from "./stepper_pages/FileUploadScreen";
 import CoordinateVisualizationScreen from "./stepper_pages/VisualizationScreen";
 import FileTypeSeparationScreen from "./stepper_pages/FileTypeSeparationScreen";
@@ -182,7 +183,7 @@ export default function CoordinateUploadStepper({
           gap: 2,
           pt: 3,
           mt: 2,
-          borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "#e5e7eb"}`,
+          borderTop: `1px solid ${isDark ? alpha(theme.palette.common.white, 0.1) : theme.palette.divider}`,
         }}
       >
         {/* Left Side: Cancel (step 0) / Back (other steps) */}

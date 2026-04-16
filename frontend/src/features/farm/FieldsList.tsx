@@ -12,6 +12,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { GETCropTypes } from "../../api/fetch";
 import type { CropType } from "../../types/fetch";
@@ -65,8 +66,8 @@ export default function FieldsList({ field, onUpdateField }: FieldsListProps) {
         defaultExpanded
         sx={{
           backgroundColor: theme.palette.mode === "dark"
-            ? "rgba(0, 0, 0, 0.3)"
-            : "rgba(0, 0, 0, 0.02)",
+            ? alpha(theme.palette.common.black, 0.3)
+            : alpha(theme.palette.common.black, 0.02),
           border: `1px solid ${theme.palette.divider}`,
           "&:hover": { borderColor: theme.palette.primary.main },
         }}

@@ -7,6 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import Dropzone from "react-dropzone";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import type { FileUploadScreenProps } from "../types";
@@ -146,8 +147,8 @@ export default function TextFileUploadScreen({
         elevation={0}
         sx={{
           p: 2,
-          backgroundColor: isDark ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.02)",
-          border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "#e5e7eb"}`,
+          backgroundColor: isDark ? alpha(theme.palette.common.black, 0.3) : alpha(theme.palette.common.black, 0.02),
+          border: `1px solid ${isDark ? alpha(theme.palette.common.white, 0.1) : theme.palette.divider}`,
           borderRadius: 1,
           overflow: "hidden",
         }}
@@ -243,9 +244,9 @@ export default function TextFileUploadScreen({
             alignItems: "flex-start",
             gap: 2,
             backgroundColor: isDark
-              ? "rgba(34, 197, 94, 0.05)"
-              : "rgba(34, 197, 94, 0.02)",
-            border: `1px solid rgba(34, 197, 94, 0.3)`,
+              ? alpha(theme.palette.success.main, 0.05)
+              : alpha(theme.palette.success.main, 0.02),
+            border: `1px solid ${alpha(theme.palette.success.main, 0.3)}`,
             borderRadius: 1,
           }}
         >

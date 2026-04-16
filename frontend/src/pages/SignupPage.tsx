@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { Link as RouterLink } from "react-router";
 import { Box, Button, Typography, CircularProgress } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import { useAuth } from "../contexts/AuthContext";
 import type { DjangoErrorResponse, FieldErrors, RegisterRequest } from "../types/auth";
 import { normalizeSignupErrors } from "../utils/errors";
@@ -49,8 +50,8 @@ const SignupPage = () => {
 
   const gradientBg =
     theme.palette.mode === "dark"
-      ? `linear-gradient(180deg, #0a0a0a 0%, ${theme.palette.background.default} 100%)`
-      : `linear-gradient(180deg, #f0f0f5 0%, ${theme.palette.background.default} 100%)`;
+      ? `linear-gradient(180deg, ${alpha(theme.palette.common.black, 0.95)} 0%, ${theme.palette.background.default} 100%)`
+      : `linear-gradient(180deg, ${alpha(theme.palette.grey[100], 0.5)} 0%, ${theme.palette.background.default} 100%)`;
 
   return (
     <Box
@@ -73,8 +74,8 @@ const SignupPage = () => {
           borderRadius: 2,
           border: `1px solid ${theme.palette.divider}`,
           boxShadow: theme.palette.mode === "dark"
-            ? "0 4px 12px rgba(0,0,0,0.5)"
-            : "0 4px 12px rgba(0,0,0,0.1)",
+            ? `0 4px 12px ${alpha(theme.palette.common.black, 0.5)}`
+            : `0 4px 12px ${alpha(theme.palette.common.black, 0.1)}`,
         }}
       >
         <Typography

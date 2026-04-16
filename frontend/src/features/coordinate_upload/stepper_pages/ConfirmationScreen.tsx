@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import type { LatLngLiteral } from "leaflet";
 
@@ -41,8 +42,8 @@ export default function ConfirmationScreen({
           display: "flex",
           alignItems: "flex-start",
           gap: 2,
-          border: `1px solid ${isDark ? "rgba(100, 108, 255, 0.3)" : "rgba(100, 108, 255, 0.2)"}`,
-          backgroundColor: isDark ? "rgba(100, 108, 255, 0.05)" : "rgba(100, 108, 255, 0.02)",
+          border: `1px solid ${isDark ? alpha(theme.palette.primary.main, 0.3) : alpha(theme.palette.primary.main, 0.2)}`,
+          backgroundColor: isDark ? alpha(theme.palette.primary.main, 0.05) : alpha(theme.palette.primary.main, 0.02),
           borderRadius: 2,
         }}
       >
@@ -81,7 +82,7 @@ export default function ConfirmationScreen({
           elevation={0}
           sx={{
             p: 2,
-            border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "#e5e7eb"}`,
+            border: `1px solid ${isDark ? alpha(theme.palette.common.white, 0.1) : theme.palette.divider}`,
             borderRadius: 1,
           }}
         >
@@ -171,7 +172,7 @@ export default function ConfirmationScreen({
         <TableContainer
           sx={{
             borderRadius: 1,
-            border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "#e5e7eb"}`,
+            border: `1px solid ${isDark ? alpha(theme.palette.common.white, 0.1) : theme.palette.divider}`,
             overflow: "hidden",
           }}
         >

@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import React from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import { uploadYieldFile } from "../../services/fileUploadService";
@@ -98,8 +99,8 @@ export default function YieldFileUpload(props: {
             alignItems: "center",
             padding: 1.5,
             backgroundColor: theme.palette.mode === "dark"
-              ? "rgba(100, 108, 255, 0.15)"
-              : "rgba(100, 108, 255, 0.08)",
+              ? alpha(theme.palette.primary.main, 0.15)
+              : alpha(theme.palette.primary.main, 0.08),
             border: `1px solid ${theme.palette.primary.main}`,
             borderRadius: 1,
             minWidth: 300,
