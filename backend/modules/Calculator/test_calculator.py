@@ -55,6 +55,7 @@ try:
                 'centroid_lat': centroid_lat,
                 'centroid_lon': centroid_lon,
                 'pixel_count': 4,
+                'Crop': 'WW',
                 'elev_mean_m': elev_mean,
                 'elev_min_m': elev_mean - 1,
                 'elev_max_m': elev_mean + 1,
