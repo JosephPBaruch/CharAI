@@ -1,24 +1,26 @@
 import { Box, Typography, Paper, Stack } from "@mui/material";
-import { COLORS } from "../../styles/colors";
+import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import React from "react";
 
 export const PaybackLegend: React.FC = () => {
+  const theme = useTheme();
   const legendItems = [
     {
       range: "1-2 years",
-      color: COLORS.dataGreen,
+      color: theme.palette.custom.dataGreen,
       label: "Very High Priority",
     },
     {
       range: "3-4 years",
-      color: COLORS.dataLightGreen,
+      color: theme.palette.custom.dataLightGreen,
       label: "High Priority",
     },
-    { range: "5-6 years", color: COLORS.dataYellow, label: "Medium Priority" },
-    { range: "7-8 years", color: COLORS.dataOrange, label: "Low Priority" },
+    { range: "5-6 years", color: theme.palette.custom.dataYellow, label: "Medium Priority" },
+    { range: "7-8 years", color: theme.palette.custom.dataOrange, label: "Low Priority" },
     {
       range: "9-10 years",
-      color: COLORS.dataRed,
+      color: theme.palette.custom.dataRed,
       label: "Very Low Priority",
     },
   ];
@@ -27,9 +29,9 @@ export const PaybackLegend: React.FC = () => {
     <Paper
       elevation={0}
       sx={{
-        backgroundColor: COLORS.blackOverlay,
+        backgroundColor: alpha(theme.palette.common.black, 0.7),
         backdropFilter: "blur(8px)",
-        border: `1px solid ${COLORS.whiteVeryLow}`,
+        border: `1px solid ${alpha(theme.palette.common.white, 0.12)}`,
         borderRadius: 2,
         p: 2,
       }}
@@ -37,7 +39,7 @@ export const PaybackLegend: React.FC = () => {
       <Typography
         variant="subtitle2"
         sx={{
-          color: COLORS.whiteHigh,
+          color: theme.palette.text.primary,
           fontWeight: 600,
           mb: 1.5,
           display: "flex",
@@ -59,18 +61,18 @@ export const PaybackLegend: React.FC = () => {
                 height: 14,
                 backgroundColor: item.color,
                 borderRadius: 0.5,
-                border: `1px solid ${COLORS.blackLow}`,
+                border: `1px solid ${alpha(theme.palette.common.black, 0.3)}`,
               }}
             />
             <Typography
               variant="caption"
-              sx={{ color: COLORS.whiteMedium, flex: 1 }}
+              sx={{ color: theme.palette.text.secondary, flex: 1 }}
             >
               {item.range}
             </Typography>
             <Typography
               variant="caption"
-              sx={{ color: COLORS.whiteHigh, fontWeight: 500 }}
+              sx={{ color: theme.palette.text.primary, fontWeight: 500 }}
             >
               {item.label}
             </Typography>

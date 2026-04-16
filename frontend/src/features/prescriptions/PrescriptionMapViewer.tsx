@@ -98,7 +98,7 @@ export default function PrescriptionMapViewer() {
     }
 
     boundaryLayerRef.current = L.polygon(latLngs, {
-      color: "#00ffcc",
+      color: theme.palette.custom.mapBoundary,
       weight: 2,
       fill: false,
     }).addTo(mapRef.current);

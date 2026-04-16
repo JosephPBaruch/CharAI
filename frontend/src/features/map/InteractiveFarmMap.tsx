@@ -11,7 +11,7 @@ import { type LatLngLiteral } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Box } from "@mui/material";
-import { COLORS } from "../../styles/colors";
+import { useTheme } from "@mui/material/styles";
 import "leaflet-control-geocoder/dist/Control.Geocoder.css";
 import "leaflet-control-geocoder";
 
@@ -118,6 +118,7 @@ export default function InteractiveFarmMap({
   setMarkers,
   isReadOnly = false,
 }: InteractiveFarmMapProps) {
+  const theme = useTheme();
   const handleMarkerDragEnd = React.useCallback(
     (index: number, newPosition: LatLngLiteral) => {
       if (isReadOnly) return;
@@ -185,9 +186,9 @@ export default function InteractiveFarmMap({
           <Polygon
             positions={markers}
             pathOptions={{
-              color: COLORS.gold,
+              color: theme.palette.custom.gold,
               weight: 3,
-              fillColor: COLORS.gold,
+              fillColor: theme.palette.custom.gold,
               fillOpacity: 0.15,
             }}
           />

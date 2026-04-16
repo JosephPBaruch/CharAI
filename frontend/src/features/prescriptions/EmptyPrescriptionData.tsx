@@ -1,10 +1,12 @@
 import { Box, Typography, Button, Container } from "@mui/material";
-import { COLORS } from "../../styles/colors";
+import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import { useNavigate } from "react-router";
 import MapIcon from "@mui/icons-material/Map";
 
 export default function EmptyPrescriptionState() {
   const navigate = useNavigate();
+  const theme = useTheme();
 
   return (
     <Container maxWidth="sm">
@@ -24,25 +26,25 @@ export default function EmptyPrescriptionState() {
             width: 80,
             height: 80,
             borderRadius: "50%",
-            backgroundColor: COLORS.indigoLight,
+            backgroundColor: alpha(theme.palette.custom.indigo, 0.1),
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <MapIcon sx={{ fontSize: 40, color: COLORS.indigo }} />
+          <MapIcon sx={{ fontSize: 40, color: theme.palette.custom.indigo }} />
         </Box>
 
         <Box>
           <Typography
             variant="h4"
-            sx={{ color: COLORS.whiteHigh, fontWeight: 700, mb: 1 }}
+            sx={{ color: theme.palette.text.primary, fontWeight: 700, mb: 1 }}
           >
             No Prescription Data
           </Typography>
           <Typography
             variant="body1"
-            sx={{ color: COLORS.whiteMedium, maxWidth: 400 }}
+            sx={{ color: theme.palette.text.secondary, maxWidth: 400 }}
           >
             To view prescription maps and biochar application recommendations,
             please submit your farm configuration with boundary coordinates.
@@ -54,10 +56,10 @@ export default function EmptyPrescriptionState() {
           size="large"
           onClick={() => navigate("/")}
           sx={{
-            backgroundColor: COLORS.indigo,
+            backgroundColor: theme.palette.custom.indigo,
             px: 4,
             py: 1.5,
-            "&:hover": { backgroundColor: COLORS.indigoHover },
+            "&:hover": { backgroundColor: theme.palette.custom.indigoHover },
           }}
         >
           Configure Farm Data

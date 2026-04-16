@@ -2,6 +2,39 @@ import { createTheme } from "@mui/material/styles";
 import type { PaletteMode } from "@mui/material";
 import { COLORS } from "./colors";
 
+declare module "@mui/material/styles" {
+  interface Palette {
+    custom: {
+      mapBoundary: string;
+      gold: string;
+      dataGreen: string;
+      dataLightGreen: string;
+      dataYellow: string;
+      dataOrange: string;
+      dataRed: string;
+      dataDefault: string;
+      indigo: string;
+      indigoHover: string;
+      indigoLight: string;
+    };
+  }
+  interface PaletteOptions {
+    custom?: {
+      mapBoundary?: string;
+      gold?: string;
+      dataGreen?: string;
+      dataLightGreen?: string;
+      dataYellow?: string;
+      dataOrange?: string;
+      dataRed?: string;
+      dataDefault?: string;
+      indigo?: string;
+      indigoHover?: string;
+      indigoLight?: string;
+    };
+  }
+}
+
 export function getDropzoneStyles(isDark: boolean) {
   return {
     base: {
@@ -89,6 +122,19 @@ export function createAppTheme(mode: PaletteMode) {
         secondary: isDark ? COLORS.whiteMedium : "#64748b",
       },
       divider: isDark ? COLORS.whiteVeryLow : "#e5e7eb",
+      custom: {
+        mapBoundary: "#00ffcc",
+        gold: COLORS.gold,
+        dataGreen: COLORS.dataGreen,
+        dataLightGreen: COLORS.dataLightGreen,
+        dataYellow: COLORS.dataYellow,
+        dataOrange: COLORS.dataOrange,
+        dataRed: COLORS.dataRed,
+        dataDefault: COLORS.dataDefault,
+        indigo: COLORS.indigo,
+        indigoHover: COLORS.indigoHover,
+        indigoLight: COLORS.indigoLight,
+      },
     },
     typography: {
       fontFamily: "system-ui, Avenir, Helvetica, Arial, sans-serif",
