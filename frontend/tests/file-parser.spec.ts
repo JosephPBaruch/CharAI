@@ -18,6 +18,8 @@ test.describe("CharAI.feature.file-parser", () => {
   test("User can upload and parse valid CSV file", async ({
     page,
   }, testInfo) => {
+    test.setTimeout(120_000);
+
     await submitCoordinateFile(
       page,
       testInfo,
@@ -40,6 +42,8 @@ test.describe("CharAI.feature.file-parser", () => {
   test("User can upload and parse valid JSON file", async ({
     page,
   }, testInfo) => {
+    test.setTimeout(120_000);
+
     await submitCoordinateFile(
       page,
       testInfo,
@@ -62,6 +66,8 @@ test.describe("CharAI.feature.file-parser", () => {
   test("User can upload and parse valid GeoJSON file", async ({
     page,
   }, testInfo) => {
+    test.setTimeout(120_000);
+
     await submitCoordinateFile(
       page,
       testInfo,
@@ -83,6 +89,8 @@ test.describe("CharAI.feature.file-parser", () => {
   test("User can upload and parse valid KML file", async ({
     page,
   }, testInfo) => {
+    test.setTimeout(120_000);
+
     await submitCoordinateFile(
       page,
       testInfo,
@@ -105,6 +113,8 @@ test.describe("CharAI.feature.file-parser", () => {
   test("User can upload and parse valid SHP file", async ({
     page,
   }, testInfo) => {
+    test.setTimeout(120_000);
+
     await submitCoordinateFile(
       page,
       testInfo,

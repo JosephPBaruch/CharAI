@@ -170,7 +170,7 @@ export const setupBasicFieldInfo = async (page: Page, baseUrl: string) => {
     .fill("Northern section for testing");
 };
 
-export const verifyMapStatus = async (page: Page) => {
+export const waitForFieldStatusComplete = async (page: Page) => {
   // Verify the new field appears in the table automatically (no manual page reload)
   await expect(page.locator("table")).toBeVisible({ timeout: 15_000 });
   await expect(page.locator("td", { hasText: "WW" })).toBeVisible({
@@ -183,15 +183,12 @@ export const verifyMapStatus = async (page: Page) => {
   );
 
   // Poll for the status to become "complete" — check every 3 seconds for up to 2 minutes
-  await expect(async () => {
-    await page.reload();
-    const statusCell = page
-      .locator("tr")
-      .filter({ hasText: "WW" })
-      .locator("td")
-      .nth(5);
-    await expect(statusCell).toHaveText("Complete");
-  }).toPass({ intervals: [3_000], timeout: 120_000 });
+  const statusCell = page
+    .locator("tr")
+    .filter({ hasText: "WW" })
+    .locator("td")
+    .nth(5);
+  await expect(statusCell).toHaveText("Complete", { timeout: 120_000 });
 };
 
 export const checkMapValidity = async (page: Page) => {
@@ -274,11 +271,7 @@ export const submitCoordinateFile = async (
   // Click "Submit request" to submit the field for processing
   await page.getByRole("button", { name: "Submit request" }).click();
 
-  await verifyMapStatus(page);
+  await waitForFieldStatusComplete(page);
 
   await checkMapValidity(page);
 };
-
-// TODO: YOU LEFT OFF HERE!!!
-// LASTLY, CHANGE LOGIC IN file-parser.spec.ts, THEN ADD .SHP FILES, VALID AND INVALID, AND TESTS FOR THEM AS WELL
-// THEN, THAT PR COMMENT SHOULD BE DONE.
