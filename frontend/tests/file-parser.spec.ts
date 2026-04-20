@@ -34,7 +34,7 @@ export interface FieldInformationType {
 }
 
 // Mirrors scenarios from CharAI.feature.file-parser so Playwright Test UI can display them.
-test.describe("CharAI.feature.file-parser", () => {
+test.describe("CharAI.file-parser", () => {
   test("User can upload and parse valid CSV file", async ({
     page,
   }, testInfo) => {
