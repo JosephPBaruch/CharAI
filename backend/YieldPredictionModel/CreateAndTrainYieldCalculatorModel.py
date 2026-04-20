@@ -107,6 +107,12 @@ removed_columns = calculator.remove_and_return_unneeded_columns(harvest)
 
 encode(harvest)
 
+#drop the year column
+cols_to_drop = [c for c in ["year"] if c in harvest.columns]
+if cols_to_drop:
+    harvest.drop(columns=cols_to_drop, inplace=True)
+    logger.info(f"Dropped pre-training helper columns: {cols_to_drop}")
+
 target_column = "GrainYieldAirDry"
 
 # Train with the same features used by YieldCalculator.calculate().

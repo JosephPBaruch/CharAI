@@ -24,10 +24,14 @@ class YieldCalculator:
 
     MODEL_LOCATION_ENV_VAR = "MODEL_LOCATION"
     MODEL_FEATURE_COLUMNS = [
-        "elev_mean_m",
-        "slope_mean_deg",
-        "aspect_eastness",
-        "aspect_northness",
+    "elev_mean_m",
+    "slope_mean_deg",
+    "aspect_eastness",
+    "aspect_northness",
+    "soil_moisture_spring",
+    "soil_moisture_summer",
+    "soil_moisture_fall",
+    "soil_moisture_winter",
     ]
     
     # Base yield parameters (yield (idk what unit) per acre equivalent per grid cell)
@@ -148,6 +152,11 @@ class YieldCalculator:
         biochar_df["aspect_eastness"] = (biochar_df["aspect_eastness"] - 0.10).clip(-1, 1)
         biochar_df["aspect_northness"] = (biochar_df["aspect_northness"] - 0.05).clip(-1, 1)
 
+        # Soil moisture columns
+        biochar_df["soil_moisture_spring"] = df["soil_moisture_spring"]
+        biochar_df["soil_moisture_summer"] = df["soil_moisture_summer"]
+        biochar_df["soil_moisture_fall"] = df["soil_moisture_fall"]
+        biochar_df["soil_moisture_winter"] = df["soil_moisture_winter"]
         return self._calculate(biochar_df)
     
     def _calculate(self, df):

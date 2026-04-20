@@ -52,32 +52,35 @@ class SoilInfoFetcher:
 
     def add_soil_moisture(self, grid_df: pd.DataFrame) -> pd.DataFrame:
         """
-        Adds four seasonal soil-moisture columns to the dataframe:
+        Adds a 'year' column (most recent completed year) and four seasonal
+        soil-moisture columns to the dataframe:
             soil_moisture_spring, soil_moisture_summer,
             soil_moisture_fall,   soil_moisture_winter
         """
-        required_cols = ["centroid_lat", "centroid_lon", "year"]
+        required_cols = ["centroid_lat", "centroid_lon"]
         missing = [c for c in required_cols if c not in grid_df.columns]
         if missing:
             raise ValueError(f"Missing required columns: {missing}")
         if grid_df.empty:
             raise ValueError("Grid dataframe is empty")
 
+        # Determine the most recent completed year and stamp every row with it.
+
+        most_recent_year = datetime.utcnow().year - 1
+        grid_df = grid_df.copy()
+        grid_df["year"] = most_recent_year
+
         lat = float(grid_df.iloc[0]["centroid_lat"])
         lon = float(grid_df.iloc[0]["centroid_lon"])
-        raw_year = int(grid_df.iloc[0]["year"])
-
-        current_year = datetime.utcnow().year
-        fetch_year = raw_year - 1 if raw_year >= current_year else raw_year
 
         self.logger.info(
             f"Fetching seasonal SMAP for ({lat:.4f}, {lon:.4f}), "
-            f"crop year={raw_year}, fetching year={fetch_year}"
+            f"year={most_recent_year} (most recent completed year)"
         )
 
-        seasonal_values = self._fetch_all_seasons_parallel(lat, lon, fetch_year)
+        seasonal_values = self._fetch_all_seasons_parallel(lat, lon, most_recent_year)
 
-        result_df = grid_df.copy()
+        result_df = grid_df
         for season, value in seasonal_values.items():
             col = f"soil_moisture_{season}"
             result_df[col] = value
