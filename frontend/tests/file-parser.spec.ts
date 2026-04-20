@@ -13,6 +13,26 @@ const fixture = (testInfo: any, filename: string) => {
 
 const baseUrl = process.env.BASE_URL || "http://localhost:5173";
 
+export const fieldInformation: FieldInformationType = {
+  fieldName: "Test North Field",
+  fieldDescription: "Northern section for testing",
+  cropType: "WW",
+  biocharRate: "20",
+  biocharCost: "150",
+  cropSalesPrice: "12",
+  expectedNumberOfCells: "11,043",
+};
+
+export interface FieldInformationType {
+  fieldName: string;
+  fieldDescription: string;
+  cropType: string;
+  biocharRate: string;
+  biocharCost: string;
+  cropSalesPrice: string;
+  expectedNumberOfCells: string;
+}
+
 // Mirrors scenarios from CharAI.feature.file-parser so Playwright Test UI can display them.
 test.describe("CharAI.feature.file-parser", () => {
   test("User can upload and parse valid CSV file", async ({
@@ -27,6 +47,7 @@ test.describe("CharAI.feature.file-parser", () => {
       "csv_valid.csv",
       baseUrl,
       "text",
+      fieldInformation,
     );
 
     // Wait for render then attach a screenshot to the HTML report
@@ -51,6 +72,7 @@ test.describe("CharAI.feature.file-parser", () => {
       "json_valid.json",
       baseUrl,
       "text",
+      fieldInformation,
     );
 
     // Wait for render then attach a screenshot to the HTML report
@@ -75,6 +97,7 @@ test.describe("CharAI.feature.file-parser", () => {
       "geojson_valid.geojson",
       baseUrl,
       "visual",
+      fieldInformation,
     );
     // Wait for render then attach a screenshot to the HTML report
     await page.waitForTimeout(1000);
@@ -98,6 +121,7 @@ test.describe("CharAI.feature.file-parser", () => {
       "kml_valid.kml",
       baseUrl,
       "visual",
+      fieldInformation,
     );
 
     // Wait for render then attach a screenshot to the HTML report
@@ -122,6 +146,7 @@ test.describe("CharAI.feature.file-parser", () => {
       "shp_valid.zip",
       baseUrl,
       "visual",
+      fieldInformation,
     );
 
     // Wait for render then attach a screenshot to the HTML report
@@ -144,6 +169,7 @@ test.describe("CharAI.feature.file-parser", () => {
       fixture,
       testInfo,
       "csv_invalid_not_a_polygon.csv",
+      fieldInformation,
     );
 
     // Wait longer for validation error to appear after file processing
@@ -174,6 +200,7 @@ test.describe("CharAI.feature.file-parser", () => {
       fixture,
       testInfo,
       "csv_invalid_missing_columns.csv",
+      fieldInformation,
     );
 
     // Expect error about missing columns
@@ -198,6 +225,7 @@ test.describe("CharAI.feature.file-parser", () => {
       fixture,
       testInfo,
       "csv_invalid_non_numeric.csv",
+      fieldInformation,
     );
     // Should show validation error about lat/lng columns
     await expect(
@@ -221,6 +249,7 @@ test.describe("CharAI.feature.file-parser", () => {
       fixture,
       testInfo,
       "json_invalid_coordinates_insufficient.json",
+      fieldInformation,
     );
 
     await expect(
@@ -244,6 +273,7 @@ test.describe("CharAI.feature.file-parser", () => {
       fixture,
       testInfo,
       "geojson_invalid_not_a_polygon.geojson",
+      fieldInformation,
     );
 
     await expect(
@@ -267,6 +297,7 @@ test.describe("CharAI.feature.file-parser", () => {
       fixture,
       testInfo,
       "geojson_invalid_not_a_polygon_2.geojson",
+      fieldInformation,
     );
 
     await expect(
@@ -290,6 +321,7 @@ test.describe("CharAI.feature.file-parser", () => {
       fixture,
       testInfo,
       "kml_invalid_not_a_polygon.kml",
+      fieldInformation,
     );
 
     // Expect error about geometry or coordinates
@@ -312,6 +344,7 @@ test.describe("CharAI.feature.file-parser", () => {
       fixture,
       testInfo,
       "shp_invalid_multiple_layers.zip",
+      fieldInformation,
     );
 
     await expect(
@@ -336,6 +369,7 @@ test.describe("CharAI.feature.file-parser", () => {
       fixture,
       testInfo,
       "shp_invalid_not_a_polygon.zip",
+      fieldInformation,
     );
 
     await expect(

@@ -1,4 +1,5 @@
 import { Page, TestInfo, expect } from "@playwright/test";
+import { FieldInformationType } from "./file-parser.spec";
 
 export const registerUser = async (
   page: Page,
@@ -80,19 +81,16 @@ export const uploadCoordinateFile = async (
   fixture: (arg0: any, arg1: string) => string,
   testInfo: TestInfo,
   fileName: string,
+  fieldInformation: FieldInformationType,
 ) => {
   const timestamp = Date.now();
   const uniqueUsername = `testuser${timestamp}`;
   const password = "TestPassword123";
 
   await registerUser(page, uniqueUsername, password, baseUrl);
-
-  await setupBasicFieldInfo(page, baseUrl);
-
+  await setupBasicFieldInfo(page, baseUrl, fieldInformation);
   await openCoordinateUploadStepper(page);
-
   await chooseFileType(page, fileType);
-
   await uploadFile(page, fixture, testInfo, fileName);
 };
 
@@ -144,7 +142,11 @@ export const chooseFileType = async (page: Page, type: "text" | "visual") => {
   });
 };
 
-export const setupBasicFieldInfo = async (page: Page, baseUrl: string) => {
+export const setupBasicFieldInfo = async (
+  page: Page,
+  baseUrl: string,
+  fieldInformation: FieldInformationType,
+) => {
   // Navigate to `/fields`
   await page.goto(`${baseUrl}/fields`);
 
@@ -152,52 +154,68 @@ export const setupBasicFieldInfo = async (page: Page, baseUrl: string) => {
   await page.getByRole("button", { name: /Create Farm/ }).click();
 
   // Enter biochar settings: application rate (t/ha) and cost per ton
-  await page.getByTestId("biochar-rate-input").locator("input").fill("20");
-  await page.getByTestId("biochar-cost-input").locator("input").fill("150");
+  await page
+    .getByTestId("biochar-rate-input")
+    .locator("input")
+    .fill(fieldInformation.biocharRate);
+  await page
+    .getByTestId("biochar-cost-input")
+    .locator("input")
+    .fill(fieldInformation.biocharCost);
 
   // Set crop selling price = 12
-  await page.getByLabel("Price").fill("12");
+  await page.getByLabel("Price").fill(fieldInformation.cropSalesPrice);
 
   // Fill in field name and description
   await page
     .getByTestId("field-name-input")
     .locator("input")
-    .fill("Test North Field");
+    .fill(fieldInformation.fieldName);
   await page
     .getByTestId("field-description-input")
     .locator("textarea")
     .first()
-    .fill("Northern section for testing");
+    .fill(fieldInformation.fieldDescription);
 };
 
-export const waitForFieldStatusComplete = async (page: Page) => {
+export const waitForFieldStatusComplete = async (
+  page: Page,
+  fieldInformation: FieldInformationType,
+) => {
   // Verify the new field appears in the table automatically (no manual page reload)
   await expect(page.locator("table")).toBeVisible({ timeout: 15_000 });
-  await expect(page.locator("td", { hasText: "WW" })).toBeVisible({
+  await expect(
+    page.locator("td", { hasText: fieldInformation.cropType }),
+  ).toBeVisible({
     timeout: 15_000,
   });
 
   // Verify name and description are visible in the table
-  await expect(page.locator("td", { hasText: "Test North Field" })).toBeVisible(
-    { timeout: 5_000 },
-  );
+  await expect(
+    page.locator("td", { hasText: fieldInformation.fieldName }),
+  ).toBeVisible({ timeout: 5_000 });
 
   // Poll for the status to become "complete" — check every 3 seconds for up to 2 minutes
   const statusCell = page
     .locator("tr")
-    .filter({ hasText: "WW" })
+    .filter({ hasText: fieldInformation.cropType })
     .locator("td")
     .nth(5);
   await expect(statusCell).toHaveText("Complete", { timeout: 120_000 });
 };
 
-export const checkMapValidity = async (page: Page) => {
-  const fieldRow = page.locator("tr").filter({ hasText: "WW" });
+export const checkMapValidity = async (
+  page: Page,
+  fieldInformation: FieldInformationType,
+) => {
+  const fieldRow = page
+    .locator("tr")
+    .filter({ hasText: fieldInformation.cropType });
   await fieldRow.getByRole("button", { name: "Get Map" }).click();
 
   // Verify the prescription map dialog is displayed with field name and description
-  await expect(page.getByText("Test North Field")).toBeVisible();
-  await expect(page.getByText("Northern section for testing")).toBeVisible();
+  await expect(page.getByText(fieldInformation.fieldName)).toBeVisible();
+  await expect(page.getByText(fieldInformation.fieldDescription)).toBeVisible();
   await expect(page.locator(".leaflet-container")).toBeVisible();
 
   // Verify Analysis Summary shows correct total grid cells
@@ -208,7 +226,9 @@ export const checkMapValidity = async (page: Page) => {
     .locator("..")
     .locator("p")
     .last();
-  await expect(gridCellsValue).toHaveText("11,043");
+  await expect(gridCellsValue).toHaveText(
+    fieldInformation.expectedNumberOfCells,
+  );
 };
 
 export const uploadFile = async (
@@ -230,6 +250,7 @@ export const submitCoordinateFile = async (
   fileName: string,
   baseUrl: string,
   fileType: "visual" | "text",
+  fieldInformation: FieldInformationType,
 ) => {
   await uploadCoordinateFile(
     page,
@@ -238,6 +259,7 @@ export const submitCoordinateFile = async (
     fixture,
     testInfo,
     fileName,
+    fieldInformation,
   );
 
   await expect(
@@ -271,7 +293,7 @@ export const submitCoordinateFile = async (
   // Click "Submit request" to submit the field for processing
   await page.getByRole("button", { name: "Submit request" }).click();
 
-  await waitForFieldStatusComplete(page);
+  await waitForFieldStatusComplete(page, fieldInformation);
 
-  await checkMapValidity(page);
+  await checkMapValidity(page, fieldInformation);
 };
