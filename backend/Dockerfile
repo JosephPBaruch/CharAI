@@ -26,10 +26,12 @@ COPY . .
 # CACHEBUST: pass a unique value (e.g. git SHA, timestamp) to force
 # retraining even when no source files have changed.
 ARG OPENTOPOGRAPHY_API_KEY=keykey
+ARG EARTH_DATA_API_KEY
 ARG CACHEBUST
 RUN cd YieldPredictionModel \
     && SECRET_KEY=build-only-key \
        OPENTOPOGRAPHY_API_KEY=${OPENTOPOGRAPHY_API_KEY} \
+       EARTH_DATA_API_KEY=${EARTH_DATA_API_KEY} \
        python -u CreateAndTrainYieldCalculatorModel.py \
     && test -f Models/yield_model.keras \
     || { echo "ERROR: Model training failed - check accuracy report above for details"; exit 1; }

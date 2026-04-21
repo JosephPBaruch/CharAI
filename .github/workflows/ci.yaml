@@ -25,12 +25,14 @@ jobs:
             *.cache-to=type=gha,mode=max
         env:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+          EARTH_DATA_API_KEY: ${{ secrets.EARTH_DATA_API_KEY }}
           CACHEBUST: ${{ github.sha }}
 
       - name: Start services
         run: docker compose up -d --wait
         env:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+          EARTH_DATA_API_KEY: ${{ secrets.EARTH_DATA_API_KEY }}
 
       - name: Run database migrations
         run: docker exec django-backend python manage.py migrate

@@ -19,6 +19,7 @@ services:
       context: ./backend
       args:
         OPENTOPOGRAPHY_API_KEY: ${OPENTOPOGRAPHY_API_KEY:-keykey}
+        EARTH_DATA_API_KEY: ${EARTH_DATA_API_KEY:-}
         CACHEBUST: ${CACHEBUST:-}
     image: django-backend
     container_name: django-backend
@@ -29,6 +30,7 @@ services:
       SECRET_KEY: ${SECRET_KEY:-ci-test-key}
       DATABASE_URL: postgresql://${POSTGRES_USER:-charai}:${POSTGRES_PASSWORD:-testpass}@postgres:5432/${POSTGRES_DB:-charai_test}
       OPENTOPOGRAPHY_API_KEY: ${OPENTOPOGRAPHY_API_KEY:-keykey}
+      EARTH_DATA_API_KEY: ${EARTH_DATA_API_KEY:-}
       DEBUG: ${DEBUG:-True}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,frontend}
       MODEL_LOCATION: ./YieldPredictionModel/Models/yield_model.keras

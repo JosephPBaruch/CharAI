@@ -112,6 +112,15 @@ harvest = pd.concat([harvest_reset, charai_attributes_to_add], axis=1)
 
 harvest.drop(columns=["Longitude", "Latitude"], inplace=True)
 
+# Drop any rows where the charai join produced NaNs (e.g. soil moisture
+# fetch failed for one or more seasons).
+pre_dropna = len(harvest)
+harvest = harvest.dropna()
+dropped = pre_dropna - len(harvest)
+if dropped > 0:
+    logger.warning("Dropped %d rows with NaN values after charai join", dropped)
+logger.info("Training rows after NaN removal: %d", len(harvest))
+
 #  ---------- Create Model ----------
 
 # Remove the same columns when using model
@@ -121,6 +130,12 @@ removed_columns = calculator.remove_and_return_unneeded_columns(harvest)
 # ---------- prepare and split data ----------
 
 encode(harvest)
+
+#drop the year column
+cols_to_drop = [c for c in ["year"] if c in harvest.columns]
+if cols_to_drop:
+    harvest.drop(columns=cols_to_drop, inplace=True)
+    logger.info(f"Dropped pre-training helper columns: {cols_to_drop}")
 
 target_column = "GrainYieldAirDry"
 

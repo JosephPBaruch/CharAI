@@ -24,11 +24,15 @@ class YieldCalculator:
 
     MODEL_LOCATION_ENV_VAR = "MODEL_LOCATION"
     MODEL_FEATURE_COLUMNS = [
-        "Crop",
-        "elev_mean_m",
-        "slope_mean_deg",
-        "aspect_eastness",
-        "aspect_northness",
+    "Crop",
+    "elev_mean_m",
+    "slope_mean_deg",
+    "aspect_eastness",
+    "aspect_northness",
+    "soil_moisture_spring",
+    "soil_moisture_summer",
+    "soil_moisture_fall",
+    "soil_moisture_winter",
     ]
 
     # Fixed crop-to-integer mapping for deterministic encoding across
@@ -146,16 +150,17 @@ class YieldCalculator:
     def _calculate_biochar_yield(self, df):
         biochar_df = df.copy()
 
-        # Simulate impact of biochar in feature-space before prediction.
-        # Directions informed by sensitivity analysis on the trained model:
-        #   elev_mean_m:     +0.47/unit  -> slight increase
-        #   slope_mean_deg:  +0.22/unit  -> slight increase
-        #   aspect_eastness: -0.24/unit  -> slight decrease
-        #   aspect_northness:-0.03/unit  -> slight decrease
-        biochar_df["elev_mean_m"] = biochar_df["elev_mean_m"] * 1.005
-        biochar_df["slope_mean_deg"] = (biochar_df["slope_mean_deg"] * 1.10).clip(lower=0)
-        biochar_df["aspect_eastness"] = (biochar_df["aspect_eastness"] - 0.10).clip(-1, 1)
-        biochar_df["aspect_northness"] = (biochar_df["aspect_northness"] - 0.05).clip(-1, 1)
+        # Simulate the primary mechanism of biochar: improved soil water
+        # retention.  Terrain features (elevation, slope, aspect) are
+        # physical constants that biochar cannot change, so they are left
+        # unmodified.  Soil moisture is boosted by 15 % across all seasons,
+        # capped at the physically plausible maximum of 1.0 m³/m³.
+        # NOTE: the 15 % figure is a conservative placeholder; update it
+        # once site-specific biochar trials provide empirical retention data.
+        BIOCHAR_MOISTURE_BOOST = 1.15
+        for season in ("spring", "summer", "fall", "winter"):
+            col = f"soil_moisture_{season}"
+            biochar_df[col] = (df[col] * BIOCHAR_MOISTURE_BOOST).clip(upper=1.0)
 
         return self._calculate(biochar_df)
     

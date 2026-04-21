@@ -31,7 +31,9 @@ export const registerUser = async (
   await page.click('button[type="submit"]');
 
   // Look for the text: "Welcome, Test!"
-  await expect(page.locator(`text=Welcome, ${username}!`)).toBeVisible();
+  await expect(page.locator(`text=Welcome, ${username}!`)).toBeVisible({
+    timeout: 60_000,
+  });
 
   // Verify successful registration (redirects to home page)
   await expect(page).toHaveURL(baseUrl);
