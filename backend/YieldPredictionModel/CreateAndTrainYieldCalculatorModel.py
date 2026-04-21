@@ -112,6 +112,15 @@ harvest = pd.concat([harvest_reset, charai_attributes_to_add], axis=1)
 
 harvest.drop(columns=["Longitude", "Latitude"], inplace=True)
 
+# Drop any rows where the charai join produced NaNs (e.g. soil moisture
+# fetch failed for one or more seasons).
+pre_dropna = len(harvest)
+harvest = harvest.dropna()
+dropped = pre_dropna - len(harvest)
+if dropped > 0:
+    logger.warning("Dropped %d rows with NaN values after charai join", dropped)
+logger.info("Training rows after NaN removal: %d", len(harvest))
+
 #  ---------- Create Model ----------
 
 # Remove the same columns when using model
