@@ -2,11 +2,11 @@
     log {
         output stdout
         format json
-        level {env.LOG_LEVEL} # DEBUG, INFO, WARN, ERROR
+        level {$LOG_LEVEL} # DEBUG, INFO, WARN, ERROR
     }
 
     handle /api/* {
-        reverse_proxy {env.BACKEND_URL}
+        reverse_proxy {$BACKEND_URL}
     }
 
     handle * {
