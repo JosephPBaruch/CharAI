@@ -1,21 +1,11 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import type { FeatureCollection } from "geojson";
+import type { CoordinateContextType } from "../features/coordinate_upload/types";
+import type { LatLngLiteral } from "leaflet";
 
 const STORAGE_KEY = "charai_coordinate_data"; // committed/approved coordinates
 const SUBMIT_STORAGE_KEY = "charai_farm_submitted";
-
-type LatLng = { lat: number; lng: number };
-
-interface CoordinateContextType {
-  data: FeatureCollection | null;
-  isLoading: boolean;
-  hasCoordinates: boolean;
-  formSubmitted: boolean;
-  setCoordinateData: (data: FeatureCollection | LatLng[]) => void; // accepts GeoJSON or raw lat/lng array
-  setFormSubmitted: (submitted: boolean) => void;
-  clearCoordinateData: () => void;
-}
 
 const CoordinateContext = createContext<CoordinateContextType | undefined>(
   undefined,
@@ -26,9 +16,28 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [formSubmitted, setFormSubmittedState] = useState<boolean>(false);
 
+  // On mount, load coordinate data from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        setData(JSON.parse(stored));
+      }
+
+      const storedSubmitted = localStorage.getItem(SUBMIT_STORAGE_KEY);
+      if (storedSubmitted) {
+        setFormSubmittedState(storedSubmitted === "true");
+      }
+    } catch (err) {
+      console.debug("Failed to load coordinates from localStorage:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // Helper: convert [{lat,lng}, ...] to a closed GeoJSON FeatureCollection with temporary default properties
-  const coordsToFeatureCollection = (
-    coords: LatLng[],
+  const convertCoordinatePairToGeoJSON = (
+    coords: LatLngLiteral[],
   ): FeatureCollection | null => {
     if (!coords || coords.length < 3) return null;
     const ring: [number, number][] = coords.map((p) => [p.lng, p.lat]);
@@ -56,29 +65,10 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
     };
   };
 
-  // On mount, load coordinate data from localStorage
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setData(JSON.parse(stored));
-      }
-
-      const storedSubmitted = localStorage.getItem(SUBMIT_STORAGE_KEY);
-      if (storedSubmitted) {
-        setFormSubmittedState(storedSubmitted === "true");
-      }
-    } catch (err) {
-      console.debug("Failed to load coordinates from localStorage:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const setCoordinateData = (newData: FeatureCollection | LatLng[]) => {
+  const setCoordinateData = (newData: FeatureCollection | LatLngLiteral[]) => {
     let fc: FeatureCollection | null = null;
     if (Array.isArray(newData)) {
-      fc = coordsToFeatureCollection(newData);
+      fc = convertCoordinatePairToGeoJSON(newData);
     } else {
       fc = newData;
     }
@@ -88,15 +78,6 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(fc));
     } catch (err) {
       console.error("Failed to save pending coordinates to localStorage:", err);
-    }
-  };
-
-  const setFormSubmitted = (submitted: boolean) => {
-    setFormSubmittedState(submitted);
-    try {
-      localStorage.setItem(SUBMIT_STORAGE_KEY, submitted ? "true" : "false");
-    } catch (err) {
-      console.error("Failed to save submission flag to localStorage:", err);
     }
   };
 
@@ -117,7 +98,6 @@ export function CoordinateProvider({ children }: { children: ReactNode }) {
     hasCoordinates: !!data,
     formSubmitted,
     setCoordinateData,
-    setFormSubmitted,
     clearCoordinateData,
   };
 

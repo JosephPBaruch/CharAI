@@ -17,6 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import MapIcon from "@mui/icons-material/Map";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -140,8 +141,8 @@ export default function FieldTable() {
         minHeight: "calc(100vh - 64px)",
         background:
           theme.palette.mode === "dark"
-            ? `linear-gradient(180deg, #0a0a0a 0%, ${theme.palette.background.default} 100%)`
-            : `linear-gradient(180deg, #f0f0f5 0%, ${theme.palette.background.default} 100%)`,
+            ? `linear-gradient(180deg, ${alpha(theme.palette.common.black, 0.95)} 0%, ${theme.palette.background.default} 100%)`
+            : `linear-gradient(180deg, ${alpha(theme.palette.grey[100], 0.5)} 0%, ${theme.palette.background.default} 100%)`,
       }}
     >
     <Container maxWidth="lg" sx={{ py: 4 }}>

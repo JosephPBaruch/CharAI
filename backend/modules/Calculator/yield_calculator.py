@@ -24,6 +24,7 @@ class YieldCalculator:
 
     MODEL_LOCATION_ENV_VAR = "MODEL_LOCATION"
     MODEL_FEATURE_COLUMNS = [
+    "Crop",
     "elev_mean_m",
     "slope_mean_deg",
     "aspect_eastness",
@@ -33,6 +34,14 @@ class YieldCalculator:
     "soil_moisture_fall",
     "soil_moisture_winter",
     ]
+
+    # Fixed crop-to-integer mapping for deterministic encoding across
+    # training and inference.  Alphabetically sorted codes from the Cook
+    # Farm training CSV.  Must stay in sync with crop_types.py.
+    CROP_ENCODING = {
+        "AL": 0, "GB": 1, "SB": 2, "SC": 3, "SP": 4, "SW": 5,
+        "WB": 6, "WC": 7, "WL": 8, "WP": 9, "WT": 10, "WW": 11,
+    }
     
     # Base yield parameters (yield (idk what unit) per acre equivalent per grid cell)
     BASE_YIELD = 50.0
@@ -165,7 +174,20 @@ class YieldCalculator:
                 f"Model not loaded. Set {self.MODEL_LOCATION_ENV_VAR} to a valid model path and initialize with fetch_model=True."
             )
 
-        features = df.loc[:, self.MODEL_FEATURE_COLUMNS].to_numpy(dtype=np.float32)
+        features = df.loc[:, self.MODEL_FEATURE_COLUMNS].copy()
+
+        # Encode Crop to its integer code when the column is still strings.
+        if features["Crop"].dtype == object:
+            features["Crop"] = features["Crop"].map(self.CROP_ENCODING)
+            unknown = features["Crop"].isna()
+            if unknown.any():
+                bad_codes = df.loc[unknown.values, "Crop"].unique().tolist()
+                raise ValueError(
+                    f"Unknown crop code(s): {bad_codes}. "
+                    f"Valid codes: {sorted(self.CROP_ENCODING.keys())}"
+                )
+
+        features = features.to_numpy(dtype=np.float32)
         expected_dim = self.model.input_shape[-1]
         if expected_dim is not None and features.shape[1] != expected_dim:
             raise ValueError(

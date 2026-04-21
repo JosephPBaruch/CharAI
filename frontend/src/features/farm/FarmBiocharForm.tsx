@@ -13,7 +13,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import BiocharSettings from "./BudgetSettings";
 import FieldsList from "./FieldsList";
 import type { FieldEntry } from "./FieldsList";
-import FileUploadSection from "./FileUploadSection";
+import FileUploadSection from "../coordinate_upload/FileUploadSection";
 import SubmitSection from "./SubmitSection";
 import { useCoordinates } from "../../contexts/CoordinateContext";
 import { POSTFieldData } from "../../api/fetch";
@@ -38,7 +38,7 @@ interface FarmBiocharFormProps {
 export default function FarmBiocharForm({
   onFieldCreated,
 }: FarmBiocharFormProps) {
-  const { data, hasCoordinates, setFormSubmitted } = useCoordinates();
+  const { data, hasCoordinates, clearCoordinateData } = useCoordinates();
   const [field, setField] = React.useState<FieldEntry>(DEFAULT_FIELD());
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
@@ -136,10 +136,10 @@ export default function FarmBiocharForm({
               };
               try {
                 await POSTFieldData(payload);
-                setFormSubmitted(true);
                 closeModal();
-                // Reset form for next creation
+                // Reset form and coordinates for next creation
                 setField(DEFAULT_FIELD());
+                clearCoordinateData();
                 // Reload field list before navigation to avoid race condition
                 if (onFieldCreated) {
                   onFieldCreated();

@@ -1,82 +1,41 @@
 import { test, expect, Page } from "@playwright/test";
+import {
+  loginUser,
+  logoutUser,
+  registerUser,
+  setupBasicFieldInfo,
+} from "./helpers";
 
 const baseUrl = process.env.BASE_URL || "http://localhost:5173";
 
+export const fieldInformation: FieldInformationType = {
+  fieldName: "Test North Field",
+  fieldDescription: "Northern section for testing",
+  cropType: "WW",
+  biocharRate: "20",
+  biocharCost: "150",
+  cropSalesPrice: "12",
+  expectedNumberOfCells: "11,043",
+};
+
+export interface FieldInformationType {
+  fieldName: string;
+  fieldDescription: string;
+  cropType: string;
+  biocharRate: string;
+  biocharCost: string;
+  cropSalesPrice: string;
+  expectedNumberOfCells: string;
+}
+
 // Mirrors scenarios from CharAI.feature so Playwright Test UI can display them.
 test.describe("CharAI.feature", () => {
-  const registerUser = async (
-    page: Page,
-    username: string,
-    password: string,
-  ) => {
-    await page.goto(baseUrl);
-    await expect(page).toHaveURL(/localhost/);
-
-    // generate unique username and email
-
-    // Navigate to signup page
-    await page.click('[data-testid="signup-button"]');
-    await expect(page).toHaveURL(/\/signup/);
-
-    // Fill in signup form
-    await page.fill('[data-testid="username-input"]', username);
-    await page.fill(
-      '[data-testid="email-input"]',
-      `testuser${username}@example.com`,
-    );
-    await page.fill('input[name="first_name"]', username);
-    await page.fill('input[name="last_name"]', "User");
-    await page.fill('input[name="password"]', password);
-    await page.fill('input[name="password2"]', password);
-
-    // Submit the form
-    await page.click('button[type="submit"]');
-
-    // Look for the text: "Welcome, Test!"
-    await expect(page.locator(`text=Welcome, ${username}!`)).toBeVisible();
-
-    // Verify successful registration (redirects to home page)
-    await expect(page).toHaveURL(baseUrl);
-  };
-
-  const loginUser = async (page: Page, username: string, password: string) => {
-    await page.goto(baseUrl);
-    await expect(page).toHaveURL(/localhost/);
-
-    // Navigate to login page
-    await page.click('[data-testid="login-button"]');
-    await expect(page).toHaveURL(/\/login/);
-
-    // Fill in login form
-    await page.fill('input[name="username"]', username);
-    await page.fill('input[name="password"]', password);
-
-    // Submit the form
-    await page.click('button[type="submit"]');
-
-    await expect(page.locator(`text=Welcome, ${username}!`)).toBeVisible();
-
-    // Verify successful registration (redirects to home page)
-    await expect(page).toHaveURL(baseUrl);
-  };
-
-  const logoutUser = async (page: Page) => {
-    await page.goto(baseUrl);
-    await expect(page).toHaveURL(/localhost/);
-
-    await page.click('[data-testid="profile-menu-button"]');
-    await page.click('[data-testid="logout-button"]');
-    await expect(page).toHaveURL(baseUrl);
-
-    await expect(page.locator('[data-testid="login-button"]')).toBeVisible();
-  };
-
   test("User creates an account", async ({ page }) => {
     const timestamp = Date.now();
     const uniqueUsername = `testuser${timestamp}`;
     const password = "TestPassword123";
 
-    await registerUser(page, uniqueUsername, password);
+    await registerUser(page, uniqueUsername, password, baseUrl);
   });
 
   test("User logs out", async ({ page }) => {
@@ -84,9 +43,9 @@ test.describe("CharAI.feature", () => {
     const uniqueUsername = `testuser${timestamp}`;
     const password = "TestPassword123";
 
-    await registerUser(page, uniqueUsername, password);
+    await registerUser(page, uniqueUsername, password, baseUrl);
 
-    await logoutUser(page);
+    await logoutUser(page, baseUrl);
   });
 
   test("User logs in", async ({ page }) => {
@@ -94,11 +53,11 @@ test.describe("CharAI.feature", () => {
     const uniqueUsername = `testuser${timestamp}`;
     const password = "TestPassword123";
 
-    await registerUser(page, uniqueUsername, password);
+    await registerUser(page, uniqueUsername, password, baseUrl);
 
-    await logoutUser(page);
+    await logoutUser(page, baseUrl);
 
-    await loginUser(page, uniqueUsername, password);
+    await loginUser(page, uniqueUsername, password, baseUrl);
   });
 
   test("User creates field and views prescription map", async ({ page }) => {
@@ -108,26 +67,9 @@ test.describe("CharAI.feature", () => {
     const uniqueUsername = `testuser${timestamp}`;
     const password = "TestPassword123";
 
-    await registerUser(page, uniqueUsername, password);
+    await registerUser(page, uniqueUsername, password, baseUrl);
 
-    // Navigate to `/fields`
-    await page.goto(`${baseUrl}/fields`);
-
-    // Click "Create Farm"
-    await page
-      .getByRole("button", { name: /Create Farm/ })
-      .click();
-
-    // Enter biochar settings: application rate (t/ha) and cost per ton
-    await page.getByTestId("biochar-rate-input").locator("input").fill("20");
-    await page.getByTestId("biochar-cost-input").locator("input").fill("150");
-
-    // Set crop selling price = 12
-    await page.getByLabel("Price").fill("12");
-
-    // Fill in field name and description
-    await page.getByTestId("field-name-input").locator("input").fill("Test North Field");
-    await page.getByTestId("field-description-input").locator("textarea").first().fill("Northern section for testing");
+    await setupBasicFieldInfo(page, baseUrl, fieldInformation);
 
     // Click "Draw Boundaries" / "Edit Coordinates" to open the coordinate modal
     await page.getByTestId("open-manual-coordinates").click();
@@ -173,10 +115,14 @@ test.describe("CharAI.feature", () => {
 
     // Verify the new field appears in the table automatically (no manual page reload)
     await expect(page.locator("table")).toBeVisible({ timeout: 15_000 });
-    await expect(page.locator("td", { hasText: "WW" })).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator("td", { hasText: "WW" })).toBeVisible({
+      timeout: 15_000,
+    });
 
     // Verify name and description are visible in the table
-    await expect(page.locator("td", { hasText: "Test North Field" })).toBeVisible({ timeout: 5_000 });
+    await expect(
+      page.locator("td", { hasText: "Test North Field" }),
+    ).toBeVisible({ timeout: 5_000 });
 
     // Poll for the status to become "complete" — check every 3 seconds for up to 2 minutes
     await expect(async () => {
@@ -222,13 +168,11 @@ test.describe("CharAI.feature", () => {
     const uniqueUsername = `testuser${timestamp}`;
     const password = "TestPassword123";
 
-    await registerUser(page, uniqueUsername, password);
+    await registerUser(page, uniqueUsername, password, baseUrl);
 
     // Navigate to /fields and open the form
     await page.goto(`${baseUrl}/fields`);
-    await page
-      .getByRole("button", { name: /Create Farm/ })
-      .click();
+    await page.getByRole("button", { name: /Create Farm/ }).click();
 
     // Open the crop type dropdown
     const cropSelect = page.locator('[data-testid="crop-type-select"]');
@@ -263,12 +207,10 @@ test.describe("CharAI.feature", () => {
     const uniqueUsername = `testuser${timestamp}`;
     const password = "TestPassword123";
 
-    await registerUser(page, uniqueUsername, password);
+    await registerUser(page, uniqueUsername, password, baseUrl);
 
     await page.goto(`${baseUrl}/fields`);
-    await page
-      .getByRole("button", { name: /Create Farm/ })
-      .click();
+    await page.getByRole("button", { name: /Create Farm/ }).click();
 
     // Open the crop type dropdown and pick Spring Barley (SB)
     const cropSelect = page.locator('[data-testid="crop-type-select"]');
@@ -288,15 +230,15 @@ test.describe("CharAI.feature", () => {
     const uniqueUsername = `testuser${timestamp}`;
     const password = "TestPassword123";
 
-    await registerUser(page, uniqueUsername, password);
+    await registerUser(page, uniqueUsername, password, baseUrl);
 
     // Navigate to /fields
     await page.goto(`${baseUrl}/fields`);
 
     // Verify the table starts empty
-    await expect(
-      page.locator("text=No fields found"),
-    ).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator("text=No fields found")).toBeVisible({
+      timeout: 5_000,
+    });
 
     // Click "Create Farm"
     await page.getByRole("button", { name: /Create Farm/ }).click();
@@ -309,8 +251,15 @@ test.describe("CharAI.feature", () => {
     await page.getByLabel("Price").fill("10");
 
     // Fill in field name and description
-    await page.getByTestId("field-name-input").locator("input").fill("Auto Test Field");
-    await page.getByTestId("field-description-input").locator("textarea").first().fill("Auto test description");
+    await page
+      .getByTestId("field-name-input")
+      .locator("input")
+      .fill("Auto Test Field");
+    await page
+      .getByTestId("field-description-input")
+      .locator("textarea")
+      .first()
+      .fill("Auto test description");
 
     // Open coordinate modal and add markers
     await page.getByTestId("open-manual-coordinates").click();
@@ -358,7 +307,9 @@ test.describe("CharAI.feature", () => {
     });
 
     // Verify name and description columns are visible in the table
-    await expect(page.locator("td", { hasText: "Auto Test Field" })).toBeVisible({ timeout: 5_000 });
+    await expect(
+      page.locator("td", { hasText: "Auto Test Field" }),
+    ).toBeVisible({ timeout: 5_000 });
 
     // Verify the dialog is closed
     await expect(
@@ -371,7 +322,7 @@ test.describe("CharAI.feature", () => {
     const uniqueUsername = `testuser${timestamp}`;
     const password = "TestPassword123";
 
-    await registerUser(page, uniqueUsername, password);
+    await registerUser(page, uniqueUsername, password, baseUrl);
 
     // Open profile menu
     await page.click('[data-testid="profile-menu-button"]');
@@ -381,8 +332,12 @@ test.describe("CharAI.feature", () => {
     await expect(page).toHaveURL(/\/profile/);
 
     // Verify profile information is displayed
-    await expect(page.getByTestId("profile-username")).toHaveText(uniqueUsername);
-    await expect(page.getByTestId("profile-name")).toContainText(uniqueUsername);
+    await expect(page.getByTestId("profile-username")).toHaveText(
+      uniqueUsername,
+    );
+    await expect(page.getByTestId("profile-name")).toContainText(
+      uniqueUsername,
+    );
     await expect(page.getByTestId("profile-email")).toContainText(
       `testuser${uniqueUsername}@example.com`,
     );
@@ -394,7 +349,7 @@ test.describe("CharAI.feature", () => {
     const password = "TestPassword123";
     const newPassword = "NewPassword456!";
 
-    await registerUser(page, uniqueUsername, password);
+    await registerUser(page, uniqueUsername, password, baseUrl);
 
     // Navigate to profile
     await page.click('[data-testid="profile-menu-button"]');
@@ -419,7 +374,7 @@ test.describe("CharAI.feature", () => {
     await page.click('[data-testid="logout-button"]');
     await expect(page.locator('[data-testid="login-button"]')).toBeVisible();
 
-    await loginUser(page, uniqueUsername, newPassword);
+    await loginUser(page, uniqueUsername, newPassword, baseUrl);
   });
 
   test("User can delete account", async ({ page }) => {
@@ -427,7 +382,7 @@ test.describe("CharAI.feature", () => {
     const uniqueUsername = `testuser${timestamp}`;
     const password = "TestPassword123";
 
-    await registerUser(page, uniqueUsername, password);
+    await registerUser(page, uniqueUsername, password, baseUrl);
 
     // Navigate to profile
     await page.click('[data-testid="profile-menu-button"]');
@@ -457,6 +412,8 @@ test.describe("CharAI.feature", () => {
     await page.click('button[type="submit"]');
 
     // Should see an error
-    await expect(page.locator(".MuiAlert-root")).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator(".MuiAlert-root")).toBeVisible({
+      timeout: 5_000,
+    });
   });
 });

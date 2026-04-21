@@ -11,10 +11,11 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
-import { COLORS } from "../../styles/colors";
 import React from "react";
 import { InteractiveFarmMap } from "../map";
 import { type LatLngLiteral } from "leaflet";
@@ -23,6 +24,8 @@ import type { FeatureCollection, Feature, Polygon } from "geojson";
 
 export default function ManualCoordinateUpload() {
   const { data, setCoordinateData } = useCoordinates();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [markers, setMarkers] = React.useState<LatLngLiteral[]>([]);
 
@@ -102,33 +105,18 @@ export default function ManualCoordinateUpload() {
         variant="contained"
         startIcon={hasCoordinatesReady ? <EditIcon /> : undefined}
         onClick={openModal}
+        fullWidth
         data-testid="open-manual-coordinates"
         sx={{
-          backgroundColor: COLORS.indigo,
-          "&:hover": { backgroundColor: COLORS.indigoHover },
           textTransform: "none",
+          fontWeight: 500,
           fontSize: "0.95rem",
         }}
       >
-        {hasCoordinatesReady ? "Edit Coordinates" : "Draw Boundaries"}
+        {hasCoordinatesReady ? "Manually edit coordinates" : "Draw boundaries"}
       </Button>
 
-      <Dialog
-        open={isModalOpen}
-        onClose={closeModal}
-        maxWidth="xl"
-        fullWidth
-        PaperProps={{
-          sx: {
-            backgroundColor: COLORS.bgDark,
-            backgroundImage: "none",
-            color: COLORS.whiteHigh,
-            height: "92vh",
-            maxHeight: "92vh",
-            borderRadius: 2,
-          },
-        }}
-      >
+      <Dialog open={isModalOpen} onClose={closeModal} maxWidth="xl" fullWidth>
         <DialogTitle sx={{ pb: 2 }}>
           <Box
             sx={{
@@ -140,9 +128,13 @@ export default function ManualCoordinateUpload() {
             <IconButton
               onClick={closeModal}
               sx={{
-                color: COLORS.whiteHigh,
                 gap: 1,
-                "&:hover": { backgroundColor: COLORS.whiteHover },
+                color: "text.primary",
+                "&:hover": {
+                  backgroundColor: isDark
+                    ? alpha(theme.palette.common.white, 0.08)
+                    : alpha(theme.palette.common.black, 0.04),
+                },
               }}
             >
               <ArrowBackIcon />
@@ -150,7 +142,7 @@ export default function ManualCoordinateUpload() {
             </IconButton>
             <Typography
               variant="h5"
-              sx={{ fontWeight: 600 }}
+              sx={{ fontWeight: 600, color: "text.primary" }}
               data-testid="modal-title"
             >
               Define Field Boundaries
@@ -159,7 +151,7 @@ export default function ManualCoordinateUpload() {
           </Box>
         </DialogTitle>
 
-        <Divider sx={{ borderColor: COLORS.whiteVeryLow }} />
+        <Divider sx={{ borderColor: "divider" }} />
 
         <DialogContent sx={{ pt: 2, pb: 2, px: 4, overflow: "hidden" }}>
           <Box sx={{ display: "flex", gap: 2, height: "100%" }}>
@@ -170,8 +162,10 @@ export default function ManualCoordinateUpload() {
                 minWidth: 0,
                 borderRadius: 2,
                 overflow: "hidden",
-                border: `1px solid ${COLORS.whiteVeryLow}`,
-                boxShadow: `0 4px 12px ${COLORS.blackMedium}`,
+                border: `1px solid ${theme.palette.divider}`,
+                boxShadow: `0 4px 12px ${
+                  isDark ? alpha(theme.palette.common.black, 0.5) : alpha(theme.palette.common.black, 0.1)
+                }`,
               }}
             >
               <InteractiveFarmMap
@@ -195,8 +189,14 @@ export default function ManualCoordinateUpload() {
               <Paper
                 elevation={0}
                 sx={{
-                  backgroundColor: COLORS.indigoLight,
-                  border: `1px solid ${COLORS.indigoBorder}`,
+                  backgroundColor: isDark
+                    ? alpha(theme.palette.primary.main, 0.1)
+                    : alpha(theme.palette.primary.main, 0.06),
+                  border: `1px solid ${
+                    isDark
+                      ? alpha(theme.palette.primary.main, 0.3)
+                      : alpha(theme.palette.primary.main, 0.4)
+                  }`,
                   borderRadius: 2,
                   p: 2,
                   flexShrink: 0,
@@ -207,7 +207,7 @@ export default function ManualCoordinateUpload() {
                   sx={{
                     mb: 1,
                     fontWeight: 600,
-                    color: COLORS.indigo,
+                    color: "primary.main",
                     fontSize: "1rem",
                   }}
                 >
@@ -217,7 +217,7 @@ export default function ManualCoordinateUpload() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: COLORS.whiteMedium,
+                      color: "text.secondary",
                       lineHeight: 1.6,
                       fontSize: "0.85rem",
                     }}
@@ -228,7 +228,7 @@ export default function ManualCoordinateUpload() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: COLORS.whiteMedium,
+                      color: "text.secondary",
                       lineHeight: 1.6,
                       fontSize: "0.85rem",
                     }}
@@ -238,7 +238,7 @@ export default function ManualCoordinateUpload() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: COLORS.whiteMedium,
+                      color: "text.secondary",
                       lineHeight: 1.6,
                       fontSize: "0.85rem",
                     }}
@@ -249,7 +249,7 @@ export default function ManualCoordinateUpload() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: COLORS.whiteMedium,
+                      color: "text.secondary",
                       lineHeight: 1.6,
                       fontSize: "0.85rem",
                     }}
@@ -260,7 +260,7 @@ export default function ManualCoordinateUpload() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: COLORS.whiteMedium,
+                      color: "text.secondary",
                       lineHeight: 1.6,
                       fontSize: "0.85rem",
                     }}
@@ -276,8 +276,8 @@ export default function ManualCoordinateUpload() {
                 elevation={0}
                 data-testid="coordinates-panel"
                 sx={{
-                  backgroundColor: COLORS.bgDark,
-                  border: `1px solid ${COLORS.whiteVeryLow}`,
+                  backgroundColor: "background.paper",
+                  border: `1px solid ${theme.palette.divider}`,
                   borderRadius: 2,
                   p: 2,
                   maxHeight: "300px",
@@ -297,7 +297,7 @@ export default function ManualCoordinateUpload() {
                     sx={{
                       fontWeight: 600,
                       fontSize: "1rem",
-                      color: COLORS.whiteHigh,
+                      color: "text.primary",
                     }}
                   >
                     Coordinates
@@ -311,13 +311,13 @@ export default function ManualCoordinateUpload() {
                       setMarkers((prev) => [...prev, { lat: 0, lng: 0 }])
                     }
                     sx={{
-                      borderColor: COLORS.indigo,
-                      color: COLORS.indigo,
-                      textTransform: "none",
-                      fontSize: "0.8rem",
+                      borderColor: "primary.main",
+                      color: "primary.main",
                       "&:hover": {
-                        borderColor: COLORS.indigoHover,
-                        backgroundColor: COLORS.indigoLight,
+                        borderColor: "primary.light",
+                        backgroundColor: isDark
+                          ? alpha(theme.palette.primary.main, 0.1)
+                          : alpha(theme.palette.primary.main, 0.06),
                       },
                     }}
                   >
@@ -327,7 +327,7 @@ export default function ManualCoordinateUpload() {
                 {markers.length === 0 && (
                   <Typography
                     variant="body2"
-                    sx={{ color: COLORS.whiteMedium, fontSize: "0.85rem" }}
+                    sx={{ color: "text.secondary", fontSize: "0.85rem" }}
                   >
                     Click the map or press "Add Marker" to begin.
                   </Typography>
@@ -341,7 +341,7 @@ export default function ManualCoordinateUpload() {
                     >
                       <Typography
                         variant="body2"
-                        sx={{ color: COLORS.whiteMedium, minWidth: 24 }}
+                        sx={{ color: "text.secondary", minWidth: 24 }}
                       >
                         {idx + 1}.
                       </Typography>
@@ -362,19 +362,7 @@ export default function ManualCoordinateUpload() {
                             );
                           }
                         }}
-                        sx={{
-                          flex: 1,
-                          "& .MuiInputBase-input": {
-                            color: COLORS.whiteHigh,
-                            fontSize: "0.85rem",
-                          },
-                          "& .MuiInputLabel-root": {
-                            color: COLORS.whiteMedium,
-                          },
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: COLORS.whiteVeryLow,
-                          },
-                        }}
+                        sx={{ flex: 1 }}
                       />
                       <TextField
                         label="Lng"
@@ -393,19 +381,7 @@ export default function ManualCoordinateUpload() {
                             );
                           }
                         }}
-                        sx={{
-                          flex: 1,
-                          "& .MuiInputBase-input": {
-                            color: COLORS.whiteHigh,
-                            fontSize: "0.85rem",
-                          },
-                          "& .MuiInputLabel-root": {
-                            color: COLORS.whiteMedium,
-                          },
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: COLORS.whiteVeryLow,
-                          },
-                        }}
+                        sx={{ flex: 1 }}
                       />
                     </Box>
                   ))}
@@ -426,17 +402,17 @@ export default function ManualCoordinateUpload() {
                     fullWidth
                     data-testid="undo-marker-button"
                     sx={{
-                      borderColor: COLORS.warningBorder,
-                      color: COLORS.warning,
-                      textTransform: "none",
-                      py: 1.2,
+                      borderColor: "warning.main",
+                      color: "warning.main",
                       "&:hover": {
-                        borderColor: COLORS.warning,
-                        backgroundColor: COLORS.warningLight,
+                        borderColor: "warning.main",
+                        backgroundColor: isDark
+                          ? alpha(theme.palette.warning.main, 0.08)
+                          : alpha(theme.palette.warning.main, 0.06),
                       },
                       "&:disabled": {
-                        borderColor: COLORS.whiteVeryLow,
-                        color: COLORS.whiteDisabled,
+                        borderColor: "action.disabled",
+                        color: "action.disabled",
                       },
                     }}
                   >
@@ -450,17 +426,17 @@ export default function ManualCoordinateUpload() {
                     fullWidth
                     data-testid="clear-markers-button"
                     sx={{
-                      borderColor: COLORS.errorBorder,
-                      color: COLORS.error,
-                      textTransform: "none",
-                      py: 1.2,
+                      borderColor: "error.main",
+                      color: "error.main",
                       "&:hover": {
-                        borderColor: COLORS.error,
-                        backgroundColor: COLORS.errorLight,
+                        borderColor: "error.main",
+                        backgroundColor: isDark
+                          ? alpha(theme.palette.error.main, 0.08)
+                          : alpha(theme.palette.error.main, 0.06),
                       },
                       "&:disabled": {
-                        borderColor: COLORS.whiteVeryLow,
-                        color: COLORS.whiteDisabled,
+                        borderColor: "action.disabled",
+                        color: "action.disabled",
                       },
                     }}
                   >
@@ -475,16 +451,7 @@ export default function ManualCoordinateUpload() {
                   fullWidth
                   data-testid="save-boundaries-button"
                   sx={{
-                    backgroundColor: COLORS.indigo,
-                    textTransform: "none",
                     py: 1.2,
-                    "&:hover": {
-                      backgroundColor: COLORS.indigoHover,
-                    },
-                    "&:disabled": {
-                      backgroundColor: COLORS.whiteVeryLow,
-                      color: COLORS.whiteDisabled,
-                    },
                   }}
                 >
                   Save Boundaries

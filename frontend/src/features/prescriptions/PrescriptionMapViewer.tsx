@@ -1,5 +1,6 @@
 import { Box, Typography } from "@mui/material";
-import { COLORS } from "../../styles/colors";
+import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import React from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -14,6 +15,7 @@ import { GridCanvasLayer } from "./GridCanvasLayer";
 import EmptyPrescriptionState from "./EmptyPrescriptionData";
 
 export default function PrescriptionMapViewer() {
+  const theme = useTheme();
   const mapContainerRef = React.useRef<HTMLDivElement | null>(null);
   const mapRef = React.useRef<L.Map | null>(null);
   const gridLayerRef = React.useRef<GridCanvasLayer | null>(null);
@@ -96,7 +98,7 @@ export default function PrescriptionMapViewer() {
     }
 
     boundaryLayerRef.current = L.polygon(latLngs, {
-      color: "#00ffcc",
+      color: theme.palette.custom.mapBoundary,
       weight: 2,
       fill: false,
     }).addTo(mapRef.current);
@@ -152,16 +154,16 @@ export default function PrescriptionMapViewer() {
     const tooltip = document.createElement("div");
     tooltip.style.cssText = `
       position: absolute;
-      background: rgba(0,0,0,0.85);
+      background: ${alpha(theme.palette.common.black, 0.85)};
       padding: 8px 12px;
       border-radius: 6px;
       font-size: 12px;
-      color: #fff;
+      color: ${theme.palette.common.white};
       pointer-events: none;
       z-index: 1000;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 12px ${alpha(theme.palette.common.black, 0.4)};
       display: none;
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid ${alpha(theme.palette.common.white, 0.1)};
     `;
     document.body.appendChild(tooltip);
     tooltipRef.current = tooltip;
@@ -203,14 +205,14 @@ export default function PrescriptionMapViewer() {
           justifyContent: "space-between",
           mb: 2,
           pb: 2,
-          borderBottom: `1px solid ${COLORS.whiteVeryLow}`,
+          borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
         <Box>
           <Typography
             variant="h4"
             sx={{
-              color: COLORS.whiteHigh,
+              color: theme.palette.text.primary,
               fontWeight: 700,
               display: "flex",
               alignItems: "center",
@@ -221,7 +223,7 @@ export default function PrescriptionMapViewer() {
           </Typography>
           <Typography
             variant="body2"
-            sx={{ color: COLORS.whiteMedium, mt: 0.5 }}
+            sx={{ color: theme.palette.text.secondary, mt: 0.5 }}
           >
             Biochar application recommendations based on your field analysis
           </Typography>
@@ -237,8 +239,8 @@ export default function PrescriptionMapViewer() {
             position: "relative",
             borderRadius: 2,
             overflow: "hidden",
-            border: `1px solid ${COLORS.whiteVeryLow}`,
-            boxShadow: `0 4px 20px ${COLORS.blackLow}`,
+            border: `1px solid ${theme.palette.divider}`,
+            boxShadow: `0 4px 20px ${alpha(theme.palette.common.black, 0.15)}`,
           }}
         >
           <div
@@ -256,7 +258,7 @@ export default function PrescriptionMapViewer() {
               display: "flex",
               alignItems: "center",
               gap: 1,
-              backgroundColor: COLORS.blackOverlay,
+              backgroundColor: alpha(theme.palette.common.black, 0.6),
               backdropFilter: "blur(4px)",
               borderRadius: 1,
               px: 1.5,
@@ -264,9 +266,9 @@ export default function PrescriptionMapViewer() {
             }}
           >
             <InfoOutlinedIcon
-              sx={{ fontSize: 16, color: COLORS.whiteMedium }}
+              sx={{ fontSize: 16, color: theme.palette.text.primary }}
             />
-            <Typography variant="caption" sx={{ color: COLORS.whiteMedium }}>
+            <Typography variant="caption" sx={{ color: theme.palette.text.primary }}>
               Hover over cells to see details
             </Typography>
           </Box>

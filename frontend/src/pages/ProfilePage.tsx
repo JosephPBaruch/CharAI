@@ -15,6 +15,7 @@ import {
   Divider,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import PersonIcon from "@mui/icons-material/Person";
 import LockIcon from "@mui/icons-material/Lock";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -114,8 +115,8 @@ const ProfilePage = () => {
 
   const gradientBg =
     theme.palette.mode === "dark"
-      ? `linear-gradient(180deg, #0a0a0a 0%, ${theme.palette.background.default} 100%)`
-      : `linear-gradient(180deg, #f0f0f5 0%, ${theme.palette.background.default} 100%)`;
+      ? `linear-gradient(180deg, ${alpha(theme.palette.common.black, 0.95)} 0%, ${theme.palette.background.default} 100%)`
+      : `linear-gradient(180deg, ${alpha(theme.palette.grey[100], 0.5)} 0%, ${theme.palette.background.default} 100%)`;
 
   return (
     <Box

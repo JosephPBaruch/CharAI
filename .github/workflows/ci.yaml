@@ -23,6 +23,9 @@ jobs:
           set: |
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
+        env:
+          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+          CACHEBUST: ${{ github.sha }}
 
       - name: Start services
         run: docker compose up -d --wait
@@ -90,26 +93,26 @@ jobs:
         if: always()
         run: docker compose down
 
-      # - name: Login to Azure Container Registry
-      #   if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
-      #   run: |
-      #     echo "${{ secrets.AZURE_REGISTRY_PASSWORD }}" | docker login \
-      #       -u "${{ secrets.AZURE_REGISTRY_USERNAME }}" \
-      #       --password-stdin \
-      #       ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}
+      - name: Login to Azure Container Registry
+        if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "${{ secrets.AZURE_REGISTRY_PASSWORD }}" | docker login \
+            -u "${{ secrets.AZURE_REGISTRY_USERNAME }}" \
+            --password-stdin \
+            ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}
 
-      # - name: Push backend image to Azure Container Registry
-      #   if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
-      #   run: |
-      #     docker tag django-backend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:${{ github.sha }}
-      #     docker tag django-backend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:latest
-      #     docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:${{ github.sha }}
-      #     docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:latest
+      - name: Push backend image to Azure Container Registry
+        if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          docker tag django-backend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:${{ github.sha }}
+          docker tag django-backend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:latest
+          docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:${{ github.sha }}
+          docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-backend:latest
 
-      # - name: Push frontend image to Azure Container Registry
-      #   if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
-      #   run: |
-      #     docker tag char-ai-frontend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:${{ github.sha }}
-      #     docker tag char-ai-frontend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:latest
-      #     docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:${{ github.sha }}
-      #     docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:latest
+      - name: Push frontend image to Azure Container Registry
+        if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          docker tag char-ai-frontend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:${{ github.sha }}
+          docker tag char-ai-frontend ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:latest
+          docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:${{ github.sha }}
+          docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/charai-frontend:latest
