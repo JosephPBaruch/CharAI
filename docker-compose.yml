@@ -19,6 +19,7 @@ services:
       context: ./backend
       args:
         OPENTOPOGRAPHY_API_KEY: ${OPENTOPOGRAPHY_API_KEY:-keykey}
+        EARTH_DATA_API_KEY: ${EARTH_DATA_API_KEY:-}
         CACHEBUST: ${CACHEBUST:-}
     image: django-backend
     container_name: django-backend
