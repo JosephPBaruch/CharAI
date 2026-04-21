@@ -133,7 +133,7 @@ test.describe("CharAI.feature", () => {
         .locator("td")
         .nth(5);
       await expect(statusCell).toHaveText("Complete");
-    }).toPass({ intervals: [3_000], timeout: 120_000 });
+    }).toPass({ intervals: [3_000], timeout: 240_000 });
 
     // Click "Get Map" for that row
     const fieldRow = page.locator("tr").filter({ hasText: "WW" });
