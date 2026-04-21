@@ -1,7 +1,19 @@
 import React from "react";
-import { Box, Typography, Container, Button, Paper, Grid, Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Container,
+  Button,
+  Paper,
+  Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+} from "@mui/material";
 import { Link as RouterLink } from "react-router";
 import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import { useAuth } from "../contexts/AuthContext";
 import { useCoordinates } from "../contexts/CoordinateContext";
 import { useNavigate } from "react-router";
@@ -15,7 +27,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import BiocharSettings from "../features/farm/BudgetSettings";
 import FieldsList from "../features/farm/FieldsList";
 import type { FieldEntry } from "../features/farm/FieldsList";
-import FileUploadSection from "../features/farm/FileUploadSection";
+import FileUploadSection from "../features/coordinate_upload/FileUploadSection";
 import SubmitSection from "../features/farm/SubmitSection";
 
 interface FeatureCardProps {
@@ -37,7 +49,7 @@ function FeatureCard({ icon, title, description }: FeatureCardProps) {
         transition: "border-color 0.2s, box-shadow 0.2s",
         "&:hover": {
           borderColor: "primary.main",
-          boxShadow: `0 4px 20px rgba(0,0,0,0.15)`,
+          boxShadow: `0 4px 20px ${alpha(theme.palette.common.black, 0.15)}`,
         },
       }}
     >
@@ -69,7 +81,7 @@ const DEFAULT_FIELD = (): FieldEntry => ({
 const LandingPage = () => {
   const { isAuthenticated } = useAuth();
   const theme = useTheme();
-  const { data, hasCoordinates, setFormSubmitted } = useCoordinates();
+  const { data, hasCoordinates } = useCoordinates();
   const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -94,8 +106,8 @@ const LandingPage = () => {
 
   const gradientBg =
     theme.palette.mode === "dark"
-      ? `linear-gradient(180deg, #0a0a0a 0%, ${theme.palette.background.default} 100%)`
-      : `linear-gradient(180deg, #f0f0f5 0%, ${theme.palette.background.default} 100%)`;
+      ? `linear-gradient(180deg, ${alpha(theme.palette.common.black, 0.95)} 0%, ${theme.palette.background.default} 100%)`
+      : `linear-gradient(180deg, ${alpha(theme.palette.grey[100], 0.5)} 0%, ${theme.palette.background.default} 100%)`;
 
   return (
     <Box sx={{ minHeight: "calc(100vh - 64px)", background: gradientBg }}>
@@ -112,17 +124,18 @@ const LandingPage = () => {
               display: "inline-flex",
               alignItems: "center",
               gap: 1,
-              backgroundColor: theme.palette.mode === "dark" ? "rgba(100, 108, 255, 0.1)" : "rgba(100, 108, 255, 0.08)",
-              border: `1px solid rgba(99, 102, 241, 0.3)`,
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.primary.main, 0.1)
+                  : alpha(theme.palette.primary.main, 0.08),
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
               borderRadius: 5,
               px: 2,
               py: 0.5,
               mb: 3,
             }}
           >
-            <AutoAwesomeIcon
-              sx={{ fontSize: 16, color: "primary.main" }}
-            />
+            <AutoAwesomeIcon sx={{ fontSize: 16, color: "primary.main" }} />
             <Typography
               variant="caption"
               sx={{ color: "primary.light", fontWeight: 500 }}
@@ -298,10 +311,7 @@ const LandingPage = () => {
             >
               Ready to optimize your fields?
             </Typography>
-            <Typography
-              variant="body1"
-              sx={{ color: "text.secondary", mb: 3 }}
-            >
+            <Typography variant="body1" sx={{ color: "text.secondary", mb: 3 }}>
               Create a free account and generate your first prescription map in
               minutes.
             </Typography>
@@ -325,11 +335,20 @@ const LandingPage = () => {
         maxWidth="lg"
         fullWidth
       >
-        <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <Typography variant="h5" component="span" sx={{ fontWeight: 700 }}>
             Create New Field
           </Typography>
-          <IconButton onClick={() => setIsModalOpen(false)} sx={{ color: "text.secondary" }}>
+          <IconButton
+            onClick={() => setIsModalOpen(false)}
+            sx={{ color: "text.secondary" }}
+          >
             <CloseIcon />
           </IconButton>
         </DialogTitle>
@@ -369,7 +388,6 @@ const LandingPage = () => {
                 };
                 try {
                   await POSTFieldData(payload);
-                  setFormSubmitted(true);
                   setIsModalOpen(false);
                   navigate("/fields");
                 } catch (err) {

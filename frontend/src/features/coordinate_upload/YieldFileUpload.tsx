@@ -7,10 +7,11 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import React from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import { uploadYieldFile } from "../../services/fileUploadService";
-import { COLORS } from "../../styles/colors";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -29,6 +30,7 @@ export default function YieldFileUpload(props: {
   onUploadComplete?: () => void;
 }) {
   const { onSelect, onUploadComplete } = props || {};
+  const theme = useTheme();
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -81,12 +83,6 @@ export default function YieldFileUpload(props: {
         <Button
           variant="contained"
           component="label"
-          sx={{
-            textTransform: "none",
-            fontSize: "1rem",
-            backgroundColor: COLORS.indigo,
-            "&:hover": { backgroundColor: COLORS.indigoHover },
-          }}
         >
           Choose file
           <VisuallyHiddenInput
@@ -102,8 +98,10 @@ export default function YieldFileUpload(props: {
           sx={{
             alignItems: "center",
             padding: 1.5,
-            backgroundColor: COLORS.indigoLight,
-            border: `1px solid ${COLORS.indigo}`,
+            backgroundColor: theme.palette.mode === "dark"
+              ? alpha(theme.palette.primary.main, 0.15)
+              : alpha(theme.palette.primary.main, 0.08),
+            border: `1px solid ${theme.palette.primary.main}`,
             borderRadius: 1,
             minWidth: 300,
           }}
@@ -112,7 +110,7 @@ export default function YieldFileUpload(props: {
             variant="body2"
             sx={{
               flex: 1,
-              color: COLORS.whiteHigh,
+              color: "text.primary",
               wordBreak: "break-word",
             }}
           >
@@ -122,7 +120,7 @@ export default function YieldFileUpload(props: {
             size="small"
             onClick={handleClearFile}
             disabled={isLoading}
-            sx={{ color: COLORS.whiteHigh }}
+            sx={{ color: "text.primary" }}
           >
             <CloseIcon fontSize="small" />
           </IconButton>
@@ -134,12 +132,6 @@ export default function YieldFileUpload(props: {
           variant="contained"
           onClick={handleFileSubmit}
           disabled={isLoading}
-          sx={{
-            textTransform: "none",
-            fontSize: "1rem",
-            backgroundColor: COLORS.indigo,
-            "&:hover": { backgroundColor: COLORS.indigoHover },
-          }}
         >
           {isLoading ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
           {isLoading ? "Uploading..." : "Submit file"}

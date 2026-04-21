@@ -1,0 +1,19 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "North Field" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-116.97727203369142, 46.75520514295208],
+            [-116.94499969482423, 46.75214798439814],
+            [-116.97727203369142, 46.75520514295208]
+          ]
+        ]
+      }
+    }
+  ]
+}

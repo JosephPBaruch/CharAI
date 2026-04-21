@@ -1,5 +1,6 @@
 import { Box, Typography, Container, Paper, Button, Grid } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import { Link as RouterLink } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
 import AgricultureIcon from "@mui/icons-material/Agriculture";
@@ -15,8 +16,8 @@ const HomePage = () => {
         minHeight: "calc(100vh - 64px)",
         background:
           theme.palette.mode === "dark"
-            ? `linear-gradient(180deg, #0a0a0a 0%, ${theme.palette.background.default} 100%)`
-            : `linear-gradient(180deg, #f0f0f5 0%, ${theme.palette.background.default} 100%)`,
+            ? `linear-gradient(180deg, ${alpha(theme.palette.common.black, 0.95)} 0%, ${theme.palette.background.default} 100%)`
+            : `linear-gradient(180deg, ${alpha(theme.palette.grey[100], 0.5)} 0%, ${theme.palette.background.default} 100%)`,
       }}
     >
       <Container maxWidth="lg">

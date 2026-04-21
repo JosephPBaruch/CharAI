@@ -1,0 +1,181 @@
+import { Box, Button, Paper, Typography } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
+import DescriptionIcon from "@mui/icons-material/Description";
+import MapIcon from "@mui/icons-material/Map";
+import type { FileTypes, FileTypeSeparationScreenProps } from "../types";
+import { getStepContentStyles } from "../../../styles/theme";
+
+interface FileTypeOption {
+  type: FileTypes;
+  title: string;
+  description: string;
+  formats: string[];
+  icon: React.ReactNode;
+}
+
+const fileTypeOptions: FileTypeOption[] = [
+  {
+    type: "text",
+    title: "CSV or JSON",
+    description: "Spreadsheet or data interchange format",
+    formats: [".csv", ".json"],
+    icon: <DescriptionIcon sx={{ fontSize: 40 }} />,
+  },
+  {
+    type: "visual",
+    title: "GeoJSON, KML, or Shapefile",
+    description: "Geographic data formats",
+    formats: [".geojson", ".kml", ".shp"],
+    icon: <MapIcon sx={{ fontSize: 40 }} />,
+  },
+];
+
+export default function FileTypeSeparationScreen({
+  setFileType,
+  fileType,
+}: FileTypeSeparationScreenProps) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+  const stepContentStyles = getStepContentStyles();
+
+  return (
+    <Box sx={stepContentStyles.container}>
+      {/* Header Section */}
+      <Box sx={stepContentStyles.section}>
+        <Typography
+          variant="h5"
+          sx={{
+            color: "text.primary",
+            fontWeight: 600,
+          }}
+        >
+          Which file format are you using?
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.secondary",
+            lineHeight: 1.6,
+          }}
+        >
+          Choose the format that matches your farm boundary file. Don't
+          worry—CharAI supports multiple formats and can handle them correctly.
+        </Typography>
+      </Box>
+
+      {/* File Type Options */}
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          marginTop: 2,
+        }}
+      >
+        {fileTypeOptions.map((option) => (
+          <Box key={option.type}>
+            <Paper
+              component={Button}
+              onClick={() => setFileType(option.type)}
+              elevation={0}
+              sx={{
+                p: 3,
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                alignItems: "flex-start",
+                border: `2px solid ${
+                  fileType === option.type
+                    ? "primary.main"
+                    : isDark
+                      ? alpha(theme.palette.common.white, 0.1)
+                      : theme.palette.divider
+                }`,
+                background:
+                  fileType === option.type
+                    ? isDark
+                      ? alpha(theme.palette.primary.main, 0.08)
+                      : alpha(theme.palette.primary.main, 0.03)
+                    : "transparent",
+                transition: "all 0.2s ease",
+                borderRadius: 2,
+                textAlign: "left",
+                cursor: "pointer",
+                textTransform: "none",
+                color: "inherit",
+                "&:hover": {
+                  borderColor:
+                    fileType === option.type ? "primary.main" : "primary.light",
+                  background:
+                    fileType === option.type
+                      ? isDark
+                        ? alpha(theme.palette.primary.main, 0.12)
+                        : alpha(theme.palette.primary.main, 0.05)
+                      : isDark
+                        ? alpha(theme.palette.primary.main, 0.05)
+                        : alpha(theme.palette.primary.main, 0.02),
+                },
+              }}
+            >
+              {/* Icon */}
+              <Box sx={{ color: "primary.main" }}>{option.icon}</Box>
+
+              {/* Title and Description */}
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    fontWeight: 600,
+                    color: "text.primary",
+                  }}
+                >
+                  {option.title}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: "text.secondary",
+                  }}
+                >
+                  {option.description}
+                </Typography>
+              </Box>
+
+              {/* Supported Formats */}
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 1,
+                  flexWrap: "wrap",
+                  mt: "auto",
+                }}
+              >
+                {option.formats.map((format) => (
+                  <Typography
+                    key={format}
+                    variant="caption"
+                    sx={{
+                      backgroundColor: isDark
+                        ? alpha(theme.palette.common.white, 0.05)
+                        : alpha(theme.palette.common.black, 0.04),
+                      color: "text.secondary",
+                      px: 1,
+                      py: 0.5,
+                      borderRadius: 1,
+                      fontFamily: "monospace",
+                      fontSize: "0.7rem",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {format}
+                  </Typography>
+                ))}
+              </Box>
+            </Paper>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+}
