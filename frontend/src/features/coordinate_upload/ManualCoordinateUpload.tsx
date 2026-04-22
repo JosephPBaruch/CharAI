@@ -116,7 +116,22 @@ export default function ManualCoordinateUpload() {
         {hasCoordinatesReady ? "Manually edit coordinates" : "Draw boundaries"}
       </Button>
 
-      <Dialog open={isModalOpen} onClose={closeModal} maxWidth="xl" fullWidth>
+      <Dialog
+        open={isModalOpen}
+        onClose={closeModal}
+        maxWidth="xl"
+        fullWidth
+        slotProps={{
+          backdrop: {
+            sx: {
+              backgroundColor: isDark
+                ? alpha(theme.palette.common.black, 0.7)
+                : alpha(theme.palette.common.black, 0.5),
+              backdropFilter: "blur(4px)",
+            },
+          },
+        }}
+      >
         <DialogTitle sx={{ pb: 2 }}>
           <Box
             sx={{
@@ -164,7 +179,9 @@ export default function ManualCoordinateUpload() {
                 overflow: "hidden",
                 border: `1px solid ${theme.palette.divider}`,
                 boxShadow: `0 4px 12px ${
-                  isDark ? alpha(theme.palette.common.black, 0.5) : alpha(theme.palette.common.black, 0.1)
+                  isDark
+                    ? alpha(theme.palette.common.black, 0.5)
+                    : alpha(theme.palette.common.black, 0.1)
                 }`,
               }}
             >

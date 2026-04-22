@@ -5,6 +5,7 @@ import {
   DialogTitle,
   IconButton,
 } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import { useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import CoordinateUploadStepper from "./Stepper";
@@ -16,6 +17,8 @@ interface CoordinateFileUploadModalProps {
 export default function CoordinateFileUploadModal({
   hasCoordinates = false,
 }: CoordinateFileUploadModalProps) {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === "dark";
   const [open, setOpen] = useState<boolean>(false);
 
   const handleOpen = () => setOpen(true);
@@ -44,6 +47,16 @@ export default function CoordinateFileUploadModal({
         onClose={handleClose}
         maxWidth="md"
         fullWidth
+        slotProps={{
+          backdrop: {
+            sx: {
+              backgroundColor: isDarkMode
+                ? alpha(theme.palette.common.black, 0.7)
+                : alpha(theme.palette.common.black, 0.5),
+              backdropFilter: "blur(4px)",
+            },
+          },
+        }}
         PaperProps={{
           sx: {
             borderRadius: 2,
