@@ -13,6 +13,9 @@ import logging
 
 class PrescriptionMapGenerator: 
 
+    MIN_SYNTHETIC_PAYBACK_YEARS = 1.0
+    MAX_SYNTHETIC_PAYBACK_YEARS = 10.0
+
     def __init__(self, logger: logging.Logger):
         self.logger = logger
 
@@ -25,8 +28,7 @@ class PrescriptionMapGenerator:
             "cell_id",
             "centroid_lat",
             "centroid_lon",
-            "yield_without_biochar",
-            "yield_with_biochar",
+            "elev_mean_m",
         }
 
         if not required_columns.issubset(set(yield_prediction_df.columns)):
@@ -36,22 +38,43 @@ class PrescriptionMapGenerator:
             )
 
         df = yield_prediction_df.copy()
-
-        yield_with = pd.to_numeric(df["yield_with_biochar"], errors="coerce")
-        yield_without = pd.to_numeric(df["yield_without_biochar"], errors="coerce")
-
-        df["yield_delta"] = yield_with - yield_without
-        df["marginal_revenue"] = df["yield_delta"] * float(crop_sales_price)
         df["payback_period"] = np.nan
 
-        valid_mask = df["marginal_revenue"] > 0
-        df.loc[valid_mask, "payback_period"] = (
-            float(biochar_cost_per_cell)
-            / pd.to_numeric(df.loc[valid_mask, "marginal_revenue"], errors="coerce")
+        elevation = pd.to_numeric(df["elev_mean_m"], errors="coerce")
+        valid_mask = elevation.notna()
+
+        if valid_mask.any():
+            valid_elevation = elevation.loc[valid_mask]
+            elev_min = float(valid_elevation.min())
+            elev_max = float(valid_elevation.max())
+
+            if np.isclose(elev_min, elev_max):
+                midpoint = (
+                    self.MIN_SYNTHETIC_PAYBACK_YEARS
+                    + self.MAX_SYNTHETIC_PAYBACK_YEARS
+                ) / 2.0
+                df.loc[valid_mask, "payback_period"] = midpoint
+            else:
+                normalized_elevation = (valid_elevation - elev_min) / (elev_max - elev_min)
+                df.loc[valid_mask, "payback_period"] = (
+                    self.MAX_SYNTHETIC_PAYBACK_YEARS
+                    - (
+                        self.MAX_SYNTHETIC_PAYBACK_YEARS
+                        - self.MIN_SYNTHETIC_PAYBACK_YEARS
+                    )
+                    * normalized_elevation
+                )
+
+        df["payback_period"] = df["payback_period"].clip(
+            lower=self.MIN_SYNTHETIC_PAYBACK_YEARS,
+            upper=self.MAX_SYNTHETIC_PAYBACK_YEARS,
         )
 
-        # Clamp negative payback periods to zero.
-        df["payback_period"] = df["payback_period"].clip(lower=0)
+        self.logger.debug(
+            "Synthetic payback gradient generated from elevation: min=%s, max=%s",
+            float(df["payback_period"].min(skipna=True)) if valid_mask.any() else None,
+            float(df["payback_period"].max(skipna=True)) if valid_mask.any() else None,
+        )
 
         # Keep only JSON-safe numeric payback values for downstream serialization.
         finite_mask = np.isfinite(df["payback_period"].to_numpy(dtype=float, copy=False))

@@ -29,10 +29,10 @@ class YieldCalculator:
     "slope_mean_deg",
     "aspect_eastness",
     "aspect_northness",
-    "soil_moisture_spring",
-    "soil_moisture_summer",
-    "soil_moisture_fall",
-    "soil_moisture_winter",
+    # "soil_moisture_spring",
+    # "soil_moisture_summer",
+    # "soil_moisture_fall",
+    # "soil_moisture_winter",
     ]
 
     # Fixed crop-to-integer mapping for deterministic encoding across
@@ -157,10 +157,10 @@ class YieldCalculator:
         # capped at the physically plausible maximum of 1.0 m³/m³.
         # NOTE: the 15 % figure is a conservative placeholder; update it
         # once site-specific biochar trials provide empirical retention data.
-        BIOCHAR_MOISTURE_BOOST = 1.15
-        for season in ("spring", "summer", "fall", "winter"):
-            col = f"soil_moisture_{season}"
-            biochar_df[col] = (df[col] * BIOCHAR_MOISTURE_BOOST).clip(upper=1.0)
+        # BIOCHAR_MOISTURE_BOOST = 1.15
+        # for season in ("spring", "summer", "fall", "winter"):
+        #     col = f"soil_moisture_{season}"
+        #     biochar_df[col] = (df[col] * BIOCHAR_MOISTURE_BOOST).clip(upper=1.0)
 
         return self._calculate(biochar_df)
     
