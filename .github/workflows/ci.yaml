@@ -95,7 +95,7 @@ jobs:
         run: docker compose down
 
       - name: Login to Azure Container Registry
-        if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        # if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           echo "${{ secrets.AZURE_REGISTRY_PASSWORD }}" | docker login \
             -u "${{ secrets.AZURE_REGISTRY_USERNAME }}" \
