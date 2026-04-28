@@ -57,7 +57,14 @@ const HomePage = () => {
                   flexDirection: "column",
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    mb: 1.5,
+                  }}
+                >
                   <AgricultureIcon sx={{ color: "primary.main" }} />
                   <Typography
                     variant="h6"
@@ -96,7 +103,14 @@ const HomePage = () => {
                   flexDirection: "column",
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    mb: 1.5,
+                  }}
+                >
                   <TableChartIcon sx={{ color: "primary.main" }} />
                   <Typography
                     variant="h6"
@@ -109,8 +123,8 @@ const HomePage = () => {
                   variant="body2"
                   sx={{ color: "text.secondary", mb: 2, flex: 1 }}
                 >
-                  Check processing status, view completed prescription maps,
-                  and manage your existing field submissions.
+                  Check processing status, view completed prescription maps, and
+                  manage your existing field submissions.
                 </Typography>
                 <Button
                   component={RouterLink}
@@ -139,13 +153,10 @@ const HomePage = () => {
             >
               About This Tool
             </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: "text.secondary" }}
-            >
-              CharAI uses terrain analysis and machine learning to generate
-              biochar prescription maps. Define your field, submit coordinates,
-              and receive optimized application recommendations.
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              BiocharEducation uses terrain analysis and machine learning to
+              generate biochar prescription maps. Define your field, submit
+              coordinates, and receive optimized application recommendations.
             </Typography>
           </Paper>
         </Box>

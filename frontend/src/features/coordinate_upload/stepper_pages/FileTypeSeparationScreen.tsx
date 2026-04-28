@@ -60,7 +60,8 @@ export default function FileTypeSeparationScreen({
           }}
         >
           Choose the format that matches your farm boundary file. Don't
-          worry—CharAI supports multiple formats and can handle them correctly.
+          worry—BiocharEducation supports multiple formats and can handle them
+          correctly.
         </Typography>
       </Box>
 
