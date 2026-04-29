@@ -145,6 +145,7 @@ const HomePage = () => {
               p: 3,
               border: `1px solid ${theme.palette.divider}`,
               borderRadius: 2,
+              mb: 2,
             }}
           >
             <Typography

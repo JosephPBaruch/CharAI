@@ -62,7 +62,7 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ cells }) => {
           </Typography>
           <Typography
             variant="body2"
-            sx={{ color: theme.palette.text.secondary, fontWeight: 600 }}
+            sx={{ color: theme.palette.text.primary }}
           >
             {cells.length.toLocaleString()}
           </Typography>

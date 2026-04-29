@@ -290,7 +290,15 @@ export default function FieldDialog({
                 </Box>
 
                 {/* Main content */}
-                <Box sx={{ flex: 1, display: "flex", gap: 2, minHeight: 0 }}>
+                <Box
+                  sx={{
+                    flex: 1,
+                    display: "flex",
+                    gap: 2,
+                    minHeight: 0,
+                    flexDirection: { xs: "column", md: "row" },
+                  }}
+                >
                   {/* Map container */}
                   <Box
                     sx={{
@@ -298,6 +306,8 @@ export default function FieldDialog({
                       position: "relative",
                       borderRadius: 2,
                       overflow: "hidden",
+                      minWidth: 0,
+                      minHeight: { xs: 300, md: 0 },
                       border: `1px solid ${theme.palette.divider}`,
                       boxShadow: `0 4px 20px ${alpha(theme.palette.common.black, 0.15)}`,
                     }}
@@ -325,11 +335,14 @@ export default function FieldDialog({
                       }}
                     >
                       <InfoOutlinedIcon
-                        sx={{ fontSize: 16, color: theme.palette.text.primary }}
+                        sx={{
+                          fontSize: 16,
+                          color: theme.palette.custom.textOverlay,
+                        }}
                       />
                       <Typography
                         variant="caption"
-                        sx={{ color: theme.palette.text.primary }}
+                        sx={{ color: theme.palette.custom.textOverlay }}
                       >
                         Hover over cells to see details
                       </Typography>
@@ -339,7 +352,6 @@ export default function FieldDialog({
                   {/* Sidebar */}
                   <Box
                     sx={{
-                      width: 280,
                       display: "flex",
                       flexDirection: "column",
                       gap: 2,

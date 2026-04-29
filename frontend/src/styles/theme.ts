@@ -5,6 +5,7 @@ import { COLORS } from "./colors";
 declare module "@mui/material/styles" {
   interface Palette {
     custom: {
+      textOverlay?: string;
       mapBoundary: string;
       gold: string;
       dataGreen: string;
@@ -20,6 +21,7 @@ declare module "@mui/material/styles" {
   }
   interface PaletteOptions {
     custom?: {
+      textOverlay?: string;
       mapBoundary?: string;
       gold?: string;
       dataGreen?: string;
@@ -123,6 +125,7 @@ export function createAppTheme(mode: PaletteMode) {
       },
       divider: isDark ? COLORS.whiteVeryLow : "#e5e7eb",
       custom: {
+        textOverlay: COLORS.whiteHigh,
         mapBoundary: "#00ffcc",
         gold: COLORS.gold,
         dataGreen: COLORS.dataGreen,
