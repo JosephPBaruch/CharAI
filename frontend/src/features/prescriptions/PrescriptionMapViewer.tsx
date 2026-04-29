@@ -268,7 +268,10 @@ export default function PrescriptionMapViewer() {
             <InfoOutlinedIcon
               sx={{ fontSize: 16, color: theme.palette.text.primary }}
             />
-            <Typography variant="caption" sx={{ color: theme.palette.text.primary }}>
+            <Typography
+              variant="caption"
+              sx={{ color: theme.palette.text.primary }}
+            >
               Hover over cells to see details
             </Typography>
           </Box>

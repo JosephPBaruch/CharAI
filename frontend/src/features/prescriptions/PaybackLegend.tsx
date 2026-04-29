@@ -16,8 +16,16 @@ export const PaybackLegend: React.FC = () => {
       color: theme.palette.custom.dataLightGreen,
       label: "High Priority",
     },
-    { range: "5-6 years", color: theme.palette.custom.dataYellow, label: "Medium Priority" },
-    { range: "7-8 years", color: theme.palette.custom.dataOrange, label: "Low Priority" },
+    {
+      range: "5-6 years",
+      color: theme.palette.custom.dataYellow,
+      label: "Medium Priority",
+    },
+    {
+      range: "7-8 years",
+      color: theme.palette.custom.dataOrange,
+      label: "Low Priority",
+    },
     {
       range: "9-10 years",
       color: theme.palette.custom.dataRed,
@@ -29,7 +37,7 @@ export const PaybackLegend: React.FC = () => {
     <Paper
       elevation={0}
       sx={{
-        backgroundColor: alpha(theme.palette.common.black, 0.7),
+        backgroundColor: alpha(theme.palette.background.paper, 0.7),
         backdropFilter: "blur(8px)",
         border: `1px solid ${alpha(theme.palette.common.white, 0.12)}`,
         borderRadius: 2,
