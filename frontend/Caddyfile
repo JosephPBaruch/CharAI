@@ -1,17 +1,21 @@
 :80 {
-    log {
-        output stdout
-        format json
-        level {$LOG_LEVEL} # DEBUG, INFO, WARN, ERROR
-    }
+	log {
+		output stdout
+		format json
+		level {$LOG_LEVEL}
+	}
 
-    handle /api/* {
-        reverse_proxy {$BACKEND_URL}
-    }
+	handle /api/* {
+		reverse_proxy {$BACKEND_URL} {
+			header_up Host backend
+			header_up X-Forwarded-Host {host}
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
 
-    handle * {
-        root * /srv
-        try_files {path} /index.html
-        file_server
-    }
+	handle * {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
 }

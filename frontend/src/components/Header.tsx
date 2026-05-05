@@ -1,5 +1,19 @@
 import { Link as RouterLink, useNavigate } from "react-router";
-import { AppBar, Toolbar, Typography, Button, Box, IconButton, Tooltip, Avatar, Menu, MenuItem, ListItemIcon, ListItemText, Divider } from "@mui/material";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  IconButton,
+  Tooltip,
+  Avatar,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+} from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
@@ -68,19 +82,33 @@ const Header = () => {
         <Typography
           variant="h6"
           component="div"
-          sx={{ fontWeight: 700, flexShrink: 0, letterSpacing: "-0.02em", color: "text.primary" }}
+          sx={{
+            fontWeight: 700,
+            flexShrink: 0,
+            letterSpacing: "-0.02em",
+            color: "text.primary",
+          }}
         >
           <RouterLink
             to="/"
             style={{ textDecoration: "none", color: "inherit" }}
           >
-            CharAI
+            BiocharEducation
           </RouterLink>
         </Typography>
         <Box
-          sx={{ display: "flex", gap: 0.5, flexShrink: 0, alignItems: "center" }}
+          sx={{
+            display: "flex",
+            gap: 0.5,
+            flexShrink: 0,
+            alignItems: "center",
+          }}
         >
-          <Tooltip title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
+          <Tooltip
+            title={
+              mode === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+          >
             <IconButton
               onClick={toggleTheme}
               sx={{ color: theme.palette.text.secondary }}
@@ -91,18 +119,10 @@ const Header = () => {
           </Tooltip>
           {isAuthenticated ? (
             <>
-              <Button
-                component={RouterLink}
-                to="/"
-                sx={navButtonSx}
-              >
+              <Button component={RouterLink} to="/" sx={navButtonSx}>
                 Home
               </Button>
-              <Button
-                component={RouterLink}
-                to="/fields"
-                sx={navButtonSx}
-              >
+              <Button component={RouterLink} to="/fields" sx={navButtonSx}>
                 Fields
               </Button>
               <Tooltip title="Account">
@@ -150,10 +170,7 @@ const Header = () => {
                   <ListItemText>Profile</ListItemText>
                 </MenuItem>
                 <Divider />
-                <MenuItem
-                  onClick={handleLogout}
-                  data-testid="logout-button"
-                >
+                <MenuItem onClick={handleLogout} data-testid="logout-button">
                   <ListItemIcon>
                     <LogoutIcon fontSize="small" />
                   </ListItemIcon>
@@ -163,11 +180,7 @@ const Header = () => {
             </>
           ) : (
             <>
-              <Button
-                component={RouterLink}
-                to="/"
-                sx={navButtonSx}
-              >
+              <Button component={RouterLink} to="/" sx={navButtonSx}>
                 Home
               </Button>
               <Button

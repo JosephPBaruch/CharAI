@@ -116,7 +116,22 @@ export default function ManualCoordinateUpload() {
         {hasCoordinatesReady ? "Manually edit coordinates" : "Draw boundaries"}
       </Button>
 
-      <Dialog open={isModalOpen} onClose={closeModal} maxWidth="xl" fullWidth>
+      <Dialog
+        open={isModalOpen}
+        onClose={closeModal}
+        maxWidth="xl"
+        fullWidth
+        slotProps={{
+          backdrop: {
+            sx: {
+              backgroundColor: isDark
+                ? alpha(theme.palette.common.black, 0.7)
+                : alpha(theme.palette.common.black, 0.5),
+              backdropFilter: "blur(4px)",
+            },
+          },
+        }}
+      >
         <DialogTitle sx={{ pb: 2 }}>
           <Box
             sx={{
@@ -153,18 +168,30 @@ export default function ManualCoordinateUpload() {
 
         <Divider sx={{ borderColor: "divider" }} />
 
-        <DialogContent sx={{ pt: 2, pb: 2, px: 4, overflow: "hidden" }}>
-          <Box sx={{ display: "flex", gap: 2, height: "100%" }}>
+        <DialogContent
+          sx={{ pt: 2, pb: 2, px: 4, height: "calc(100vh - 100px)" }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              gap: 2,
+              height: "100%",
+              minHeight: 0,
+              flexDirection: { xs: "column", md: "row" },
+            }}
+          >
             {/* Map Section - Takes most of the space */}
             <Box
               sx={{
                 flex: 1,
-                minWidth: 0,
                 borderRadius: 2,
-                overflow: "hidden",
+                minWidth: 0,
+                minHeight: { xs: 300, md: 0 },
                 border: `1px solid ${theme.palette.divider}`,
                 boxShadow: `0 4px 12px ${
-                  isDark ? alpha(theme.palette.common.black, 0.5) : alpha(theme.palette.common.black, 0.1)
+                  isDark
+                    ? alpha(theme.palette.common.black, 0.5)
+                    : alpha(theme.palette.common.black, 0.1)
                 }`,
               }}
             >
@@ -178,11 +205,12 @@ export default function ManualCoordinateUpload() {
             {/* Sidebar - Instructions and Controls */}
             <Box
               sx={{
-                width: "380px",
                 display: "flex",
                 flexDirection: "column",
                 gap: 2,
                 flexShrink: 0,
+                minHeight: 0,
+                overflow: "hidden",
               }}
             >
               {/* Instructions Section */}
@@ -280,8 +308,10 @@ export default function ManualCoordinateUpload() {
                   border: `1px solid ${theme.palette.divider}`,
                   borderRadius: 2,
                   p: 2,
-                  maxHeight: "300px",
+                  maxHeight: { xs: 300, md: "none" },
+                  minHeight: 0,
                   overflowY: "auto",
+                  flex: 1,
                 }}
               >
                 <Box
@@ -388,11 +418,8 @@ export default function ManualCoordinateUpload() {
                 </Stack>
               </Paper>
 
-              {/* Spacer to push buttons to bottom */}
-              <Box sx={{ flex: 1 }} />
-
               {/* Action Buttons */}
-              <Stack spacing={1.5}>
+              <Stack spacing={1.5} sx={{ flexShrink: 0 }}>
                 {/* Undo and Clear buttons in a row */}
                 <Box sx={{ display: "flex", gap: 1.5 }}>
                   <Button

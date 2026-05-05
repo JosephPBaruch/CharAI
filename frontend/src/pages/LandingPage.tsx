@@ -157,7 +157,7 @@ const LandingPage = () => {
           >
             Optimize Biochar Application with{" "}
             <Box component="span" sx={{ color: "primary.main" }}>
-              CharAI
+              BiocharEducation
             </Box>
           </Typography>
 

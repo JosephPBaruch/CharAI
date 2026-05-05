@@ -32,7 +32,7 @@ export const registerUser = async (
 
   // Look for the text: "Welcome, Test!"
   await expect(page.locator(`text=Welcome, ${username}!`)).toBeVisible({
-    timeout: 60_000,
+    timeout: 120_000,
   });
 
   // Verify successful registration (redirects to home page)

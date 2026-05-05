@@ -5,6 +5,7 @@ import React from "react";
 
 export const PaybackLegend: React.FC = () => {
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === "dark";
   const legendItems = [
     {
       range: "1-2 years",
@@ -16,8 +17,16 @@ export const PaybackLegend: React.FC = () => {
       color: theme.palette.custom.dataLightGreen,
       label: "High Priority",
     },
-    { range: "5-6 years", color: theme.palette.custom.dataYellow, label: "Medium Priority" },
-    { range: "7-8 years", color: theme.palette.custom.dataOrange, label: "Low Priority" },
+    {
+      range: "5-6 years",
+      color: theme.palette.custom.dataYellow,
+      label: "Medium Priority",
+    },
+    {
+      range: "7-8 years",
+      color: theme.palette.custom.dataOrange,
+      label: "Low Priority",
+    },
     {
       range: "9-10 years",
       color: theme.palette.custom.dataRed,
@@ -29,11 +38,16 @@ export const PaybackLegend: React.FC = () => {
     <Paper
       elevation={0}
       sx={{
-        backgroundColor: alpha(theme.palette.common.black, 0.7),
+        backgroundColor: isDarkMode
+          ? alpha(theme.palette.common.black, 0.7)
+          : alpha(theme.palette.background.paper, 0.94),
         backdropFilter: "blur(8px)",
-        border: `1px solid ${alpha(theme.palette.common.white, 0.12)}`,
+        border: `1px solid ${isDarkMode ? alpha(theme.palette.common.white, 0.12) : alpha(theme.palette.divider, 0.9)}`,
         borderRadius: 2,
         p: 2,
+        boxShadow: isDarkMode
+          ? `0 10px 30px ${alpha(theme.palette.common.black, 0.28)}`
+          : `0 10px 24px ${alpha(theme.palette.common.black, 0.08)}`,
       }}
     >
       <Typography
