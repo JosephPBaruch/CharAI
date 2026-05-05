@@ -31,13 +31,13 @@ def create_charai_data(logger: logging.Logger, coords, tiff_file_path, crop: str
 
     terrain_df["Crop"] = crop or "WW"
         
-    # logger.debug("Fetching Soil Data")
-    # fetcher = SoilInfoFetcher(logger=logger)
-    # try:
-    #     terrain_df = fetcher.add_soil_moisture(terrain_df)
-    #     logger.debug("Soil data successfully added to dataframe")
-    # except Exception as e:
-    #     logger.warning(f"Soil data fetch failed, continuing without it: {e}")
+    logger.debug("Fetching Soil Data")
+    fetcher = SoilInfoFetcher(logger=logger)
+    try:
+        terrain_df = fetcher.add_soil_moisture(terrain_df)
+        logger.debug("Soil data successfully added to dataframe")
+    except Exception as e:
+        logger.warning(f"Soil data fetch failed, continuing without it: {e}")
         
     return terrain_df
 
