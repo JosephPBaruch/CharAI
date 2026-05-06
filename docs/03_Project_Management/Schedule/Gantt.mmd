@@ -1,48 +1,58 @@
 gantt
-    title CharAI Project High-Level Schedule
-    dateFormat  YYYY-MM-DD
-    section Major Milestones
-    Snapshot Day #1          :milestone, sd1, 2025-10-21, 0d
-    Concept Design Review    :milestone, cdr, 2025-11-14, 0d
-    Snapshot Day #2          :milestone, sd2, 2025-12-9, 0d
-    Detailed Design Review   :milestone, ddr, 2026-2-9, 0d
-    Engineering Release      :milestone, eng, 2026-2-27, 0d
-    Snapshot Day #3          :milestone, sd3, 2026-3-31, 0d
-    EXPO Poster              :milestone, poster, 2026-4-22, 0d
-    EXPO                     :milestone, expo, 2026-4-30, 0d
-    section Planning
-    Defining Requirements     :reqs, 2025-9-7, 30d
-    section Architecture & Plan
-    UML Diagrams              :uml, after reqs, 1w
-    Architecture Models       :arch, after reqs, 1w
-    Milestones/Responsibilities :sresp, after uml arch, 3d
-    section Rapid Prototype
-    Build Mock UIs            :mock, after sresp, 2w
-    Core Functionality        :core, after sresp, 2w
-    Test Prototype            :tprot, after core, 5d
-    section Data
-    Build Data Layer          :data, after sresp, 4w
-    Data Collection           :prep, after data, 10d
-    Clean Dataset             :dat1, after prep, 5d
-    Split Into Train/Val/Test :dat2, after dat1, 1w
-    Preprocess Data           :dat3, after dat2, 1w
-    Data Documentation        :dat4, after dat3, 1w
-    section Model Development
-    Define Evaluation Metrics :modl1, after dat4, 1w
-    Design CNN Architecture   :modl2, after modl1, 1w
-    Train Baseline Model      :modl3, after modl2, 3w
-    Iterate - Evaluate & Tune :modl4, after modl3, 2w
-    Select Best Model         :modl5, after modl4, 3d
-    section MVP
-    Deploy CNN Model          :mvp, after modl5, 1w
-    Get Feedback              :fdbck, after mvp, 1w
-    section Implementation
-    Front-end                 :frnt, after tprot, 4w
-    Back-end                  :back, after tprot, 6w
-    Setup Database            :db, after tprot, 3w
-    System Integration        :sysint, after modl5 frnt back db, 2w
-    section Testing & Validation
-    Unit Testing              :utest, after tprot, 6w
-    Integration Testing       :itest, after tprot, 6w
-    System Testing            :stest, after tprot, 6w
-    Model Testing             :mtest, after modl1, 4w
+title CharAI Project High-Level Schedule
+dateFormat  YYYY-MM-DD
+section Major Milestones
+Snapshot Day #1              :milestone, sd1, 2025-10-21, 0d
+Concept Design Review        :milestone, cdr, 2025-11-14, 0d
+Snapshot Day #2              :milestone, sd2, 2025-12-09, 0d
+Detailed Design Review       :milestone, ddr, 2026-02-09, 0d
+Engineering Release          :milestone, eng, 2026-02-27, 0d
+Snapshot Day #3              :milestone, sd3, 2026-03-31, 0d
+EXPO Poster                  :milestone, poster, 2026-04-22, 0d
+EXPO                         :milestone, expo, 2026-04-30, 0d
+section Planning
+Defining Requirements        :reqs, 2025-09-07, 30d
+section Architecture & Plan
+UML Diagrams                 :uml, after reqs, 1w
+Architecture Models          :arch, after reqs, 1w
+Milestones/Responsibilities  :sresp, after uml arch, 3d
+Build Mock UIs               :mock, after sresp, 1w
+
+section Frontend
+User Management & Basic Pages        :frnt1, after mock, 5w
+Input Mechanism & Prescription Map   :frnt2, after frnt1, 8w
+Frontend-Backend Integration         :frnt3, after frnt2, 4w
+Expand User Management               :frnt4, after frnt3, 4w
+Automatic File Upload Wizard         :frnt5, after frnt3, 6w
+Styling                              :frnt6, after frnt3, 4w
+UX Optimization & Mobile Responsive  :frnt7, after frnt4 frnt5 frnt6, 2w
+
+section Backend
+Initialize Backend for User Management   :back1, 2025-10-20, 2w
+GeoTIFF Generator - Land Elevation       :back2, after back1, 8w
+GeoTIFF Parser - Grid Land Properties    :back3, after back1, 8w
+Dummy Calculations / Yield Predictions   :back4, after back3, 2w
+Integrate Frontend-Backend Prescription  :back5, after back4, 4w
+Soil Fetching API                        :back6, after back5, 7w
+Temperature API Fetching                 :back7, after back5, 7w
+
+section Model Development
+Analyze & Preprocess Cook Farm Data  :modl1, 2026-01-05, 3w
+Create Basic Model (Cook Farm)       :modl2, after modl1, 2w
+Integrate Model into Pipeline        :modl3, after modl2, 2w
+Optimize Model                       :modl4, after modl3, 3w
+Adjust Model for Backend Parameters  :modl5, after modl4, 2w
+Create Model Re-Training Scripts     :modl6, after modl5, 1w
+
+section Deployment & CI/CD
+Containerize App Ends                :dep1, after back1, 5w
+DB Persistence                       :dep2, after dep1, 2w
+Multi-Container Apps                 :dep3, after dep2, 2w
+Reverse-Proxy Server Integration     :dep4, after dep3, 2w
+Integrate Deployment with Azure      :dep5, after dep4, 2w
+Deployment Streamlining Scripts      :dep6, after dep5, 1w
+
+section Validation
+Initial E2E Playwright Tests         :val1, after frnt1, 2w
+Integrate Tests into CI/CD Pipeline  :val2, after val1 dep1, 2w
+Iterate on Tests                     :val3, after val2, 10w
